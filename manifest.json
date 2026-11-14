@@ -1,0 +1,59 @@
+{
+  "name": "BrilhaVest - FUVEST & ENEM",
+  "short_name": "BrilhaVest",
+  "description": "Plataforma de estudos para FUVEST e ENEM com 420 questões comentadas, simulados, cronômetro e nuvem.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#4f46e5",
+  "background_color": "#0f172a",
+  "lang": "pt-BR",
+  "categories": [
+    "education",
+    "books"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Praticar Questões",
+      "short_name": "Questões",
+      "description": "Banco de 420 questões com gabarito comentado",
+      "url": "./index.html?tab=questions",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Obras FUVEST 2027",
+      "short_name": "FUVEST 2027",
+      "description": "Análise das 9 novas leituras obrigatórias da USP",
+      "url": "./index.html?tab=books",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Flashcards Inteligentes",
+      "short_name": "Flashcards",
+      "description": "Fixação de fórmulas e conceitos",
+      "url": "./index.html?tab=flashcards",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

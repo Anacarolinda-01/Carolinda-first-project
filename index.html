@@ -43,8 +43,23 @@
   
   <!-- Estilos Customizados -->
   <link rel="stylesheet" href="css/styles.css">
+
+  <!-- Configurações PWA (Progressive Web App) -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="BrilhaVest">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased selection:bg-indigo-100 selection:text-indigo-900">
+
+  <!-- Banner de Conexão Offline PWA -->
+  <div id="pwa-offline-banner" class="hidden bg-amber-500 text-slate-900 text-xs font-bold py-1.5 px-4 text-center transition-all sticky top-0 z-50 shadow-md">
+    <i class="fa-solid fa-wifi mr-1.5"></i> Você está estudando sem internet (Modo Offline PWA). Suas respostas estão sendo salvas normalmente!
+  </div>
 
   <!-- ================= NAVBAR ================= -->
   <header class="sticky top-0 z-40 glass-nav border-b border-slate-200/80 transition-all">
@@ -87,8 +102,19 @@
           </button>
         </nav>
 
-        <!-- Ações: Botão Nuvem/Conta + Modo Escuro + Treinar -->
+        <!-- Ações: Botão Instalar App + Nuvem/Conta + Modo Escuro + Treinar -->
         <div class="flex items-center gap-2">
+          <!-- Botão Instalar App (PWA) -->
+          <button 
+            id="btn-install-pwa" 
+            onclick="triggerPWAInstall()" 
+            title="Instalar BrilhaVest no seu celular ou computador" 
+            class="hidden px-3 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-bold items-center gap-1.5 transition shadow-sm"
+          >
+            <i class="fa-solid fa-download text-xs"></i>
+            <span class="hidden sm:inline">Instalar App</span>
+          </button>
+
           <!-- Botão Conta / Sincronização Supabase -->
           <button 
             id="btn-auth-account" 

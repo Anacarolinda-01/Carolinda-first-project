@@ -109,10 +109,87 @@ document.addEventListener('DOMContentLoaded', () => {
   initFlashcards();
   initModalsDismissal();
   updateGlobalBadges();
+  initPWA();
   if (typeof initSupabase === 'function') {
     initSupabase();
   }
 });
+
+// ==========================================
+// PWA (PROGRESSIVE WEB APP) & OFFLINE CACHE
+// ==========================================
+let deferredPWAInstallPrompt = null;
+
+function initPWA() {
+  // 1. Registro do Service Worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then((reg) => {
+          console.log('[PWA] Service Worker registrado com sucesso:', reg.scope);
+        })
+        .catch((err) => {
+          console.warn('[PWA] Falha ao registrar Service Worker:', err);
+        });
+    });
+  }
+
+  // 2. Intercepta o evento de instalação do PWA para exibir o botão customizado
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPWAInstallPrompt = e;
+    const btnInstall = document.getElementById('btn-install-pwa');
+    if (btnInstall) {
+      btnInstall.classList.remove('hidden');
+      btnInstall.classList.add('flex');
+    }
+  });
+
+  window.addEventListener('appinstalled', () => {
+    console.log('[PWA] BrilhaVest instalado com sucesso!');
+    deferredPWAInstallPrompt = null;
+    const btnInstall = document.getElementById('btn-install-pwa');
+    if (btnInstall) {
+      btnInstall.classList.add('hidden');
+      btnInstall.classList.remove('flex');
+    }
+  });
+
+  // 3. Monitoramento de conexão online/offline
+  window.addEventListener('offline', () => {
+    const banner = document.getElementById('pwa-offline-banner');
+    if (banner) banner.classList.remove('hidden');
+  });
+
+  window.addEventListener('online', () => {
+    const banner = document.getElementById('pwa-offline-banner');
+    if (banner) banner.classList.add('hidden');
+    if (typeof handleManualCloudSync === 'function') {
+      handleManualCloudSync();
+    }
+  });
+
+  if (!navigator.onLine) {
+    const banner = document.getElementById('pwa-offline-banner');
+    if (banner) banner.classList.remove('hidden');
+  }
+}
+
+window.triggerPWAInstall = async function() {
+  if (!deferredPWAInstallPrompt) {
+    alert("Para instalar no iPhone/iPad: toque no botão Compartilhar do Safari e selecione 'Adicionar à Tela de Início'.\n\nNo Android/Chrome: clique nos 3 pontinhos e selecione 'Instalar aplicativo'.");
+    return;
+  }
+  deferredPWAInstallPrompt.prompt();
+  const { outcome } = await deferredPWAInstallPrompt.userChoice;
+  console.log('[PWA] Escolha do usuário:', outcome);
+  deferredPWAInstallPrompt = null;
+  const btnInstall = document.getElementById('btn-install-pwa');
+  if (btnInstall) {
+    btnInstall.classList.add('hidden');
+    btnInstall.classList.remove('flex');
+  }
+};
 
 // ==========================================
 // MODO ESCURO (DARK MODE)
