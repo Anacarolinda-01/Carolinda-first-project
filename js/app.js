@@ -151,7 +151,7 @@ function applyTheme(isDark, syncCloud = true) {
   }
 }
 
-// Fechar modais ao clicar no fundo escurecido
+// Fechar modais ao clicar no fundo escurecido ou apertar ESC
 function initModalsDismissal() {
   const bookModal = document.getElementById('book-detail-modal');
   if (bookModal) {
@@ -173,6 +173,15 @@ function initModalsDismissal() {
       if (e.target === authModal && typeof closeAuthModal === 'function') closeAuthModal();
     });
   }
+
+  // Atalho da tecla ESC para fechar qualquer modal ativo
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' || e.key === 'Esc') {
+      if (typeof closeAuthModal === 'function') closeAuthModal();
+      if (typeof closeBookModal === 'function') closeBookModal();
+      if (typeof closeAddFlashcardModal === 'function') closeAddFlashcardModal();
+    }
+  });
 }
 
 // Navegação entre Abas

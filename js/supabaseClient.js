@@ -208,40 +208,45 @@ async function pullAllDataFromSupabase() {
       applyTheme(SupabaseManager.profile.theme_preference === 'dark', false);
     }
 
-    // 2. Histórico de Questões
-    if (!attemptsRes.error && Array.isArray(attemptsRes.data) && attemptsRes.data.length > 0) {
-      const history = attemptsRes.data.map(row => ({
+    // 2. Histórico de Questões (Merge Inteligente para não perder dados offline)
+    if (!attemptsRes.error && Array.isArray(attemptsRes.data)) {
+      const existingHistory = AppState.stats?.history || [];
+      const cloudHistory = attemptsRes.data.map(row => ({
         id: row.question_id,
         selected: row.selected_option,
         isCorrect: row.is_correct,
         timestamp: row.answered_at
       }));
-      const correctCount = history.filter(h => h.isCorrect).length;
+      // Combinar histórico mantendo entradas únicas por questão e data
+      const combinedMap = new Map();
+      existingHistory.forEach(h => combinedMap.set(`${h.id}_${h.timestamp}`, h));
+      cloudHistory.forEach(h => combinedMap.set(`${h.id}_${h.timestamp}`, h));
+      const mergedHistory = Array.from(combinedMap.values());
+      const correctCount = mergedHistory.filter(h => h.isCorrect).length;
       AppState.stats = {
-        answered: history.length,
+        answered: mergedHistory.length,
         correct: correctCount,
-        history: history
+        history: mergedHistory
       };
     }
 
-    // 3. Checklist Raio-X
+    // 3. Checklist Raio-X (União booleana: preserva o que já foi marcado localmente ou na nuvem)
     if (!checklistRes.error && Array.isArray(checklistRes.data)) {
       checklistRes.data.forEach(row => {
+        const current = AppState.checklist[row.topic_id] || { theory: false, exercises: false, review: false };
         AppState.checklist[row.topic_id] = {
-          theory: !!row.theory_completed,
-          exercises: !!row.exercises_completed,
-          review: !!row.review_completed
+          theory: current.theory || !!row.theory_completed,
+          exercises: current.exercises || !!row.exercises_completed,
+          review: current.review || !!row.review_completed
         };
       });
     }
 
-    // 4. Obras FUVEST 2027 Lidas
+    // 4. Obras FUVEST 2027 Lidas (União de status de leitura)
     if (!booksRes.error && Array.isArray(booksRes.data)) {
       booksRes.data.forEach(row => {
         if (row.is_read) {
           AppState.readBooks[row.book_id] = true;
-        } else {
-          delete AppState.readBooks[row.book_id];
         }
       });
     }
@@ -605,20 +610,71 @@ window.switchAuthModalTab = function(tab) {
   }
 };
 
+window.togglePasswordVisibility = function() {
+  const passwordInput = document.getElementById('auth-password');
+  const icon = document.getElementById('auth-password-toggle-icon');
+  if (!passwordInput || !icon) return;
+
+  if (passwordInput.type === 'password') {
+    passwordInput.type = 'text';
+    icon.className = 'fa-solid fa-eye text-xs text-indigo-600 dark:text-indigo-400';
+  } else {
+    passwordInput.type = 'password';
+    icon.className = 'fa-solid fa-eye-slash text-xs text-slate-400';
+  }
+};
+
+function translateAuthError(err) {
+  if (!err) return 'Ocorreu um erro inesperado. Tente novamente.';
+  const msg = (err.message || String(err)).toLowerCase();
+
+  if (msg.includes('invalid login credentials') || msg.includes('invalid credentials')) {
+    return 'E-mail ou senha incorretos. Por favor, verifique os dados digitados.';
+  }
+  if (msg.includes('user already registered') || msg.includes('already exists')) {
+    return 'Este e-mail já está cadastrado. Clique em "Fazer Login" abaixo.';
+  }
+  if (msg.includes('password should be at least') || msg.includes('weak_password')) {
+    return 'A senha precisa ter no mínimo 6 caracteres.';
+  }
+  if (msg.includes('email not confirmed')) {
+    return 'E-mail ainda não confirmado. Verifique a caixa de entrada/spam ou desative a confirmação no painel Supabase.';
+  }
+  if (msg.includes('rate limit') || msg.includes('too many requests')) {
+    return 'Muitas tentativas em pouco tempo. Aguarde alguns instantes e tente novamente.';
+  }
+  if (msg.includes('invalid format') || msg.includes('unable to validate email')) {
+    return 'Formato de e-mail inválido. Digite um e-mail válido (ex: seuemail@exemplo.com).';
+  }
+  return err.message || 'Erro ao processar autenticação no Supabase.';
+}
+
 window.toggleAuthMode = function(mode) {
   SupabaseManager.authMode = mode;
   const signupFields = document.getElementById('auth-signup-extra-fields');
   const submitBtn = document.getElementById('auth-submit-btn');
   const modeToggleText = document.getElementById('auth-mode-toggle-container');
+  const passwordContainer = document.getElementById('auth-password')?.closest('div.relative')?.parentElement;
+  const feedbackEl = document.getElementById('auth-form-feedback');
+  if (feedbackEl) feedbackEl.classList.add('hidden');
 
   if (mode === 'signup') {
     if (signupFields) signupFields.classList.remove('hidden');
+    if (passwordContainer) passwordContainer.classList.remove('hidden');
     if (submitBtn) submitBtn.innerHTML = '<i class="fa-solid fa-user-plus mr-1.5"></i> Criar Conta e Sincronizar';
     if (modeToggleText) {
       modeToggleText.innerHTML = `Já possui uma conta? <button type="button" onclick="toggleAuthMode('login')" class="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">Fazer Login</button>`;
     }
+  } else if (mode === 'reset') {
+    if (signupFields) signupFields.classList.add('hidden');
+    if (passwordContainer) passwordContainer.classList.add('hidden');
+    if (submitBtn) submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane mr-1.5"></i> Enviar Link de Recuperação';
+    if (modeToggleText) {
+      modeToggleText.innerHTML = `Lembrou sua senha? <button type="button" onclick="toggleAuthMode('login')" class="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">Voltar ao Login</button>`;
+    }
   } else {
     if (signupFields) signupFields.classList.add('hidden');
+    if (passwordContainer) passwordContainer.classList.remove('hidden');
     if (submitBtn) submitBtn.innerHTML = '<i class="fa-solid fa-right-to-bracket mr-1.5"></i> Entrar na Conta';
     if (modeToggleText) {
       modeToggleText.innerHTML = `Ainda não tem conta? <button type="button" onclick="toggleAuthMode('signup')" class="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">Criar Conta Gratuita</button>`;
@@ -675,10 +731,10 @@ window.handleAuthSubmit = async function(e) {
   const displayName = document.getElementById('auth-display-name')?.value.trim() || '';
   const targetCourse = document.getElementById('auth-target-course')?.value.trim() || '';
 
-  if (!email || !password) {
+  if (!email) {
     if (feedbackEl) {
       feedbackEl.className = 'p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium';
-      feedbackEl.innerText = 'Por favor, informe seu e-mail e senha.';
+      feedbackEl.innerText = 'Por favor, informe seu endereço de e-mail.';
       feedbackEl.classList.remove('hidden');
     }
     return;
@@ -688,6 +744,31 @@ window.handleAuthSubmit = async function(e) {
   if (submitBtn) submitBtn.disabled = true;
 
   try {
+    // MODO RECUPERAÇÃO DE SENHA
+    if (SupabaseManager.authMode === 'reset') {
+      const { error } = await SupabaseManager.client.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.href
+      });
+      if (error) throw error;
+
+      if (feedbackEl) {
+        feedbackEl.className = 'p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-medium';
+        feedbackEl.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-600 mr-1.5"></i> Link de recuperação enviado! Verifique sua caixa de entrada e siga as instruções.';
+        feedbackEl.classList.remove('hidden');
+      }
+      return;
+    }
+
+    if (!password) {
+      if (feedbackEl) {
+        feedbackEl.className = 'p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium';
+        feedbackEl.innerText = 'Por favor, digite sua senha.';
+        feedbackEl.classList.remove('hidden');
+      }
+      return;
+    }
+
+    // MODO CADASTRO
     if (SupabaseManager.authMode === 'signup') {
       const { data, error } = await SupabaseManager.client.auth.signUp({
         email,
@@ -713,8 +794,10 @@ window.handleAuthSubmit = async function(e) {
         await pushLocalDataToSupabase();
         await pullAllDataFromSupabase();
         if (feedbackEl) feedbackEl.classList.add('hidden');
+        closeAuthModal();
       }
     } else {
+      // MODO LOGIN
       const { data, error } = await SupabaseManager.client.auth.signInWithPassword({
         email,
         password
@@ -727,12 +810,13 @@ window.handleAuthSubmit = async function(e) {
         await pushLocalDataToSupabase();
         await pullAllDataFromSupabase();
         if (feedbackEl) feedbackEl.classList.add('hidden');
+        closeAuthModal();
       }
     }
   } catch (err) {
     if (feedbackEl) {
       feedbackEl.className = 'p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium';
-      feedbackEl.innerText = err.message || 'Erro ao autenticar no Supabase.';
+      feedbackEl.innerText = translateAuthError(err);
       feedbackEl.classList.remove('hidden');
     }
   } finally {
