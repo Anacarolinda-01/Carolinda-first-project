@@ -174,12 +174,20 @@ function initModalsDismissal() {
     });
   }
 
+  const countdownModal = document.getElementById('countdown-settings-modal');
+  if (countdownModal) {
+    countdownModal.addEventListener('click', (e) => {
+      if (e.target === countdownModal && typeof closeCountdownSettingsModal === 'function') closeCountdownSettingsModal();
+    });
+  }
+
   // Atalho da tecla ESC para fechar qualquer modal ativo
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' || e.key === 'Esc') {
       if (typeof closeAuthModal === 'function') closeAuthModal();
       if (typeof closeBookModal === 'function') closeBookModal();
       if (typeof closeAddFlashcardModal === 'function') closeAddFlashcardModal();
+      if (typeof closeCountdownSettingsModal === 'function') closeCountdownSettingsModal();
     }
   });
 }
@@ -232,38 +240,203 @@ window.switchTab = function(tabId) {
 };
 
 // ==========================================
-// 1. DASHBOARD E CONTAGEM REGRESSIVA ATUALIZADA
+// 1. DASHBOARD E CONTAGEM REGRESSIVA PRECISA & PERSONALIZÁVEL
 // ==========================================
+const COUNTDOWN_STORAGE_KEY = 'brilhavest_countdown_v2';
+
+function getDefaultCountdownSettings() {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+
+  // Projeção padrão: se já passou do período de novembro/dezembro, mira o ano seguinte
+  const enemTargetYear = (now.getMonth() > 10 || (now.getMonth() === 10 && now.getDate() > 15)) 
+    ? currentYear + 1 
+    : currentYear;
+
+  const fuvestTargetYear = (now.getMonth() === 11 && now.getDate() > 7) 
+    ? currentYear + 1 
+    : currentYear;
+
+  return {
+    enem: {
+      label: 'ENEM',
+      title: `ENEM (8 e 15 de Novembro de ${enemTargetYear})`,
+      desc: '1º Dia: 8 de Nov (Linguagens, Humanas e Redação) • 2º Dia: 15 de Nov (Matemática e Natureza)',
+      dateTime: `${enemTargetYear}-11-08T13:00`
+    },
+    fuvest: {
+      label: 'FUVEST',
+      title: `FUVEST 2ª Fase (6 e 7 de Dezembro de ${fuvestTargetYear})`,
+      desc: '1ª Fase em Novembro • 2ª Fase: 6 e 7 de Dezembro (Provas Dissertativas Específicas)',
+      dateTime: `${fuvestTargetYear}-12-06T13:00`
+    }
+  };
+}
+
+function loadCountdownSettings() {
+  try {
+    const saved = localStorage.getItem(COUNTDOWN_STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed.enem && parsed.fuvest && parsed.enem.dateTime && parsed.fuvest.dateTime) {
+        return parsed;
+      }
+    }
+  } catch (e) {
+    console.warn("Erro ao ler configurações da contagem regressiva:", e);
+  }
+  return getDefaultCountdownSettings();
+}
+
+function saveCountdownSettingsToStorage(settings) {
+  try {
+    localStorage.setItem(COUNTDOWN_STORAGE_KEY, JSON.stringify(settings));
+  } catch (e) {
+    console.warn("Erro ao salvar contagem regressiva:", e);
+  }
+}
+
 function initDashboard() {
+  AppState.countdownSettings = loadCountdownSettings();
   updateCountdown();
-  setInterval(updateCountdown, 60000); // atualiza a cada minuto
+  // Atualiza a cada 1 segundo para relógio digital vivo com segundos correndo
+  setInterval(updateCountdown, 1000);
   updateDashboardMetrics();
 }
 
 function updateCountdown() {
-  const now = new Date();
-  const currentYear = now.getFullYear();
+  const now = new Date().getTime();
+  const settings = AppState.countdownSettings || loadCountdownSettings();
+  AppState.countdownSettings = settings;
 
-  // ENEM: Dias 8 e 15 de Novembro (mês 10 no JS, pois 0 = Janeiro)
-  let enemDate = new Date(currentYear, 10, 8, 13, 0, 0);
-  if (now > new Date(currentYear, 10, 15, 19, 0, 0)) {
-    enemDate = new Date(currentYear + 1, 10, 8, 13, 0, 0);
-  }
+  // Atualizar cabeçalhos e descrições dos cards
+  const elEnemTitle = document.getElementById('countdown-enem-title');
+  const elEnemDesc = document.getElementById('countdown-enem-desc');
+  const elEnemLabel = document.getElementById('countdown-enem-label');
+  if (elEnemTitle && settings.enem.title) elEnemTitle.innerText = settings.enem.title;
+  if (elEnemDesc && settings.enem.desc) elEnemDesc.innerText = settings.enem.desc;
+  if (elEnemLabel && settings.enem.label) elEnemLabel.innerText = settings.enem.label;
 
-  // FUVEST 2ª Fase: Dias 6 e 7 de Dezembro (mês 11 no JS)
-  let fuvestDate = new Date(currentYear, 11, 6, 13, 0, 0);
-  if (now > new Date(currentYear, 11, 7, 19, 0, 0)) {
-    fuvestDate = new Date(currentYear + 1, 11, 6, 13, 0, 0);
-  }
+  const elFuvestTitle = document.getElementById('countdown-fuvest-title');
+  const elFuvestDesc = document.getElementById('countdown-fuvest-desc');
+  const elFuvestLabel = document.getElementById('countdown-fuvest-label');
+  if (elFuvestTitle && settings.fuvest.title) elFuvestTitle.innerText = settings.fuvest.title;
+  if (elFuvestDesc && settings.fuvest.desc) elFuvestDesc.innerText = settings.fuvest.desc;
+  if (elFuvestLabel && settings.fuvest.label) elFuvestLabel.innerText = settings.fuvest.label;
 
-  const diffEnemDays = Math.ceil((enemDate - now) / (1000 * 60 * 60 * 24));
-  const diffFuvestDays = Math.ceil((fuvestDate - now) / (1000 * 60 * 60 * 24));
+  // Cálculos ENEM
+  const enemTarget = new Date(settings.enem.dateTime).getTime();
+  const enemDiff = enemTarget - now;
+  renderCountdownDigits('enem', enemDiff);
 
-  const elEnem = document.getElementById('countdown-enem-days');
-  const elFuvest = document.getElementById('countdown-fuvest-days');
-  if (elEnem) elEnem.innerText = Math.max(0, diffEnemDays);
-  if (elFuvest) elFuvest.innerText = Math.max(0, diffFuvestDays);
+  // Cálculos FUVEST
+  const fuvestTarget = new Date(settings.fuvest.dateTime).getTime();
+  const fuvestDiff = fuvestTarget - now;
+  renderCountdownDigits('fuvest', fuvestDiff);
 }
+
+function renderCountdownDigits(prefix, diff) {
+  const elD = document.getElementById(`countdown-${prefix}-d`);
+  const elH = document.getElementById(`countdown-${prefix}-h`);
+  const elM = document.getElementById(`countdown-${prefix}-m`);
+  const elS = document.getElementById(`countdown-${prefix}-s`);
+  if (!elD || !elH || !elM || !elS) return;
+
+  if (isNaN(diff) || diff <= 0) {
+    elD.innerText = '00';
+    elH.innerText = '00';
+    elM.innerText = '00';
+    elS.innerText = '00';
+    return;
+  }
+
+  const totalSec = Math.floor(diff / 1000);
+  const days = Math.floor(totalSec / (3600 * 24));
+  const hours = Math.floor((totalSec % (3600 * 24)) / 3600);
+  const minutes = Math.floor((totalSec % 3600) / 60);
+  const seconds = totalSec % 60;
+
+  elD.innerText = days < 10 ? `0${days}` : String(days);
+  elH.innerText = String(hours).padStart(2, '0');
+  elM.innerText = String(minutes).padStart(2, '0');
+  elS.innerText = String(seconds).padStart(2, '0');
+}
+
+window.openCountdownSettingsModal = function() {
+  const modal = document.getElementById('countdown-settings-modal');
+  if (!modal) return;
+  const settings = AppState.countdownSettings || loadCountdownSettings();
+
+  const inEnemTitle = document.getElementById('cfg-enem-title');
+  const inEnemDate = document.getElementById('cfg-enem-date');
+  const inEnemDesc = document.getElementById('cfg-enem-desc');
+  if (inEnemTitle) inEnemTitle.value = settings.enem.title || '';
+  if (inEnemDate) inEnemDate.value = settings.enem.dateTime ? settings.enem.dateTime.slice(0, 16) : '';
+  if (inEnemDesc) inEnemDesc.value = settings.enem.desc || '';
+
+  const inFuvestTitle = document.getElementById('cfg-fuvest-title');
+  const inFuvestDate = document.getElementById('cfg-fuvest-date');
+  const inFuvestDesc = document.getElementById('cfg-fuvest-desc');
+  if (inFuvestTitle) inFuvestTitle.value = settings.fuvest.title || '';
+  if (inFuvestDate) inFuvestDate.value = settings.fuvest.dateTime ? settings.fuvest.dateTime.slice(0, 16) : '';
+  if (inFuvestDesc) inFuvestDesc.value = settings.fuvest.desc || '';
+
+  modal.classList.remove('hidden');
+};
+
+window.closeCountdownSettingsModal = function() {
+  const modal = document.getElementById('countdown-settings-modal');
+  if (modal) modal.classList.add('hidden');
+};
+
+window.setCountdownPresetYear = function(year) {
+  const inEnemTitle = document.getElementById('cfg-enem-title');
+  const inEnemDate = document.getElementById('cfg-enem-date');
+  const inEnemDesc = document.getElementById('cfg-enem-desc');
+
+  const inFuvestTitle = document.getElementById('cfg-fuvest-title');
+  const inFuvestDate = document.getElementById('cfg-fuvest-date');
+  const inFuvestDesc = document.getElementById('cfg-fuvest-desc');
+
+  if (inEnemTitle) inEnemTitle.value = `ENEM (8 e 15 de Novembro de ${year})`;
+  if (inEnemDate) inEnemDate.value = `${year}-11-08T13:00`;
+  if (inEnemDesc) inEnemDesc.value = '1º Dia: 8 de Nov (Linguagens, Humanas e Redação) • 2º Dia: 15 de Nov (Matemática e Natureza)';
+
+  if (inFuvestTitle) inFuvestTitle.value = `FUVEST 2ª Fase (6 e 7 de Dezembro de ${year})`;
+  if (inFuvestDate) inFuvestDate.value = `${year}-12-06T13:00`;
+  if (inFuvestDesc) inFuvestDesc.value = '1ª Fase em Novembro • 2ª Fase: 6 e 7 de Dezembro (Provas Dissertativas Específicas)';
+};
+
+window.handleSaveCountdownSettings = function(e) {
+  if (e) e.preventDefault();
+  const settings = {
+    enem: {
+      label: 'ENEM',
+      title: document.getElementById('cfg-enem-title')?.value.trim() || 'ENEM',
+      dateTime: document.getElementById('cfg-enem-date')?.value || `${new Date().getFullYear()}-11-08T13:00`,
+      desc: document.getElementById('cfg-enem-desc')?.value.trim() || ''
+    },
+    fuvest: {
+      label: 'FUVEST',
+      title: document.getElementById('cfg-fuvest-title')?.value.trim() || 'FUVEST',
+      dateTime: document.getElementById('cfg-fuvest-date')?.value || `${new Date().getFullYear()}-12-06T13:00`,
+      desc: document.getElementById('cfg-fuvest-desc')?.value.trim() || ''
+    }
+  };
+
+  AppState.countdownSettings = settings;
+  saveCountdownSettingsToStorage(settings);
+  updateCountdown();
+  closeCountdownSettingsModal();
+};
+
+window.resetCountdownSettings = function() {
+  const defaults = getDefaultCountdownSettings();
+  AppState.countdownSettings = defaults;
+  saveCountdownSettingsToStorage(defaults);
+  openCountdownSettingsModal();
+  updateCountdown();
+};
 
 function updateDashboardMetrics() {
   const answered = AppState.stats.answered || 0;

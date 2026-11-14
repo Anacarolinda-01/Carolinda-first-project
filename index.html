@@ -164,37 +164,95 @@
         <div class="absolute right-40 -top-10 w-60 h-60 rounded-full bg-violet-400/20 blur-2xl pointer-events-none"></div>
       </div>
 
-      <!-- Contagem Regressiva para as Provas Atualizada -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <!-- Card ENEM -->
-        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex items-center justify-between">
-          <div>
-            <div class="flex items-center gap-2 mb-1">
-              <span class="w-3 h-3 rounded-full bg-amber-500 animate-pulse"></span>
-              <span class="text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">Contagem Regressiva</span>
-            </div>
-            <h3 class="text-xl font-bold text-slate-900">ENEM (8 e 15 de Novembro)</h3>
-            <p class="text-xs text-slate-500 mt-0.5">1º Dia: 8 de Nov (Linguagens, Humanas e Redação) • 2º Dia: 15 de Nov (Matemática e Natureza)</p>
+      <!-- Contagem Regressiva para as Provas Atualizada e Personalizável -->
+      <div class="mb-8">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Cronômetro Regressivo em Tempo Real</span>
           </div>
-          <div class="text-right shrink-0 ml-4">
-            <span id="countdown-enem-days" class="text-4xl md:text-5xl font-extrabold text-amber-600 font-mono">--</span>
-            <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Dias Restantes</span>
-          </div>
+          <button 
+            onclick="openCountdownSettingsModal()" 
+            class="text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition flex items-center gap-1.5 shadow-sm"
+          >
+            <i class="fa-solid fa-sliders text-indigo-500"></i>
+            Ajustar / Alterar Datas
+          </button>
         </div>
 
-        <!-- Card FUVEST 2ª Fase -->
-        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex items-center justify-between">
-          <div>
-            <div class="flex items-center gap-2 mb-1">
-              <span class="w-3 h-3 rounded-full bg-indigo-600 animate-pulse"></span>
-              <span class="text-xs font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-400">Contagem Regressiva</span>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Card ENEM -->
+          <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm flex flex-col justify-between transition-card">
+            <div class="flex items-start justify-between gap-2 mb-4">
+              <div>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-extrabold uppercase bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-900/60 mb-1.5">
+                  <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+                  <span id="countdown-enem-label">ENEM</span>
+                </span>
+                <h3 id="countdown-enem-title" class="text-lg font-bold text-slate-900 dark:text-slate-100">Exame Nacional do Ensino Médio</h3>
+                <p id="countdown-enem-desc" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">1º Dia: Linguagens, Humanas e Redação • 2º Dia: Exatas e Natureza</p>
+              </div>
+              <button onclick="openCountdownSettingsModal()" class="w-8 h-8 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center justify-center shrink-0" title="Editar data do ENEM">
+                <i class="fa-regular fa-pen-to-square text-xs"></i>
+              </button>
             </div>
-            <h3 class="text-xl font-bold text-slate-900">FUVEST 2ª Fase (6 e 7 de Dezembro)</h3>
-            <p class="text-xs text-slate-500 mt-0.5">1ª Fase em Novembro • 2ª Fase: 6 e 7 de Dezembro (Provas Dissertativas Específicas)</p>
+
+            <!-- Display Digital ENEM (Dias, Horas, Minutos, Segundos) -->
+            <div class="grid grid-cols-4 gap-2 text-center font-mono pt-3 border-t border-slate-100 dark:border-slate-800/80">
+              <div class="p-2.5 rounded-2xl bg-amber-50/60 dark:bg-slate-800/90 border border-amber-100 dark:border-slate-700">
+                <span id="countdown-enem-d" class="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400">--</span>
+                <span class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-0.5">Dias</span>
+              </div>
+              <div class="p-2.5 rounded-2xl bg-amber-50/60 dark:bg-slate-800/90 border border-amber-100 dark:border-slate-700">
+                <span id="countdown-enem-h" class="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400">--</span>
+                <span class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-0.5">Horas</span>
+              </div>
+              <div class="p-2.5 rounded-2xl bg-amber-50/60 dark:bg-slate-800/90 border border-amber-100 dark:border-slate-700">
+                <span id="countdown-enem-m" class="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400">--</span>
+                <span class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-0.5">Min</span>
+              </div>
+              <div class="p-2.5 rounded-2xl bg-amber-50/60 dark:bg-slate-800/90 border border-amber-100 dark:border-slate-700">
+                <span id="countdown-enem-s" class="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400">--</span>
+                <span class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-0.5">Seg</span>
+              </div>
+            </div>
           </div>
-          <div class="text-right shrink-0 ml-4">
-            <span id="countdown-fuvest-days" class="text-4xl md:text-5xl font-extrabold text-indigo-600 font-mono">--</span>
-            <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Dias Restantes</span>
+
+          <!-- Card FUVEST -->
+          <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm flex flex-col justify-between transition-card">
+            <div class="flex items-start justify-between gap-2 mb-4">
+              <div>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-extrabold uppercase bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-900/60 mb-1.5">
+                  <span class="w-2 h-2 rounded-full bg-indigo-600 animate-ping"></span>
+                  <span id="countdown-fuvest-label">FUVEST</span>
+                </span>
+                <h3 id="countdown-fuvest-title" class="text-lg font-bold text-slate-900 dark:text-slate-100">Vestibular USP (FUVEST)</h3>
+                <p id="countdown-fuvest-desc" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">1ª Fase Objetiva • 2ª Fase com Redação e Provas Dissertativas</p>
+              </div>
+              <button onclick="openCountdownSettingsModal()" class="w-8 h-8 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center justify-center shrink-0" title="Editar data da FUVEST">
+                <i class="fa-regular fa-pen-to-square text-xs"></i>
+              </button>
+            </div>
+
+            <!-- Display Digital FUVEST (Dias, Horas, Minutos, Segundos) -->
+            <div class="grid grid-cols-4 gap-2 text-center font-mono pt-3 border-t border-slate-100 dark:border-slate-800/80">
+              <div class="p-2.5 rounded-2xl bg-indigo-50/60 dark:bg-slate-800/90 border border-indigo-100 dark:border-slate-700">
+                <span id="countdown-fuvest-d" class="text-2xl sm:text-3xl font-black text-indigo-600 dark:text-indigo-400">--</span>
+                <span class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-0.5">Dias</span>
+              </div>
+              <div class="p-2.5 rounded-2xl bg-indigo-50/60 dark:bg-slate-800/90 border border-indigo-100 dark:border-slate-700">
+                <span id="countdown-fuvest-h" class="text-2xl sm:text-3xl font-black text-indigo-600 dark:text-indigo-400">--</span>
+                <span class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-0.5">Horas</span>
+              </div>
+              <div class="p-2.5 rounded-2xl bg-indigo-50/60 dark:bg-slate-800/90 border border-indigo-100 dark:border-slate-700">
+                <span id="countdown-fuvest-m" class="text-2xl sm:text-3xl font-black text-indigo-600 dark:text-indigo-400">--</span>
+                <span class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-0.5">Min</span>
+              </div>
+              <div class="p-2.5 rounded-2xl bg-indigo-50/60 dark:bg-slate-800/90 border border-indigo-100 dark:border-slate-700">
+                <span id="countdown-fuvest-s" class="text-2xl sm:text-3xl font-black text-indigo-600 dark:text-indigo-400">--</span>
+                <span class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-0.5">Seg</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1101,6 +1159,103 @@
           </form>
         </div>
 
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- MODAL: PERSONALIZAÇÃO DA CONTAGEM REGRESSIVA             -->
+    <!-- ======================================================== -->
+    <div id="countdown-settings-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+      <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 animate-fadeIn max-h-[90vh] overflow-y-auto">
+        <!-- Cabeçalho -->
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-4">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-sm">
+              <i class="fa-solid fa-clock text-sm"></i>
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-slate-900 dark:text-slate-100">Personalizar Datas das Provas</h3>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400">Defina o ano, datas exatas ou vestibulares específicos</p>
+            </div>
+          </div>
+          <button onclick="closeCountdownSettingsModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 flex items-center justify-center text-xs">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <!-- Atalhos Rápidos de Ano / Banca -->
+        <div class="mb-4">
+          <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Preenchimento Rápido por Ano:</label>
+          <div class="grid grid-cols-3 gap-2 text-xs font-bold">
+            <button type="button" onclick="setCountdownPresetYear(2026)" class="py-2 px-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition text-center">
+              📅 Provas 2026
+            </button>
+            <button type="button" onclick="setCountdownPresetYear(2027)" class="py-2 px-2.5 rounded-xl border border-indigo-200 dark:border-indigo-900 bg-indigo-50/70 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 transition text-center">
+              ⭐ Provas 2027
+            </button>
+            <button type="button" onclick="setCountdownPresetYear(2028)" class="py-2 px-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition text-center">
+              🎓 Provas 2028
+            </button>
+          </div>
+        </div>
+
+        <form onsubmit="handleSaveCountdownSettings(event)" class="space-y-4 text-xs">
+          <!-- Bloco 1: ENEM -->
+          <div class="p-3.5 rounded-2xl bg-amber-50/60 dark:bg-slate-800/60 border border-amber-200/70 dark:border-slate-700 space-y-2.5">
+            <div class="flex items-center gap-2 font-bold text-amber-800 dark:text-amber-300 text-sm">
+              <i class="fa-solid fa-fire text-amber-500"></i>
+              <span>Card 1 (ENEM ou 1º Vestibular)</span>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Título / Nome da Prova</label>
+              <input type="text" id="cfg-enem-title" required class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium">
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Data e Horário de Início da Prova</label>
+              <input type="datetime-local" id="cfg-enem-date" required class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono">
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Descrição / Dias da Prova</label>
+              <input type="text" id="cfg-enem-desc" class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500">
+            </div>
+          </div>
+
+          <!-- Bloco 2: FUVEST -->
+          <div class="p-3.5 rounded-2xl bg-indigo-50/60 dark:bg-slate-800/60 border border-indigo-200/70 dark:border-slate-700 space-y-2.5">
+            <div class="flex items-center gap-2 font-bold text-indigo-800 dark:text-indigo-300 text-sm">
+              <i class="fa-solid fa-landmark text-indigo-600"></i>
+              <span>Card 2 (FUVEST ou 2º Vestibular)</span>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Título / Nome da Prova</label>
+              <input type="text" id="cfg-fuvest-title" required class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium">
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Data e Horário de Início da Prova</label>
+              <input type="datetime-local" id="cfg-fuvest-date" required class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono">
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Descrição / Fases da Prova</label>
+              <input type="text" id="cfg-fuvest-desc" class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+          </div>
+
+          <!-- Botões de Ação -->
+          <div class="pt-2 flex flex-col sm:flex-row gap-2">
+            <button type="submit" class="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-check"></i> Salvar e Atualizar Cronômetro
+            </button>
+            <button type="button" onclick="resetCountdownSettings()" class="py-3 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 font-semibold text-xs transition text-center">
+              Restaurar Padrão
+            </button>
+          </div>
+        </form>
       </div>
     </div>
 
