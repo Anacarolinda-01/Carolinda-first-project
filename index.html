@@ -115,16 +115,16 @@
             <span class="hidden sm:inline">Instalar App</span>
           </button>
 
-          <!-- Botão Conta / Sincronização Supabase -->
+          <!-- Botão Conta do Estudante -->
           <button 
             id="btn-auth-account" 
             onclick="openAuthModal('account')" 
-            title="Conta & Sincronização na Nuvem (Supabase)" 
+            title="Conta do Estudante" 
             class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-2 transition shadow-sm border border-slate-200/70 dark:border-slate-700"
           >
-            <span id="nav-auth-status-dot" class="w-2 h-2 rounded-full bg-slate-400"></span>
-            <i class="fa-solid fa-cloud text-indigo-600 dark:text-indigo-400"></i>
-            <span id="nav-auth-btn-text" class="hidden sm:inline">Nuvem</span>
+            <span id="nav-auth-status-dot" class="w-2 h-2 rounded-full bg-indigo-500"></span>
+            <i id="nav-auth-icon" class="fa-solid fa-user-graduate text-indigo-600 dark:text-indigo-400"></i>
+            <span id="nav-auth-btn-text" class="hidden sm:inline">Entrar</span>
           </button>
 
           <!-- Botão Modo Escuro (Dark Mode) -->
@@ -1343,19 +1343,19 @@
     </section>
 
     <!-- ======================================================== -->
-    <!-- MODAL: AUTENTICAÇÃO & SINCRONIZAÇÃO SUPABASE             -->
+    <!-- MODAL: CONTA DO ESTUDANTE                                -->
     <!-- ======================================================== -->
     <div id="supabase-auth-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
       <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 animate-fadeIn">
         <!-- Cabeçalho do Modal -->
         <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-4">
           <div class="flex items-center gap-2.5">
-            <div class="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-sm">
-              <i class="fa-solid fa-cloud-arrow-up text-sm"></i>
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white flex items-center justify-center shadow-sm">
+              <i class="fa-solid fa-user-graduate text-sm"></i>
             </div>
             <div>
-              <h3 class="text-base font-bold text-slate-900 dark:text-slate-100">BrilhaVest Cloud (Supabase)</h3>
-              <p class="text-[11px] text-slate-500 dark:text-slate-400">Sincronize seu progresso em qualquer dispositivo</p>
+              <h3 id="auth-modal-title" class="text-base font-bold text-slate-900 dark:text-slate-100">Conta do Estudante</h3>
+              <p id="auth-modal-subtitle" class="text-[11px] text-slate-500 dark:text-slate-400">Acompanhe seu progresso, simulados e metas de aprovação</p>
             </div>
           </div>
           <button onclick="closeAuthModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 flex items-center justify-center text-xs">
@@ -1363,17 +1363,7 @@
           </button>
         </div>
 
-        <!-- Seletor de Abas do Modal -->
-        <div class="flex gap-1.5 p-1 rounded-xl bg-slate-100 dark:bg-slate-800 mb-5">
-          <button id="btn-auth-tab-account" onclick="switchAuthModalTab('account')" class="flex-1 py-2 text-xs font-bold rounded-lg bg-indigo-600 text-white shadow-sm transition">
-            <i class="fa-solid fa-user-graduate mr-1"></i> Conta do Estudante
-          </button>
-          <button id="btn-auth-tab-config" onclick="switchAuthModalTab('config')" class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-600 dark:text-slate-300 hover:text-indigo-600 transition">
-            <i class="fa-solid fa-database mr-1"></i> Configurar Banco
-          </button>
-        </div>
-
-        <!-- ABA 1: LOGIN / CADASTRO / PERFIL LOGADO -->
+        <!-- CONTEÚDO PRINCIPAL: CONTA DO ESTUDANTE -->
         <div id="auth-tab-account">
           <!-- Visão Deslogado -->
           <div id="auth-logged-out-view">
@@ -1387,8 +1377,8 @@
                   <input type="text" id="auth-display-name" placeholder="Ex: Ana Clara" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Curso / Meta de Aprovação (Opcional)</label>
-                  <input type="text" id="auth-target-course" placeholder="Ex: Medicina USP / Direito Sanfran" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Curso & Vestibular Alvo</label>
+                  <input type="text" id="auth-target-course" placeholder="Ex: Medicina USP / Direito Sanfran / FUVEST" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
               </div>
 
@@ -1411,7 +1401,7 @@
               </div>
 
               <div class="pt-1">
-                <button type="submit" id="auth-submit-btn" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-md transition flex items-center justify-center gap-1.5">
+                <button type="submit" id="auth-submit-btn" class="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-bold text-sm shadow-md transition flex items-center justify-center gap-1.5">
                   <i class="fa-solid fa-right-to-bracket mr-1.5"></i> Entrar na Conta
                 </button>
               </div>
@@ -1426,63 +1416,50 @@
           <div id="auth-logged-in-view" class="hidden space-y-4 text-xs">
             <div class="p-4 rounded-2xl bg-indigo-50/70 dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 flex items-center justify-between">
               <div class="flex items-center gap-3">
-                <div class="w-11 h-11 rounded-2xl bg-indigo-600 text-white flex items-center justify-center text-lg font-bold">
-                  <i class="fa-solid fa-user-check"></i>
+                <div id="auth-profile-avatar" class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white flex items-center justify-center text-lg font-black shadow-sm">
+                  E
                 </div>
                 <div>
                   <h4 id="auth-profile-name" class="text-sm font-bold text-slate-900 dark:text-slate-100">Estudante</h4>
                   <p id="auth-profile-email" class="text-[11px] text-slate-500 dark:text-slate-400">email@exemplo.com</p>
-                  <span id="auth-profile-course" class="inline-block mt-1 px-2 py-0.5 rounded bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-semibold text-[10px]">Meta: FUVEST & ENEM</span>
+                  <span id="auth-profile-course" class="inline-block mt-1 px-2.5 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-semibold text-[10px]">Meta: FUVEST & ENEM</span>
                 </div>
+              </div>
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900">
+                <i class="fa-solid fa-circle-check"></i> Conta Ativa
+              </span>
+            </div>
+
+            <!-- Resumo Rápido de Estudos do Aluno -->
+            <div class="grid grid-cols-3 gap-2 text-center">
+              <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                <span id="auth-stat-questions" class="text-base font-black text-indigo-600 dark:text-indigo-400">0</span>
+                <span class="block text-[9px] uppercase font-bold text-slate-500 dark:text-slate-400 mt-0.5">Questões</span>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                <span id="auth-stat-accuracy" class="text-base font-black text-emerald-600 dark:text-emerald-400">0%</span>
+                <span class="block text-[9px] uppercase font-bold text-slate-500 dark:text-slate-400 mt-0.5">Acertos</span>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                <span id="auth-stat-books" class="text-base font-black text-purple-600 dark:text-purple-400">0/9</span>
+                <span class="block text-[9px] uppercase font-bold text-slate-500 dark:text-slate-400 mt-0.5">Obras Lidas</span>
               </div>
             </div>
 
-            <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
-              <span id="auth-sync-status-badge" class="font-semibold text-slate-700 dark:text-slate-300">
-                <i class="fa-solid fa-cloud text-emerald-500 mr-1"></i> Conectado ao Supabase
-              </span>
-              <button onclick="handleManualCloudSync()" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition flex items-center gap-1">
-                <i class="fa-solid fa-arrows-rotate"></i> Sincronizar Agora
+            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+              <i class="fa-solid fa-shield-halved text-emerald-500 mr-1"></i>
+              Seu progresso nos simulados, redações, obras obrigatórias da FUVEST e raio-x de matérias está salvo de forma segura nesta conta.
+            </div>
+
+            <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
+              <button onclick="handleEditProfilePrompt()" class="text-[11px] text-indigo-600 dark:text-indigo-400 font-bold hover:underline flex items-center gap-1">
+                <i class="fa-solid fa-user-pen"></i> Editar Nome / Meta
               </button>
-            </div>
-
-            <div class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-              Seus dados de <strong>questões resolvidas</strong>, <strong>simulados</strong>, <strong>checklist Raio-X</strong>, <strong>leituras FUVEST 2027</strong>, <strong>flashcards</strong> e <strong>rascunhos de redação</strong> estão sendo salvos automaticamente com proteção <em>Row Level Security (RLS)</em>.
-            </div>
-
-            <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex justify-end">
               <button onclick="handleSignOut()" class="px-4 py-2 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 hover:bg-rose-100 font-bold transition flex items-center gap-1.5">
                 <i class="fa-solid fa-right-from-bracket"></i> Sair da Conta
               </button>
             </div>
           </div>
-        </div>
-
-        <!-- ABA 2: CONFIGURAÇÃO DO PROJETO SUPABASE -->
-        <div id="auth-tab-config" class="hidden space-y-4 text-xs">
-          <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 leading-relaxed">
-            <strong class="text-slate-900 dark:text-slate-100 block mb-1"><i class="fa-solid fa-circle-info text-indigo-600 mr-1"></i> Como conectar seu projeto Supabase:</strong>
-            1. Execute o arquivo <code>supabase_schema.sql</code> no <em>SQL Editor</em> do seu painel Supabase.<br>
-            2. Em <em>Project Settings &rarr; API</em>, copie a <strong>Project URL</strong> e a <strong>anon public key</strong> e cole abaixo:
-          </div>
-
-          <form onsubmit="handleSaveSupabaseConfig(event)" class="space-y-3">
-            <div>
-              <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Supabase Project URL</label>
-              <input type="url" id="supabase-config-url" placeholder="https://seu-projeto.supabase.co" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-slate-800 dark:text-slate-100 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            </div>
-
-            <div>
-              <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Supabase Anon Public Key</label>
-              <input type="password" id="supabase-config-key" placeholder="Sua anon key..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-slate-800 dark:text-slate-100 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            </div>
-
-            <div id="supabase-config-feedback"></div>
-
-            <button type="submit" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md transition flex items-center justify-center gap-2">
-              <i class="fa-solid fa-plug-circle-check"></i> Salvar e Conectar ao Supabase
-            </button>
-          </form>
         </div>
 
       </div>
