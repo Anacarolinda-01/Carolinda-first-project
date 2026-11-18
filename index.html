@@ -754,31 +754,38 @@
         </div>
 
         <!-- Card FUVEST -->
-        <div class="bg-white rounded-2xl border-2 border-indigo-200 p-6 shadow-sm">
-          <div class="flex items-center justify-between pb-3 border-b border-indigo-100 mb-4">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border-2 border-indigo-300 dark:border-indigo-800 p-6 shadow-sm">
+          <div class="flex items-center justify-between pb-3 border-b border-indigo-100 dark:border-indigo-850 mb-4">
             <div class="flex items-center gap-2">
               <span class="w-3 h-3 rounded-full bg-indigo-600"></span>
-              <h3 class="text-lg font-bold text-slate-900">Redação FUVEST (USP)</h3>
+              <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100">Redação FUVEST (USP)</h3>
             </div>
-            <span class="text-xs font-bold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-md border border-indigo-200">Ensaio Reflexivo-Filosófico</span>
+            <span class="text-xs font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950 px-2.5 py-1 rounded-md border border-indigo-200 dark:border-indigo-800">
+              2 Possibilidades de Proposta
+            </span>
           </div>
           
-          <ul class="space-y-3 text-xs text-slate-700">
+          <ul class="space-y-3 text-xs text-slate-700 dark:text-slate-300">
+            <li class="p-2.5 rounded-xl bg-indigo-50/80 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900">
+              <div class="font-bold text-indigo-900 dark:text-indigo-200 flex items-center gap-1.5 mb-1">
+                <i class="fa-solid fa-sparkles text-amber-500"></i> Novidade: 2 Opções de Escolha do Aluno:
+              </div>
+              <div class="space-y-1 text-[11px] text-indigo-950 dark:text-indigo-300">
+                <p>• <strong>Opção 1: Dissertativo-Argumentativo</strong> (o ensaio reflexivo clássico com título obrigatório).</p>
+                <p>• <strong>Opção 2: Qualquer Gênero Textual</strong> (conforme solicitado pela banca: carta a personagem hipotético, crônica, manifesto, etc.).</p>
+              </div>
+            </li>
             <li class="flex items-start gap-2">
               <i class="fa-solid fa-circle-check text-indigo-600 mt-0.5"></i>
               <span><strong>Foco Temático:</strong> Questão abstrata, ética, filosófica ou existencial sobre o homem e a sociedade.</span>
             </li>
             <li class="flex items-start gap-2">
               <i class="fa-solid fa-circle-check text-indigo-600 mt-0.5"></i>
-              <span><strong>Título:</strong> OBRIGATÓRIO e avaliado com rigor (deve ser criativo e sintetizar a tese).</span>
+              <span><strong>Regra do Título:</strong> OBRIGATÓRIO na opção dissertativa. Na opção de gênero, obedeça às convenções do gênero pedido.</span>
             </li>
             <li class="flex items-start gap-2">
               <i class="fa-solid fa-circle-check text-indigo-600 mt-0.5"></i>
-              <span><strong>Conclusão:</strong> NÃO exige proposta de intervenção. Deve sintetizar a reflexão e apontar desdobramentos críticos.</span>
-            </li>
-            <li class="flex items-start gap-2">
-              <i class="fa-solid fa-circle-check text-indigo-600 mt-0.5"></i>
-              <span><strong>Autoria e Linguagem:</strong> Valoriza estilo autoral autêntico, vocabulário refinado e capacidade crítica sem clichês.</span>
+              <span><strong>Conclusão:</strong> NÃO exige proposta de intervenção. Deve sintetizar a reflexão ou provocar o interlocutor com maturidade crítica.</span>
             </li>
           </ul>
         </div>
@@ -786,59 +793,85 @@
 
       <!-- Esqueletos Estruturais de Exemplo -->
       <div class="mb-10">
-        <h3 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
-          <i class="fa-solid fa-sitemap text-indigo-600"></i> Esqueletos Estruturais Modelo
+        <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-sitemap text-indigo-600"></i> Esqueletos Estruturais Modelo (ENEM e as 2 Opções da FUVEST)
         </h3>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <!-- Esqueleto ENEM -->
-          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
             <div class="flex items-center justify-between mb-3">
-              <h4 class="font-bold text-slate-900 text-base">Esqueleto ENEM (Nota 1000)</h4>
-              <span class="text-xs font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">4 Parágrafos</span>
+              <h4 class="font-bold text-slate-900 dark:text-slate-100 text-sm">ENEM: Nota 1000</h4>
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300">4 Parágrafos</span>
             </div>
-            <div class="space-y-4 text-xs">
-              <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                <span class="font-bold text-indigo-700 dark:text-indigo-400">1. Introdução:</span>
-                <p class="text-slate-600 mt-1">Repertório de contextualização + tese com duas causas bem definidas (D1 e D2).</p>
+            <div class="space-y-3 text-xs">
+              <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
+                <span class="font-bold text-amber-700 dark:text-amber-400">1. Introdução:</span>
+                <p class="text-slate-600 dark:text-slate-300 mt-0.5 text-[11px]">Repertório contextualizador + Tese com D1 e D2.</p>
               </div>
-              <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                <span class="font-bold text-indigo-700 dark:text-indigo-400">2. D1 (Causa 1):</span>
-                <p class="text-slate-600 mt-1">Tópico frasal + repertório sociológico/filosófico legitimado + consequência concreta na sociedade.</p>
+              <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
+                <span class="font-bold text-amber-700 dark:text-amber-400">2. D1 (Causa 1):</span>
+                <p class="text-slate-600 dark:text-slate-300 mt-0.5 text-[11px]">Tópico frasal + repertório legitimado + impacto real.</p>
               </div>
-              <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                <span class="font-bold text-indigo-700 dark:text-indigo-400">3. D2 (Causa 2 / Omissão):</span>
-                <p class="text-slate-600 mt-1">Conectivo de acréscimo + repertório legislativo (CF/88) + crítica à inoperância governamental.</p>
+              <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
+                <span class="font-bold text-amber-700 dark:text-amber-400">3. D2 (Causa 2):</span>
+                <p class="text-slate-600 dark:text-slate-300 mt-0.5 text-[11px]">Conectivo aditivo + CF/88 ou pensador + crítica à omissão.</p>
               </div>
-              <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                <span class="font-bold text-indigo-700 dark:text-indigo-400">4. Conclusão Interventiva:</span>
-                <p class="text-slate-600 mt-1">Retomada + Agente + Ação + Meio/Modo + Detalhamento + Efeito + fechamento com o repertório inicial.</p>
+              <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
+                <span class="font-bold text-amber-700 dark:text-amber-400">4. Conclusão Interventiva:</span>
+                <p class="text-slate-600 dark:text-slate-300 mt-0.5 text-[11px]">5 elementos: Agente + Ação + Meio + Detalhe + Efeito.</p>
               </div>
             </div>
           </div>
 
-          <!-- Esqueleto FUVEST -->
-          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <!-- Esqueleto FUVEST - Opção 1 -->
+          <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
             <div class="flex items-center justify-between mb-3">
-              <h4 class="font-bold text-slate-900 text-base">Esqueleto Ensaístico FUVEST</h4>
-              <span class="text-xs font-bold px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300">Reflexão Dialética</span>
+              <h4 class="font-bold text-slate-900 dark:text-slate-100 text-sm">FUVEST: Opção 1 (Dissertação)</h4>
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-indigo-100 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-300">Ensaio Reflexivo</span>
             </div>
-            <div class="space-y-4 text-xs">
-              <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                <span class="font-bold text-indigo-700 dark:text-indigo-400">Título Obrigatório:</span>
-                <p class="text-slate-600 mt-1">Sintético, irônico ou conceitual. Evite frases óbvias.</p>
+            <div class="space-y-3 text-xs">
+              <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
+                <span class="font-bold text-indigo-700 dark:text-indigo-400">Título OBRIGATÓRIO:</span>
+                <p class="text-slate-600 dark:text-slate-300 mt-0.5 text-[11px]">Criativo e provocativo, sintetizando a tese.</p>
               </div>
-              <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+              <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
                 <span class="font-bold text-indigo-700 dark:text-indigo-400">1. Introdução Problemática:</span>
-                <p class="text-slate-600 mt-1">Problematiza a contradição da coletânea. Formula tese não óbvia que foge do senso comum.</p>
+                <p class="text-slate-600 dark:text-slate-300 mt-0.5 text-[11px]">Problematiza tensões da coletânea sem senso comum.</p>
               </div>
-              <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                <span class="font-bold text-indigo-700 dark:text-indigo-400">2. Desenvolvimento Dialético (Tese e Antítese):</span>
-                <p class="text-slate-600 mt-1">Examina as forças sociais em tensão. Usa referências literárias ou históricas de modo orgânico.</p>
+              <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
+                <span class="font-bold text-indigo-700 dark:text-indigo-400">2. Desenvolvimento Dialético:</span>
+                <p class="text-slate-600 dark:text-slate-300 mt-0.5 text-[11px]">Tese vs Antítese; forças históricas e filosóficas em tensão.</p>
               </div>
-              <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+              <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
                 <span class="font-bold text-indigo-700 dark:text-indigo-400">3. Conclusão Crítica:</span>
-                <p class="text-slate-600 mt-1">Sem receitas ingênuas. Síntese madura que ressignifica o problema central da condição humana.</p>
+                <p class="text-slate-600 dark:text-slate-300 mt-0.5 text-[11px]">Sem receitas mágicas; síntese madura e desfecho reflexivo.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Esqueleto FUVEST - Opção 2 -->
+          <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border-2 border-indigo-200 dark:border-indigo-800 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+              <h4 class="font-bold text-slate-900 dark:text-slate-100 text-sm">FUVEST: Opção 2 (Gênero)</h4>
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-950 text-purple-800 dark:text-purple-300">Gênero Textual</span>
+            </div>
+            <div class="space-y-3 text-xs">
+              <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
+                <span class="font-bold text-purple-700 dark:text-purple-400">1. Interlocução & Vocativo:</span>
+                <p class="text-slate-600 dark:text-slate-300 mt-0.5 text-[11px]">Ex: Carta ao personagem hipotético; demarcação do destinatário.</p>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
+                <span class="font-bold text-purple-700 dark:text-purple-400">2. Situação Comunicativa:</span>
+                <p class="text-slate-600 dark:text-slate-300 mt-0.5 text-[11px]">Justificativa do contato conectada ao tema proposto.</p>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
+                <span class="font-bold text-purple-700 dark:text-purple-400">3. Argumentação no Gênero:</span>
+                <p class="text-slate-600 dark:text-slate-300 mt-0.5 text-[11px]">Voz autoral, diálogo, provocação ou relato crítico.</p>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
+                <span class="font-bold text-purple-700 dark:text-purple-400">4. Desfecho Discursivo:</span>
+                <p class="text-slate-600 dark:text-slate-300 mt-0.5 text-[11px]">Despedida/fechamento coerente com o gênero exigido.</p>
               </div>
             </div>
           </div>
@@ -881,16 +914,17 @@
           </div>
 
           <div class="flex items-center gap-3">
-            <select id="essay-type-select" class="text-xs font-bold bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-700">
-              <option value="ENEM">Padrão ENEM (Proposta Interventiva)</option>
-              <option value="FUVEST">Padrão FUVEST (Ensaio e Título Obrigatório)</option>
+            <select id="essay-type-select" class="text-xs font-bold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500">
+              <option value="ENEM">ENEM: Dissertativo-Argumentativo (Proposta de Intervenção)</option>
+              <option value="FUVEST_DISSERTATIVA">FUVEST - Opção 1: Dissertativo-Argumentativo (Ensaio Reflexivo)</option>
+              <option value="FUVEST_GENERO">FUVEST - Opção 2: Outros Gêneros Textuais (Carta, Crônica, etc.)</option>
             </select>
           </div>
         </div>
 
-        <div id="essay-fuvest-title-notice" class="hidden mb-4 p-3 rounded-xl bg-indigo-50 border border-indigo-200 text-xs text-indigo-900 flex items-center gap-2">
-          <i class="fa-solid fa-circle-exclamation text-indigo-600"></i>
-          <strong>Atenção FUVEST:</strong> O título é obrigatório nesta banca! Capriche no título logo abaixo.
+        <!-- Alerta Dinâmico de Orientações da Banca -->
+        <div id="essay-fuvest-title-notice" class="hidden mb-4 p-3.5 rounded-2xl border text-xs leading-relaxed flex items-start gap-2.5">
+          <!-- Injetado dinamicamente via JS -->
         </div>
 
         <!-- Seletor Rápido de Propostas Oficiais -->

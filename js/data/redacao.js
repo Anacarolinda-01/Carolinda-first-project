@@ -26,14 +26,17 @@ const redacaoData = {
     },
     fuvest: {
       title: "FUVEST (Vestibular da Universidade de São Paulo)",
-      themeStyle: "Tema reflexivo, filosófico, abstrato ou ensaístico sobre a condição humana e a sociedade.",
-      titleRule: "OBRIGATÓRIO na FUVEST (avaliado com rigor; deve sintetizar a tese de modo criativo).",
-      conclusionStyle: "NÃO exige proposta de intervenção! Conclusão deve ser reflexiva, sintetizando os argumentos e ampliando o debate.",
-      warning: "CUIDADO: Propostas simplórias de intervenção no estilo ENEM na FUVEST costumam ser penalizadas por soarem ingênuas diante de temas complexos.",
+      dualOptionSystem: "NOVIDADE REVOLUCIONÁRIA: A FUVEST agora disponibiliza 2 opções de proposta para o candidato escolher na hora da prova!",
+      option1: "Opção 1: Texto Dissertativo-Argumentativo (o clássico ensaio reflexivo-filosófico com tese, fundamentação crítica e título obrigatório).",
+      option2: "Opção 2: Qualquer Gênero Textual proposto pela banca (como carta aberta ou a personagem hipotético, crônica reflexiva, manifesto, ensaio de opinião, etc.).",
+      themeStyle: "Tema reflexivo, filosófico, ético ou existencial sobre o ser humano e a vida em sociedade.",
+      titleRule: "No dissertativo-argumentativo, o título é OBRIGATÓRIO e avaliado com rigor. Nos outros gêneros, siga as convenções do gênero proposto (ex: cabeçalho/assunto em cartas).",
+      conclusionStyle: "NÃO exige proposta de intervenção no estilo ENEM! A conclusão deve ser reflexiva, sintetizando a discussão ou provocando o interlocutor.",
+      warning: "ATENÇÃO: Caso escolha a Opção 2 (Gênero Textual), obedeça estritamente às marcas discursivas exigidas (locutor, interlocutor, vocativo, nível de linguagem e propósito comunicativo).",
       criteria: [
-        { name: "Quesito A: Tema e Tipologia", desc: "Capacidade de apreender a complexidade da coletânea, formular uma tese autoral e sustentá-la sem reducionismos." },
-        { name: "Quesito B: Coerência e Argumentação", desc: "Densidade de ideias, progressão lógica, capacidade crítica e capacidade de articulação entre premissas e conclusões." },
-        { name: "Quesito C: Coesão e Expressão", desc: "Precisão vocabular, variedade sintática, elegância estilística e domínio gramatical sem fórmulas prontas ou clichês." }
+        { name: "Quesito A: Tema e Tipologia/Gênero", desc: "Apreensão integral da proposta e cumprimento rigoroso das regras do gênero escolhido (seja dissertação ou outro gênero textual)." },
+        { name: "Quesito B: Coerência e Argumentação", desc: "Densidade de ideias, progressão lógica, consistência dos argumentos e profundidade crítica sem superficialidades." },
+        { name: "Quesito C: Coesão e Expressão", desc: "Precisão vocabular, variedade sintática, adequação do registro ao gênero escolhido e elegância estilística autoral." }
       ]
     }
   },
@@ -68,33 +71,60 @@ const redacaoData = {
     },
     {
       type: "FUVEST",
-      title: "Esqueleto Ensaístico FUVEST",
-      description: "Estrutura densa, reflexiva e autoral. Menos dependente de conectivos padronizados e mais orientada à profundidade filosófica.",
+      title: "Esqueleto FUVEST - Opção 1: Dissertativo-Argumentativo (Ensaio)",
+      description: "Estrutura densa, reflexiva e autoral. Título obrigatório e desenvolvimento dialético de ideias.",
       structure: [
         {
-          part: "Título (Obrigatório)",
-          guidance: "Curto, provocativo ou irônico, que sintetize o núcleo da sua reflexão (Ex: 'A ilusão da velocidade', 'Entre a memória e o esquecimento').",
+          part: "Título (OBRIGATÓRIO)",
+          guidance: "Curto, provocativo, irônico ou conceitual. Deve sintetizar sua tese de maneira criativa (Ex: 'A Ilusão da Conciliação', 'O Silêncio dos Justos').",
           template: "[Título Reflexivo e Criativo]"
         },
         {
           part: "1. Introdução Problemática",
-          guidance: "Não defina o óbvio. Problematize as tensões implícitas nos textos da coletânea e estabeleça uma tese dialética que questione o senso comum.",
-          template: "Ao examinar as contradições da contemporaneidade em torno de [tema], evidencia-se uma cisão entre [ideal pretendido] e [realidade vivenciada]. Longe de constituir um fenômeno isolado, essa dinâmica reflete [tese filosófica/social], exigindo uma reflexão crítica que ultrapasse a superficialidade dos consensos estabelecidos."
+          guidance: "Problematize a questão filosófica trazida pela coletânea. Estabeleça uma tese dialética que confronte o senso comum.",
+          template: "Ao examinar as tensões da contemporaneidade em torno de [tema central], evidencia-se uma profunda cisão entre [ideal pretendido pela sociedade] e [realidade vivenciada pelos indivíduos]. Longe de constituir um fenômeno isolado, essa dinâmica desvela [tese filosófica/social], exigindo uma reflexão crítica que ultrapasse a superficialidade dos consensos pré-fabricados."
         },
         {
           part: "2. Desenvolvimento Dialético (Tese e Antítese)",
-          guidance: "Explore a complexidade do problema. Mostre como as forças sociais, históricas ou culturais operam em contradição.",
-          template: "Por um lado, sustenta-se habitualmente que [visão convencional da sociedade]. No entanto, sob o prisma de [pensador ou reflexão conceitual], tal postura desvela uma armadilha ideológica: ao [análise aprofundada], perpetua-se [crítica contundente]. Assim, o que se apresenta como liberdade converte-se em nova modalidade de assujeitamento."
+          guidance: "Explore as contradições do tema. Mostre como forças históricas ou culturais operam em conflito.",
+          template: "Por um lado, sustenta-se habitualmente que [visão convencional da sociedade]. No entanto, sob o prisma de [pensador ou reflexão conceitual], tal postura desvela uma armadilha ideológica: ao [análise aprofundada], perpetua-se [crítica contundente]. Assim, o que se apresenta à primeira vista como harmonia converte-se em dissimulação da violência cotidiana."
         },
         {
           part: "3. Desenvolvimento Síntese / Aprofundamento",
-          guidance: "Traga uma dimensão ontológica, literária ou histórica que eleve a discussão a um plano mais amplo da condição humana.",
-          template: "Nesse horizonte, a questão transcende o âmbito estritamente [institucional/político] e atinge a própria constituição da subjetividade humana. Como nos lembra a literatura em [exemplo de obra literária ou conceito artístico], o homem contemporâneo encontra-se diante de [tensão fundamental]. A incapacidade de lidar com essa fratura resulta em [consequência existencial/coletiva]."
+          guidance: "Traga uma dimensão ontológica, literária ou humana que eleve a reflexão.",
+          template: "Nesse horizonte, a questão transcende o plano estritamente [jurídico/institucional] e atinge a própria constituição da subjetividade humana. Como ilustra [exemplo de obra literária ou conceito histórico], o homem contemporâneo depara-se com [conflito existencial profundo]. A recusa em reconhecer essa fratura perpetua o ciclo de alienação coletiva."
         },
         {
           part: "4. Conclusão Reflexiva",
-          guidance: "NUNCA termine com receitas mágicas ('o governo deve fazer campanhas'). Retome a linha de pensamento, feche a costura dos argumentos e aponte para um horizonte de lucidez.",
-          template: "Depreende-se, portanto, que [retomada da tese sob nova formulação]. Enquanto persistir a recusa em encarar [conflito central], as tentativas de conciliação permanecerão ilusórias. Reconhecer essa complexidade não é capitular diante do desânimo, mas dar o primeiro passo indispensável para que o pensamento crítico não se curve à conveniência das respostas fáceis."
+          guidance: "NUNCA faça proposta interventiva rasa no estilo ENEM ('o governo deve fiscalizar'). Feche com lucidez filosófica.",
+          template: "Depreende-se, portanto, que [retomada da tese sob nova formulação]. Enquanto persistir a recusa em encarar [conflito central], as promessas de conciliação permanecerão ilusórias. Reconhecer essa complexidade não é capitular diante do desânimo, mas dar o passo indispensável para que o pensamento não se curve à conveniência das respostas fáceis."
+        }
+      ]
+    },
+    {
+      type: "FUVEST_GENERO",
+      title: "Esqueleto FUVEST - Opção 2: Qualquer Gênero Textual (Ex: Carta)",
+      description: "Estrutura para quando a banca solicitar outro gênero (como carta a personagem hipotético, crônica, manifesto ou artigo).",
+      structure: [
+        {
+          part: "1. Cabeçalho & Vocativo do Interlocutor",
+          guidance: "Defina claramente a situação comunicativa solicitada na proposta: para quem você escreve e de onde você fala.",
+          template: "[Local e Data (se cabível)] / Prezado(a) [Nome do Personagem ou Interlocutor Solicitado na Proposta],"
+        },
+        {
+          part: "2. Ponto de Partida Discursivo & Contextualização",
+          guidance: "Apresente o motivo do contato estabelecendo de imediato a conexão com o tema provocador da FUVEST.",
+          template: "Escrevo-lhe estas linhas movido pela inquietação que sua trajetória/postura desperta em mim diante do dilema de [tema da proposta]. Sei que, em seu contexto, [menção ao dilema do interlocutor], mas não posso calar-me perante a urgência de refletirmos juntos sobre [tese ou questionamento central]."
+        },
+        {
+          part: "3. Argumentação Embutida no Gênero (Corpo do Texto)",
+          guidance: "Desenvolva argumentos sólidos mantendo a voz do gênero (diálogo, provocação, empatia ou confronto respeitoso).",
+          template: "Veja bem: quando você decidiu [ação do personagem/interlocutor], talvez não tenha ponderado que [argumento crítico 1]. Sob a perspectiva da nossa história, [repertório filosófico/literário aplicado ao diálogo]. Não se trata de julgá-lo com leviandade, mas de compreender que [argumento 2 e reflexão ética]."
+        },
+        {
+          part: "4. Desfecho Discursivo & Despedida Adequada",
+          guidance: "Feche com uma reflexão provocativa ao interlocutor e subscreva com a assinatura exigida (ou pseudônimo, se a banca pedir).",
+          template: "Espero que estas palavras encontrem em seu espírito a coragem para encarar a verdade de [conclusão reflexiva]. Despeço-me na esperança de que o tempo lhe traga a lucidez que o momento exigiu. Atenciosamente, [Assinatura conforme orientações da prova]."
         }
       ]
     }
@@ -212,36 +242,49 @@ const redacaoData = {
   practicePrompts: [
     {
       banca: "FUVEST",
+      format: "FUVEST_DISSERTATIVA",
       year: 2026,
-      title: "O perdão é um ato que pode ser condicionado ou limitado?",
-      tip: "Tema oficial FUVEST 2026! Você pode desenvolver um texto dissertativo-argumentativo clássico ou uma carta reflexiva a um personagem hipotético."
+      title: "O perdão é um ato que pode ser condicionado ou limitado? (Opção 1: Dissertativo-Argumentativo)",
+      tip: "Tema oficial FUVEST 2026 - Opção 1! Ensaio dissertativo-argumentativo clássico com título obrigatório, reflexão filosófica profunda e sem fórmulas prontas de intervenção."
+    },
+    {
+      banca: "FUVEST",
+      format: "FUVEST_GENERO",
+      year: 2026,
+      title: "O perdão é um ato que pode ser condicionado ou limitado? (Opção 2: Carta a Personagem Hipotético)",
+      tip: "Tema oficial FUVEST 2026 - Opção 2! Gênero Carta Argumentativa dirigida a um personagem hipotético. Observe vocativo, interlocução constante, marcas do gênero epistolar e reflexão ética sobre os limites do perdão."
     },
     {
       banca: "ENEM",
+      format: "ENEM",
       year: 2026,
       title: "A valorização do Sistema Único de Saúde (SUS) como direito universal",
       tip: "Tema oficial ENEM 2026! Articule o Art. 196 da CF/88 (Saúde como direito de todos e dever do Estado), o princípio da equidade e a proposta de intervenção."
     },
     {
       banca: "FUVEST",
+      format: "FUVEST_DISSERTATIVA",
       year: 2025,
       title: "As relações sociais por meio da solidariedade",
       tip: "Tema oficial FUVEST 2025! Explore as tensões entre individualismo contemporâneo, empatia ativa e laços comunitários sob a ótica sociológica."
     },
     {
       banca: "ENEM",
+      format: "ENEM",
       year: 2025,
       title: "Perspectivas acerca do envelhecimento na sociedade brasileira",
       tip: "Tema oficial ENEM 2025! Discuta a transição demográfica, o etarismo, a sustentabilidade da previdência e o Estatuto da Pessoa Idosa."
     },
     {
       banca: "FUVEST",
+      format: "FUVEST_DISSERTATIVA",
       year: 2024,
       title: "Educação básica e formação profissional: entre a multitarefa e a reflexão",
       tip: "Tema oficial FUVEST 2024! Dialogue com Byung-Chul Han e a dispersão cognitiva da era digital contra a profundidade crítica."
     },
     {
       banca: "ENEM",
+      format: "ENEM",
       year: 2023,
       title: "Desafios para o enfrentamento da invisibilidade do trabalho de cuidado realizado pela mulher no Brasil",
       tip: "Tema oficial ENEM 2023! Aborde a dupla jornada, a divisão sexual do trabalho e a falta de creches e políticas de apoio."

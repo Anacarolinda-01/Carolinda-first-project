@@ -1591,13 +1591,43 @@ function updateEssayCounters() {
 
 function toggleEssayTypeGuidance() {
   const type = document.getElementById('essay-type-select')?.value || 'ENEM';
-  const fuvestWarning = document.getElementById('essay-fuvest-title-notice');
-  if (fuvestWarning) {
-    if (type === 'FUVEST') {
-      fuvestWarning.classList.remove('hidden');
-    } else {
-      fuvestWarning.classList.add('hidden');
-    }
+  const noticeEl = document.getElementById('essay-fuvest-title-notice');
+  const titleInput = document.getElementById('essay-title');
+  if (!noticeEl) return;
+
+  if (type === 'FUVEST_DISSERTATIVA' || type === 'FUVEST') {
+    noticeEl.classList.remove('hidden');
+    noticeEl.className = "mb-4 p-3.5 rounded-2xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800 text-xs text-indigo-950 dark:text-indigo-200 flex items-start gap-2.5";
+    noticeEl.innerHTML = `
+      <i class="fa-solid fa-feather text-indigo-600 dark:text-indigo-400 mt-0.5 shrink-0 text-sm"></i>
+      <div>
+        <strong>FUVEST - Opção 1 (Dissertativo-Argumentativo):</strong> 
+        O <strong>título é OBRIGATÓRIO</strong> nesta opção e avaliado com rigor pela banca da USP! Desenvolva um ensaio reflexivo dialético de 4 parágrafos, sem receitas simplórias de intervenção.
+      </div>
+    `;
+    if (titleInput) titleInput.placeholder = "Título OBRIGATÓRIO da dissertação FUVEST (Criativo, sintético e provocativo)...";
+  } else if (type === 'FUVEST_GENERO') {
+    noticeEl.classList.remove('hidden');
+    noticeEl.className = "mb-4 p-3.5 rounded-2xl bg-purple-50 dark:bg-purple-950/50 border border-purple-200 dark:border-purple-800 text-xs text-purple-950 dark:text-purple-200 flex items-start gap-2.5";
+    noticeEl.innerHTML = `
+      <i class="fa-solid fa-envelope-open-text text-purple-600 dark:text-purple-400 mt-0.5 shrink-0 text-sm"></i>
+      <div>
+        <strong>FUVEST - Opção 2 (Qualquer Gênero Textual):</strong> 
+        A banca permite optar por <strong>outro gênero textual</strong> determinado na proposta (ex: carta argumentativa a personagem hipotético/autoridades, crônica, manifesto). Atente-se às marcas do gênero: vocativo, interlocução constante, tom de voz e situação comunicativa!
+      </div>
+    `;
+    if (titleInput) titleInput.placeholder = "Cabeçalho / Assunto / Título conforme convenções do gênero textual pedido...";
+  } else {
+    // Padrão ENEM
+    noticeEl.classList.remove('hidden');
+    noticeEl.className = "mb-4 p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 text-xs text-amber-950 dark:text-amber-200 flex items-start gap-2.5";
+    noticeEl.innerHTML = `
+      <i class="fa-solid fa-circle-check text-amber-600 dark:text-amber-400 mt-0.5 shrink-0 text-sm"></i>
+      <div>
+        <strong>Padrão ENEM:</strong> Título é facultativo (não pontua). Garanta o projeto de texto estratégico (D1 e D2) e a <strong>Proposta de Intervenção completa com os 5 elementos</strong> obrigatórios na conclusão (Competência 5).
+      </div>
+    `;
+    if (titleInput) titleInput.placeholder = "Título opcional no ENEM (se colocado, conta como linha escrita)...";
   }
 }
 
@@ -1639,6 +1669,29 @@ function renderPastThemes() {
          </div>`
       : '';
 
+    // Ações FUVEST: se for 2026, mostra botões para as 2 opções
+    const fuvestActions = isNew
+      ? `<div class="mt-2 flex flex-wrap gap-1.5">
+           <button 
+             onclick="applyThemeToLab('${t.fuvest.replace(/'/g, "\\'")} (Opção 1: Dissertativo-Argumentativo)', 'FUVEST_DISSERTATIVA')"
+             class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition"
+           >
+             <i class="fa-solid fa-feather"></i> Opção 1: Dissertação
+           </button>
+           <button 
+             onclick="applyThemeToLab('${t.fuvest.replace(/'/g, "\\'")} (Opção 2: Carta a Personagem)', 'FUVEST_GENERO')"
+             class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 transition"
+           >
+             <i class="fa-solid fa-envelope-open-text"></i> Opção 2: Carta (Gênero)
+           </button>
+         </div>`
+      : `<button 
+           onclick="applyThemeToLab('${t.fuvest.replace(/'/g, "\\'")}', 'FUVEST_DISSERTATIVA')"
+           class="mt-2 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition"
+         >
+           <i class="fa-solid fa-pen-nib"></i> Treinar na FUVEST
+         </button>`;
+
     return `
       <tr class="border-b border-slate-100 hover:bg-slate-50/70 transition">
         <td class="py-3.5 px-4 text-xs font-bold text-slate-900 align-top">${yearBadge}</td>
@@ -1654,12 +1707,7 @@ function renderPastThemes() {
         <td class="py-3.5 px-4 text-xs text-slate-800 align-top">
           <div class="font-medium leading-relaxed">${t.fuvest}</div>
           ${fuvestExtra}
-          <button 
-            onclick="applyThemeToLab('${t.fuvest.replace(/'/g, "\\'")}', 'FUVEST')"
-            class="mt-2 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition"
-          >
-            <i class="fa-solid fa-pen-nib"></i> Treinar na FUVEST
-          </button>
+          ${fuvestActions}
         </td>
       </tr>
     `;
@@ -1674,7 +1722,7 @@ function populateEssayPromptSelector() {
   selector.innerHTML = `<option value="">Selecione um tema oficial do ENEM ou FUVEST...</option>`;
 
   const optGroupFuvest = document.createElement('optgroup');
-  optGroupFuvest.label = "FUVEST (Temas Oficiais)";
+  optGroupFuvest.label = "FUVEST (Temas Oficiais - Opção 1 e Opção 2)";
 
   const optGroupEnem = document.createElement('optgroup');
   optGroupEnem.label = "ENEM (Temas Oficiais)";
@@ -1683,6 +1731,7 @@ function populateEssayPromptSelector() {
     const opt = document.createElement('option');
     opt.value = p.title;
     opt.dataset.banca = p.banca;
+    opt.dataset.format = p.format || (p.banca === 'FUVEST' ? 'FUVEST_DISSERTATIVA' : 'ENEM');
     opt.dataset.tip = p.tip || '';
     opt.textContent = `[${p.banca} ${p.year}] ${p.title}`;
     if (p.banca === 'FUVEST') {
@@ -1700,7 +1749,7 @@ window.onSelectPracticePrompt = function(selectedTitle) {
   if (!selectedTitle) return;
   const promptItem = redacaoData.practicePrompts?.find(p => p.title === selectedTitle);
   if (promptItem) {
-    applyThemeToLab(promptItem.title, promptItem.banca, promptItem.tip);
+    applyThemeToLab(promptItem.title, promptItem.format || promptItem.banca, promptItem.tip);
   }
 };
 
@@ -1709,14 +1758,17 @@ window.applyThemeToLab = function(themeTitle, examType, customTip = null) {
   const essayTypeSelect = document.getElementById('essay-type-select');
   const essayTextarea = document.getElementById('essay-textarea');
 
+  let normalizedType = examType || 'ENEM';
+  if (normalizedType === 'FUVEST') normalizedType = 'FUVEST_DISSERTATIVA';
+
   if (essayTitle) essayTitle.value = themeTitle;
   if (essayTypeSelect) {
-    essayTypeSelect.value = examType || 'ENEM';
+    essayTypeSelect.value = normalizedType;
     toggleEssayTypeGuidance();
   }
 
   AppState.essayDraft.title = themeTitle;
-  AppState.essayDraft.type = examType || 'ENEM';
+  AppState.essayDraft.type = normalizedType;
   saveToLocalStorage();
 
   // Scroll suave para o laboratório de redação
@@ -1727,7 +1779,11 @@ window.applyThemeToLab = function(themeTitle, examType, customTip = null) {
   }
 
   const tipText = customTip ? `\n\n💡 Dica da banca:\n${customTip}` : '';
-  alert(`Tema "${themeTitle}" carregado no Laboratório de Redação com formato ${examType}!${tipText}`);
+  const labelType = normalizedType === 'FUVEST_GENERO' 
+    ? 'FUVEST (Opção 2: Gênero Textual)' 
+    : (normalizedType === 'FUVEST_DISSERTATIVA' ? 'FUVEST (Opção 1: Dissertativo-Argumentativo)' : 'ENEM');
+
+  alert(`Tema carregado no Laboratório de Redação!\nFormato selecionado: ${labelType}.${tipText}`);
 };
 
 // ==========================================
