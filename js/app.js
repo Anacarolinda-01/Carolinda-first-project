@@ -110,6 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initModalsDismissal();
   updateGlobalBadges();
   initPWA();
+  initMotivationAndNotifications();
   if (typeof initSupabase === 'function') {
     initSupabase();
   }
@@ -1470,6 +1471,7 @@ function initRedacao() {
 
   renderRepertorios();
   renderPastThemes();
+  populateEssayPromptSelector();
   toggleEssayTypeGuidance();
 }
 
@@ -1545,14 +1547,109 @@ function renderPastThemes() {
   const tableBody = document.getElementById('past-themes-tbody');
   if (!tableBody) return;
 
-  tableBody.innerHTML = redacaoData.pastThemes.map(t => `
-    <tr class="border-b border-slate-100 hover:bg-slate-50/70 transition">
-      <td class="py-3 px-4 text-xs font-bold text-slate-900">${t.year}</td>
-      <td class="py-3 px-4 text-xs text-slate-700">${t.enem}</td>
-      <td class="py-3 px-4 text-xs text-slate-700">${t.fuvest}</td>
-    </tr>
-  `).join('');
+  tableBody.innerHTML = redacaoData.pastThemes.map(t => {
+    const isNew = t.year === 2026;
+    const yearBadge = isNew
+      ? `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black bg-rose-500 text-white shadow-sm shadow-rose-200 animate-pulse">2026 <i class="fa-solid fa-sparkles text-[10px]"></i></span>`
+      : `<span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-xs font-bold">${t.year}</span>`;
+
+    const fuvestExtra = t.fuvestNote
+      ? `<div class="mt-2 p-2 rounded-lg bg-amber-50 border border-amber-200/90 text-[11px] text-amber-900 leading-snug flex items-start gap-1.5">
+           <i class="fa-solid fa-circle-info text-amber-600 mt-0.5 shrink-0"></i>
+           <span><strong>Novidade da Banca:</strong> ${t.fuvestNote}</span>
+         </div>`
+      : '';
+
+    return `
+      <tr class="border-b border-slate-100 hover:bg-slate-50/70 transition">
+        <td class="py-3.5 px-4 text-xs font-bold text-slate-900 align-top">${yearBadge}</td>
+        <td class="py-3.5 px-4 text-xs text-slate-800 align-top">
+          <div class="font-medium leading-relaxed">${t.enem}</div>
+          <button 
+            onclick="applyThemeToLab('${t.enem.replace(/'/g, "\\'")}', 'ENEM')"
+            class="mt-2 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition"
+          >
+            <i class="fa-solid fa-pen-nib"></i> Treinar no ENEM
+          </button>
+        </td>
+        <td class="py-3.5 px-4 text-xs text-slate-800 align-top">
+          <div class="font-medium leading-relaxed">${t.fuvest}</div>
+          ${fuvestExtra}
+          <button 
+            onclick="applyThemeToLab('${t.fuvest.replace(/'/g, "\\'")}', 'FUVEST')"
+            class="mt-2 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition"
+          >
+            <i class="fa-solid fa-pen-nib"></i> Treinar na FUVEST
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
 }
+
+function populateEssayPromptSelector() {
+  const selector = document.getElementById('essay-prompt-selector');
+  if (!selector || !redacaoData.practicePrompts) return;
+
+  // Manter opção default
+  selector.innerHTML = `<option value="">Selecione um tema oficial do ENEM ou FUVEST...</option>`;
+
+  const optGroupFuvest = document.createElement('optgroup');
+  optGroupFuvest.label = "FUVEST (Temas Oficiais)";
+
+  const optGroupEnem = document.createElement('optgroup');
+  optGroupEnem.label = "ENEM (Temas Oficiais)";
+
+  redacaoData.practicePrompts.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.title;
+    opt.dataset.banca = p.banca;
+    opt.dataset.tip = p.tip || '';
+    opt.textContent = `[${p.banca} ${p.year}] ${p.title}`;
+    if (p.banca === 'FUVEST') {
+      optGroupFuvest.appendChild(opt);
+    } else {
+      optGroupEnem.appendChild(opt);
+    }
+  });
+
+  selector.appendChild(optGroupFuvest);
+  selector.appendChild(optGroupEnem);
+}
+
+window.onSelectPracticePrompt = function(selectedTitle) {
+  if (!selectedTitle) return;
+  const promptItem = redacaoData.practicePrompts?.find(p => p.title === selectedTitle);
+  if (promptItem) {
+    applyThemeToLab(promptItem.title, promptItem.banca, promptItem.tip);
+  }
+};
+
+window.applyThemeToLab = function(themeTitle, examType, customTip = null) {
+  const essayTitle = document.getElementById('essay-title');
+  const essayTypeSelect = document.getElementById('essay-type-select');
+  const essayTextarea = document.getElementById('essay-textarea');
+
+  if (essayTitle) essayTitle.value = themeTitle;
+  if (essayTypeSelect) {
+    essayTypeSelect.value = examType || 'ENEM';
+    toggleEssayTypeGuidance();
+  }
+
+  AppState.essayDraft.title = themeTitle;
+  AppState.essayDraft.type = examType || 'ENEM';
+  saveToLocalStorage();
+
+  // Scroll suave para o laboratório de redação
+  const labElement = document.getElementById('essay-textarea');
+  if (labElement) {
+    labElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    labElement.focus();
+  }
+
+  const tipText = customTip ? `\n\n💡 Dica da banca:\n${customTip}` : '';
+  alert(`Tema "${themeTitle}" carregado no Laboratório de Redação com formato ${examType}!${tipText}`);
+};
 
 // ==========================================
 // 5. CRONOGRAMA & RAIO-X RANQUEADO (ENEM vs FUVEST)
@@ -1950,3 +2047,175 @@ window.saveNewFlashcard = function() {
   renderCurrentFlashcard();
   alert("Flashcard criado com sucesso!");
 };
+
+// ==========================================
+// 8. NOTIFICAÇÕES MOTIVACIONAIS & PWA PUSH
+// ==========================================
+
+const MOTIVATIONAL_QUOTES = [
+  "Você é muito mais capaz do que imagina! 15 minutinhos de treino hoje te deixam um passo mais perto da sua vaga.",
+  "A constância vence o talento quando o talento não é constante. Um dia de cada vez, você vai conquistar a sua aprovação!",
+  "Não deixe a insegurança falar mais alto: cada questão errada no treino é um erro a menos no dia oficial da prova!",
+  "A sua vaga na USP ou na Federal está sendo construída agora mesmo. Respire fundo, resolva algumas questões e brilhe!",
+  "Sentiu cansaço? É super normal. Faça apenas 5 flashcards ou leia 1 repertório hoje. O importante é manter a chama acesa!",
+  "Acredite no seu potencial: redação e simulados são habilidades que se desenvolvem com treino. Você consegue!",
+  "Você não precisa ser perfeito todos os dias, só precisa não desistir. Cada esforço silencioso de hoje será recompensado!",
+  "Confie na sua preparação! O segredo dos grandes aprovados foi continuar caminhando mesmo nos dias difíceis."
+];
+
+function initMotivationAndNotifications() {
+  updateDailyMotivationQuote();
+  updateNotificationUI();
+  checkInactivityAndEncourage();
+}
+
+function updateDailyMotivationQuote() {
+  const quoteEl = document.getElementById('motivational-quote-text');
+  if (!quoteEl) return;
+
+  const dayIndex = Math.floor(Date.now() / (1000 * 60 * 60 * 24)) % MOTIVATIONAL_QUOTES.length;
+  quoteEl.textContent = MOTIVATIONAL_QUOTES[dayIndex];
+}
+
+function updateNotificationUI() {
+  const badge = document.getElementById('notif-status-badge');
+  const btnText = document.getElementById('btn-toggle-notif-text');
+  const btn = document.getElementById('btn-toggle-notifications');
+
+  if (!('Notification' in window)) {
+    if (badge) {
+      badge.textContent = "Não suportado no navegador";
+      badge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500";
+    }
+    if (btn) btn.disabled = true;
+    return;
+  }
+
+  const perm = Notification.permission;
+
+  if (perm === 'granted') {
+    if (badge) {
+      badge.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500"></i> Lembretes Ativos`;
+      badge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 flex items-center gap-1";
+    }
+    if (btnText) btnText.textContent = "Lembretes Ativados";
+    if (btn) btn.className = "flex-1 lg:flex-initial px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm transition flex items-center justify-center gap-2";
+  } else if (perm === 'denied') {
+    if (badge) {
+      badge.innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-500"></i> Notificações Bloqueadas`;
+      badge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 flex items-center gap-1";
+    }
+    if (btnText) btnText.textContent = "Permitir no Navegador";
+    if (btn) btn.className = "flex-1 lg:flex-initial px-4 py-2.5 rounded-xl bg-slate-500 hover:bg-slate-600 text-white font-bold text-xs shadow-sm transition flex items-center justify-center gap-2";
+  } else {
+    if (badge) {
+      badge.innerHTML = `<i class="fa-solid fa-bell text-amber-500"></i> Lembretes Disponíveis`;
+      badge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 flex items-center gap-1";
+    }
+    if (btnText) btnText.textContent = "Ativar Lembretes";
+    if (btn) btn.className = "flex-1 lg:flex-initial px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-sm transition flex items-center justify-center gap-2";
+  }
+}
+
+function checkInactivityAndEncourage() {
+  const LAST_ACTIVE_KEY = 'brilhavest_last_active_timestamp';
+  const lastActiveStr = localStorage.getItem(LAST_ACTIVE_KEY);
+  const now = Date.now();
+
+  if (lastActiveStr) {
+    const lastActive = parseInt(lastActiveStr, 10);
+    const hoursElapsed = (now - lastActive) / (1000 * 60 * 60);
+
+    // Se passou mais de 24 horas desde o último acesso, envia lembrete acolhedor
+    if (hoursElapsed >= 24) {
+      const motivationalMsg = "Sentimos sua falta ontem! 🌟 Lembre-se: você é plenamente capaz de conquistar a sua vaga. Que tal resolver 5 questõezinhas hoje para manter o ritmo?";
+      
+      if ('Notification' in window && Notification.permission === 'granted') {
+        triggerLocalPushNotification("BrilhaVest: Você é Capaz! 🚀", motivationalMsg, "daily-inactivity-reminder");
+      }
+    }
+  }
+
+  // Registra o momento atual como último acesso
+  localStorage.setItem(LAST_ACTIVE_KEY, now.toString());
+}
+
+window.toggleNotificationPermission = async function() {
+  if (!('Notification' in window)) {
+    alert("Seu navegador atual não suporta notificações de sistema. Você pode instalar o app como PWA para receber alertas!");
+    return;
+  }
+
+  if (Notification.permission === 'granted') {
+    alert("Os lembretes diários já estão ativados no seu dispositivo! Você receberá incentivos e avisos para manter sua constância de estudos.");
+    return;
+  }
+
+  if (Notification.permission === 'denied') {
+    alert("As notificações estão bloqueadas nas configurações do seu navegador. Para receber os incentivos diários, clique no ícone de configurações/cadeado na barra de endereços e autorize as Notificações.");
+    return;
+  }
+
+  try {
+    const permission = await Notification.requestPermission();
+    updateNotificationUI();
+
+    if (permission === 'granted') {
+      triggerLocalPushNotification(
+        "BrilhaVest: Lembretes Ativados! 🎉",
+        "Muito bem! Agora você receberá frases de incentivo e lembretes diários para não deixar a peteca cair nos estudos.",
+        "welcome-notif"
+      );
+    }
+  } catch (err) {
+    console.error("Erro ao solicitar permissão de notificações:", err);
+  }
+};
+
+window.sendSampleMotivationNotification = function() {
+  const randomQuote = MOTIVATIONAL_QUOTES[Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length)];
+
+  if (!('Notification' in window)) {
+    alert(`💡 Frase Motivacional do Dia:\n\n"${randomQuote}"`);
+    return;
+  }
+
+  if (Notification.permission !== 'granted') {
+    Notification.requestPermission().then(perm => {
+      updateNotificationUI();
+      if (perm === 'granted') {
+        triggerLocalPushNotification("BrilhaVest: Motivação para Você! ✨", randomQuote, "test-motivation");
+      } else {
+        alert(`💡 Frase Motivacional do Dia:\n\n"${randomQuote}"\n\n(Dica: ative as notificações para receber direto na sua tela!)`);
+      }
+    });
+    return;
+  }
+
+  triggerLocalPushNotification("BrilhaVest: Motivação para Você! ✨", randomQuote, "test-motivation");
+};
+
+function triggerLocalPushNotification(title, body, tag = 'brilhavest-reminder') {
+  const options = {
+    body: body,
+    icon: 'icons/icon-192.png',
+    badge: 'icons/icon-192.png',
+    tag: tag,
+    vibrate: [200, 100, 200],
+    data: { url: './?tab=questions' }
+  };
+
+  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+    navigator.serviceWorker.ready.then(reg => {
+      reg.showNotification(title, options);
+    }).catch(() => {
+      new Notification(title, options);
+    });
+  } else if ('Notification' in window && Notification.permission === 'granted') {
+    try {
+      new Notification(title, options);
+    } catch (e) {
+      console.warn("Falha ao instanciar Notification diretamente:", e);
+    }
+  }
+}

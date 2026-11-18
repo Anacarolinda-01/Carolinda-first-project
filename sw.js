@@ -1,9 +1,9 @@
 /**
- * Service Worker do BrilhaVest - PWA Offline & Cache
- * Versão: 2.1.0
+ * Service Worker do BrilhaVest - PWA Offline, Cache & Notificações Push / Diárias
+ * Versão: 2.2.0
  */
 
-const CACHE_NAME = 'brilhavest-cache-v2.1';
+const CACHE_NAME = 'brilhavest-cache-v2.2';
 
 const ASSETS_TO_CACHE = [
   './',
@@ -68,7 +68,6 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method === 'GET') {
     event.respondWith(
       caches.match(event.request).then((cachedResponse) => {
-        // Se encontrou em cache, retorna e atualiza em segundo plano (Stale-While-Revalidate)
         const fetchPromise = fetch(event.request).then((networkResponse) => {
           if (networkResponse && networkResponse.status === 200) {
             const responseToCache = networkResponse.clone();
@@ -77,12 +76,88 @@ self.addEventListener('fetch', (event) => {
             });
           }
           return networkResponse;
-        }).catch(() => {
-          // Se falhar a rede, não tem problema, o cache já serviu a resposta
-        });
+        }).catch(() => {});
 
         return cachedResponse || fetchPromise;
       })
     );
   }
+});
+
+// ==========================================
+// PUSH NOTIFICATIONS & MOTIVATIONAL ALERTS
+// ==========================================
+
+// Evento disparado quando o app envia mensagem direta para o Service Worker
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SHOW_NOTIFICATION') {
+    const { title, options } = event.data;
+    self.registration.showNotification(title, options);
+  }
+});
+
+// Evento de Push do servidor
+self.addEventListener('push', (event) => {
+  let data = {
+    title: 'BrilhaVest - Você é Capaz! 🎓',
+    body: 'Sentimos sua falta! Pequenos passos diários constroem aprovações gigantescas. Bora estudar um pouco hoje?',
+    url: './index.html?tab=questions'
+  };
+
+  if (event.data) {
+    try {
+      data = Object.assign(data, event.data.json());
+    } catch (e) {
+      data.body = event.data.text();
+    }
+  }
+
+  const options = {
+    body: data.body,
+    icon: './icons/icon-192.png',
+    badge: './icons/icon-192.png',
+    vibrate: [200, 100, 200, 100, 200],
+    tag: 'brilhavest-daily-motivation',
+    renotify: true,
+    data: {
+      url: data.url || './index.html?tab=questions'
+    },
+    actions: [
+      { action: 'study', title: '🚀 Estudar Agora' },
+      { action: 'close', title: 'Depois' }
+    ]
+  };
+
+  event.waitUntil(self.registration.showNotification(data.title, options));
+});
+
+// Clique na Notificação: abre ou foca no BrilhaVest
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  if (event.action === 'close') {
+    return;
+  }
+
+  const targetUrl = (event.notification.data && event.notification.data.url) 
+    ? event.notification.data.url 
+    : './index.html?tab=questions';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // Se o app já estiver aberto em alguma aba, foca nela
+      for (const client of clientList) {
+        if ('focus' in client) {
+          if ('navigate' in client) {
+            client.navigate(targetUrl);
+          }
+          return client.focus();
+        }
+      }
+      // Se não estiver aberto, abre uma nova janela
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
+    })
+  );
 });

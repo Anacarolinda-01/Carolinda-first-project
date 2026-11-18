@@ -160,38 +160,91 @@ const redacaoData = {
   ],
 
   pastThemes: [
-    { year: 2026, enem: "Desafios para o enfrentamento da crise climática e da transição energética justa no Brasil", fuvest: "O valor da lentidão, do silêncio e da contemplação no mundo da hiperaceleração" },
-    { year: 2025, enem: "Perspectivas e desafios para a preservação da biodiversidade e segurança hídrica no Brasil", fuvest: "A tensão entre a verdade factual e a conveniência narrativa na contemporaneidade" },
-    { year: 2024, enem: "Desafios para a valorização da herança africana no Brasil", fuvest: "A pertinência da esperança em um mundo em crise" },
-    { year: 2023, enem: "Invisibilidade do trabalho de cuidado realizado pela mulher no Brasil", fuvest: "Refúgio e hospitalidade em tempos de incerteza" },
-    { year: 2022, enem: "Desafios para a valorização de comunidades e povos tradicionais no Brasil", fuvest: "As diferentes faces do riso na sociedade contemporânea" },
-    { year: 2021, enem: "Invisibilidade e registro civil: garantia de acesso à cidadania no Brasil", fuvest: "O papel da ciência no mundo contemporâneo" },
-    { year: 2020, enem: "O estigma associado às doenças mentais na sociedade brasileira", fuvest: "O mundo contemporâneo está fora de ordem?" },
-    { year: 2019, enem: "Democratização do acesso ao cinema no Brasil", fuvest: "A importância do passado para a compreensão do presente" },
-    { year: 2018, enem: "Manipulação do comportamento do usuário pelo controle de dados na internet", fuvest: "Devem existir limites para a arte?" }
+    {
+      year: 2026,
+      enem: "A valorização do Sistema Único de Saúde (SUS) como direito universal",
+      fuvest: "O perdão é um ato que pode ser condicionado ou limitado?",
+      fuvestNote: "Histórico: 1º ano com 2 propostas de gênero textual (Opção 1: Texto dissertativo-argumentativo tradicional / Opção 2: Carta a um personagem hipotético)"
+    },
+    {
+      year: 2025,
+      enem: "Perspectivas acerca do envelhecimento na sociedade brasileira",
+      fuvest: "As relações sociais por meio da solidariedade"
+    },
+    {
+      year: 2024,
+      enem: "Desafios para a valorização da herança africana no Brasil",
+      fuvest: "Educação básica e formação profissional: entre a multitarefa e a reflexão"
+    },
+    {
+      year: 2023,
+      enem: "Desafios para o enfrentamento da invisibilidade do trabalho de cuidado realizado pela mulher no Brasil",
+      fuvest: "Refugiados ambientais e vulnerabilidade social"
+    },
+    {
+      year: 2022,
+      enem: "Desafios para a valorização de comunidades e povos tradicionais no Brasil",
+      fuvest: "As diferentes faces do riso"
+    },
+    {
+      year: 2021,
+      enem: "Invisibilidade e registro civil: garantia de acesso à cidadania no Brasil",
+      fuvest: "O mundo contemporâneo está fora da ordem?"
+    },
+    {
+      year: 2020,
+      enem: "O estigma associado às doenças mentais na sociedade brasileira",
+      fuvest: "O papel da ciência no mundo contemporâneo"
+    },
+    {
+      year: 2019,
+      enem: "Democratização do acesso ao cinema no Brasil",
+      fuvest: "De que maneira o passado contribui para a compreensão do presente?"
+    },
+    {
+      year: 2018,
+      enem: "Manipulação do comportamento do usuário pelo controle de dados na internet",
+      fuvest: "Devem existir limites para a arte?"
+    }
   ],
 
-  // Temas apostas para treino direto no laboratório
+  // Temas apostas e práticos para treino direto no laboratório
   practicePrompts: [
     {
-      banca: "ENEM",
-      title: "Impactos das apostas esportivas online ('bets') e a saúde financeira dos jovens brasileiros",
-      tip: "Aborde o endividamento familiar, a ludopatia, a publicidade agressiva com influenciadores e a regulação estatal."
+      banca: "FUVEST",
+      year: 2026,
+      title: "O perdão é um ato que pode ser condicionado ou limitado?",
+      tip: "Tema oficial FUVEST 2026! Você pode desenvolver um texto dissertativo-argumentativo clássico ou uma carta reflexiva a um personagem hipotético."
     },
     {
       banca: "ENEM",
-      title: "Desafios da inteligência artificial e da desinformação na democracia brasileira",
-      tip: "Relacione alfabetização midiática, 'deepfakes', polarização social e o papel do Marco Civil da Internet."
+      year: 2026,
+      title: "A valorização do Sistema Único de Saúde (SUS) como direito universal",
+      tip: "Tema oficial ENEM 2026! Articule o Art. 196 da CF/88 (Saúde como direito de todos e dever do Estado), o princípio da equidade e a proposta de intervenção."
     },
     {
       banca: "FUVEST",
-      title: "A mercantilização da intimidade e a espetacularização do sofrimento humano",
-      tip: "Ensaio reflexivo: dialogue com Guy Debord ('Sociedade do Espetáculo') e a busca incessante por engajamento digital."
+      year: 2025,
+      title: "As relações sociais por meio da solidariedade",
+      tip: "Tema oficial FUVEST 2025! Explore as tensões entre individualismo contemporâneo, empatia ativa e laços comunitários sob a ótica sociológica."
+    },
+    {
+      banca: "ENEM",
+      year: 2025,
+      title: "Perspectivas acerca do envelhecimento na sociedade brasileira",
+      tip: "Tema oficial ENEM 2025! Discuta a transição demográfica, o etarismo, a sustentabilidade da previdência e o Estatuto da Pessoa Idosa."
     },
     {
       banca: "FUVEST",
-      title: "O esquecimento como direito ou como ameaça à memória coletiva?",
-      tip: "Problematize o apagamento histórico de violências estatais em contraste com o direito individual ao esquecimento na internet."
+      year: 2024,
+      title: "Educação básica e formação profissional: entre a multitarefa e a reflexão",
+      tip: "Tema oficial FUVEST 2024! Dialogue com Byung-Chul Han e a dispersão cognitiva da era digital contra a profundidade crítica."
+    },
+    {
+      banca: "ENEM",
+      year: 2023,
+      title: "Desafios para o enfrentamento da invisibilidade do trabalho de cuidado realizado pela mulher no Brasil",
+      tip: "Tema oficial ENEM 2023! Aborde a dupla jornada, a divisão sexual do trabalho e a falta de creches e políticas de apoio."
     }
   ]
 };
