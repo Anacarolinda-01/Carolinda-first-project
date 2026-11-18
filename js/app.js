@@ -45,6 +45,7 @@ const AppState = {
     revealed: {} // { [qId]: true }
   },
   essayDraft: {
+    topic: '',
     title: '',
     text: '',
     type: 'ENEM'
@@ -80,7 +81,14 @@ function loadFromLocalStorage() {
       if (data.stats) AppState.stats = data.stats;
       if (data.checklist) AppState.checklist = data.checklist;
       if (data.readBooks) AppState.readBooks = data.readBooks;
-      if (data.essayDraft) AppState.essayDraft = data.essayDraft;
+      if (data.essayDraft) {
+        AppState.essayDraft = {
+          topic: data.essayDraft.topic || '',
+          title: data.essayDraft.title || '',
+          text: data.essayDraft.text || '',
+          type: data.essayDraft.type || 'ENEM'
+        };
+      }
       if (data.flashcardStats) {
         AppState.flashcardDeck.learnedIds = data.flashcardStats.learnedIds || [];
         const customCards = data.flashcardStats.customCards || [];
@@ -1511,16 +1519,37 @@ window.closeBookModal = function() {
 // 4. MÓDULO DE REDAÇÃO (ENEM vs FUVEST)
 // ==========================================
 function initRedacao() {
+  const essayTopic = document.getElementById('essay-topic');
   const essayInput = document.getElementById('essay-textarea');
   const essayTitle = document.getElementById('essay-title');
   const essayType = document.getElementById('essay-type-select');
 
   // Carregar rascunho anterior
+  if (essayTopic && AppState.essayDraft.topic) essayTopic.value = AppState.essayDraft.topic;
   if (essayInput && AppState.essayDraft.text) essayInput.value = AppState.essayDraft.text;
   if (essayTitle && AppState.essayDraft.title) essayTitle.value = AppState.essayDraft.title;
   if (essayType && AppState.essayDraft.type) essayType.value = AppState.essayDraft.type;
 
   updateEssayCounters();
+
+  if (essayTopic) {
+    essayTopic.addEventListener('input', () => {
+      AppState.essayDraft.topic = essayTopic.value;
+      saveToLocalStorage();
+      if (typeof scheduleEssaySync === 'function') scheduleEssaySync(AppState.essayDraft);
+
+      // Sincroniza seletor de propostas para [custom] se o usuário estiver digitando livremente
+      const selector = document.getElementById('essay-prompt-selector');
+      if (selector) {
+        const isOfficial = redacaoData.practicePrompts?.some(p => p.title === essayTopic.value);
+        if (!isOfficial && essayTopic.value.trim() !== '') {
+          selector.value = 'custom';
+        } else if (essayTopic.value.trim() === '') {
+          selector.value = '';
+        }
+      }
+    });
+  }
 
   if (essayInput) {
     essayInput.addEventListener('input', () => {
@@ -1718,8 +1747,11 @@ function populateEssayPromptSelector() {
   const selector = document.getElementById('essay-prompt-selector');
   if (!selector || !redacaoData.practicePrompts) return;
 
-  // Manter opção default
-  selector.innerHTML = `<option value="">Selecione um tema oficial do ENEM ou FUVEST...</option>`;
+  // Manter opções default (incluindo opção para digitar qualquer tema livre)
+  selector.innerHTML = `
+    <option value="">Selecione um tema oficial do ENEM ou FUVEST...</option>
+    <option value="custom">✍️ [Tema Livre] Digitar qualquer outro tema que eu quiser...</option>
+  `;
 
   const optGroupFuvest = document.createElement('optgroup');
   optGroupFuvest.label = "FUVEST (Temas Oficiais - Opção 1 e Opção 2)";
@@ -1743,10 +1775,33 @@ function populateEssayPromptSelector() {
 
   selector.appendChild(optGroupFuvest);
   selector.appendChild(optGroupEnem);
+
+  // Sincroniza valor atual com o rascunho salvo
+  if (AppState.essayDraft.topic) {
+    const match = redacaoData.practicePrompts.some(p => p.title === AppState.essayDraft.topic);
+    if (!match && AppState.essayDraft.topic.trim() !== '') {
+      selector.value = 'custom';
+    } else if (match) {
+      selector.value = AppState.essayDraft.topic;
+    }
+  }
 }
 
 window.onSelectPracticePrompt = function(selectedTitle) {
   if (!selectedTitle) return;
+
+  // Se o aluno escolheu a opção de digitar seu próprio tema livre
+  if (selectedTitle === 'custom') {
+    const topicInput = document.getElementById('essay-topic');
+    if (topicInput) {
+      topicInput.focus();
+      topicInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      topicInput.classList.add('ring-2', 'ring-indigo-500');
+      setTimeout(() => topicInput.classList.remove('ring-2', 'ring-indigo-500'), 1500);
+    }
+    return;
+  }
+
   const promptItem = redacaoData.practicePrompts?.find(p => p.title === selectedTitle);
   if (promptItem) {
     applyThemeToLab(promptItem.title, promptItem.format || promptItem.banca, promptItem.tip);
@@ -1754,20 +1809,25 @@ window.onSelectPracticePrompt = function(selectedTitle) {
 };
 
 window.applyThemeToLab = function(themeTitle, examType, customTip = null) {
-  const essayTitle = document.getElementById('essay-title');
+  const essayTopic = document.getElementById('essay-topic');
   const essayTypeSelect = document.getElementById('essay-type-select');
   const essayTextarea = document.getElementById('essay-textarea');
+  const promptSelector = document.getElementById('essay-prompt-selector');
 
   let normalizedType = examType || 'ENEM';
   if (normalizedType === 'FUVEST') normalizedType = 'FUVEST_DISSERTATIVA';
 
-  if (essayTitle) essayTitle.value = themeTitle;
+  if (essayTopic) essayTopic.value = themeTitle;
+  if (promptSelector) {
+    const match = Array.from(promptSelector.options).some(o => o.value === themeTitle);
+    promptSelector.value = match ? themeTitle : 'custom';
+  }
   if (essayTypeSelect) {
     essayTypeSelect.value = normalizedType;
     toggleEssayTypeGuidance();
   }
 
-  AppState.essayDraft.title = themeTitle;
+  AppState.essayDraft.topic = themeTitle;
   AppState.essayDraft.type = normalizedType;
   saveToLocalStorage();
 
@@ -1783,7 +1843,7 @@ window.applyThemeToLab = function(themeTitle, examType, customTip = null) {
     ? 'FUVEST (Opção 2: Gênero Textual)' 
     : (normalizedType === 'FUVEST_DISSERTATIVA' ? 'FUVEST (Opção 1: Dissertativo-Argumentativo)' : 'ENEM');
 
-  alert(`Tema carregado no Laboratório de Redação!\nFormato selecionado: ${labelType}.${tipText}`);
+  alert(`Tema carregado no Laboratório de Redação!\n\n📋 Tema: "${themeTitle}"\n📐 Formato: ${labelType}.${tipText}`);
 };
 
 // ==========================================
