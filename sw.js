@@ -1,9 +1,9 @@
 /**
  * Service Worker do BrilhaVest - PWA Offline, Cache & Notificações Push / Diárias
- * Versão: 2.2.0
+ * Versão: 2.4.0
  */
 
-const CACHE_NAME = 'brilhavest-cache-v2.2';
+const CACHE_NAME = 'brilhavest-cache-v2.4';
 
 const ASSETS_TO_CACHE = [
   './',

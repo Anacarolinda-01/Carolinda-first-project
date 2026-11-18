@@ -612,10 +612,16 @@ function setCurrentStudent(student) {
 // INTERFACE DE USUÁRIO: MODAL DE CONTA DO ESTUDANTE
 // =============================================================================
 
-window.openAuthModal = function() {
+window.openAuthModal = function(initialMode = 'signup') {
   const modal = document.getElementById('supabase-auth-modal');
   if (!modal) return;
   modal.classList.remove('hidden');
+
+  const current = getCurrentStudent();
+  if (!current) {
+    const targetMode = (initialMode === 'login' || initialMode === 'reset') ? initialMode : 'signup';
+    toggleAuthMode(targetMode);
+  }
   updateAuthUI();
 };
 
@@ -625,9 +631,23 @@ window.closeAuthModal = function() {
 };
 
 window.switchAuthModalTab = function(tab) {
-  // Mantido para compatibilidade reversa sem exibir abas de banco
-  const tabAccount = document.getElementById('auth-tab-account');
-  if (tabAccount) tabAccount.classList.remove('hidden');
+  if (tab === 'signup' || tab === 'login') {
+    toggleAuthMode(tab);
+  }
+};
+
+window.handleCreateAnotherAccount = function() {
+  setCurrentStudent(null);
+  if (SupabaseManager.client) {
+    try { SupabaseManager.client.auth.signOut(); } catch (e) {}
+  }
+  SupabaseManager.user = null;
+  SupabaseManager.profile = null;
+  toggleAuthMode('signup');
+  updateAuthUI();
+  if (typeof showToast === 'function') {
+    showToast('Pronto! Agora você pode criar uma nova conta de estudante.');
+  }
 };
 
 window.togglePasswordVisibility = function() {
@@ -651,37 +671,53 @@ window.toggleAuthMode = function(mode) {
   const signupFields = document.getElementById('auth-signup-extra-fields');
   const submitBtn = document.getElementById('auth-submit-btn');
   const modeToggleText = document.getElementById('auth-mode-toggle-container');
-  const passwordContainer = document.getElementById('auth-password')?.closest('div.relative')?.parentElement;
+  const forgotLink = document.getElementById('auth-forgot-password-link');
+  const passwordLabel = document.getElementById('auth-password-label');
+  const tabBtnSignup = document.getElementById('auth-tab-btn-signup');
+  const tabBtnLogin = document.getElementById('auth-tab-btn-login');
+  const tabsContainer = document.getElementById('auth-tabs-container');
   const feedbackEl = document.getElementById('auth-form-feedback');
   if (feedbackEl) feedbackEl.classList.add('hidden');
+
+  if (tabsContainer) tabsContainer.classList.remove('hidden');
 
   if (mode === 'signup') {
     if (modalTitle) modalTitle.innerText = 'Criar Conta do Estudante';
     if (modalSubtitle) modalSubtitle.innerText = 'Cadastre-se para acompanhar sua jornada rumo à aprovação';
     if (signupFields) signupFields.classList.remove('hidden');
-    if (passwordContainer) passwordContainer.classList.remove('hidden');
+    if (forgotLink) forgotLink.classList.add('hidden');
+    if (passwordLabel) passwordLabel.innerHTML = '<i class="fa-solid fa-lock mr-1 text-indigo-500"></i> Criar uma Senha';
     if (submitBtn) submitBtn.innerHTML = '<i class="fa-solid fa-user-plus mr-1.5"></i> Criar Minha Conta de Estudante';
     if (modeToggleText) {
       modeToggleText.innerHTML = `Já possui uma conta? <button type="button" onclick="toggleAuthMode('login')" class="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">Fazer Login</button>`;
     }
+    if (tabBtnSignup) tabBtnSignup.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition bg-indigo-600 text-white shadow-sm flex items-center justify-center gap-1.5';
+    if (tabBtnLogin) tabBtnLogin.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-600 dark:text-slate-300 hover:text-indigo-600 flex items-center justify-center gap-1.5';
   } else if (mode === 'reset') {
     if (modalTitle) modalTitle.innerText = 'Recuperar Senha';
-    if (modalSubtitle) modalSubtitle.innerText = 'Digite seu e-mail cadastrado e a nova senha desejada';
+    if (modalSubtitle) modalSubtitle.innerText = 'Digite seu e-mail e sua nova senha para redefinir';
     if (signupFields) signupFields.classList.add('hidden');
-    if (passwordContainer) passwordContainer.classList.remove('hidden');
+    if (forgotLink) forgotLink.classList.add('hidden');
+    if (passwordLabel) passwordLabel.innerHTML = '<i class="fa-solid fa-key mr-1 text-indigo-500"></i> Nova Senha';
     if (submitBtn) submitBtn.innerHTML = '<i class="fa-solid fa-key mr-1.5"></i> Redefinir Minha Senha';
     if (modeToggleText) {
       modeToggleText.innerHTML = `Lembrou sua senha? <button type="button" onclick="toggleAuthMode('login')" class="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">Voltar ao Login</button>`;
     }
+    if (tabBtnSignup) tabBtnSignup.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-600 dark:text-slate-300 hover:text-indigo-600 flex items-center justify-center gap-1.5';
+    if (tabBtnLogin) tabBtnLogin.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-600 dark:text-slate-300 hover:text-indigo-600 flex items-center justify-center gap-1.5';
   } else {
-    if (modalTitle) modalTitle.innerText = 'Conta do Estudante';
-    if (modalSubtitle) modalSubtitle.innerText = 'Acompanhe seu progresso, simulados e metas de aprovação';
+    // LOGIN
+    if (modalTitle) modalTitle.innerText = 'Entrar na Conta';
+    if (modalSubtitle) modalSubtitle.innerText = 'Acesse seu perfil de estudante e histórico de estudos';
     if (signupFields) signupFields.classList.add('hidden');
-    if (passwordContainer) passwordContainer.classList.remove('hidden');
+    if (forgotLink) forgotLink.classList.remove('hidden');
+    if (passwordLabel) passwordLabel.innerHTML = '<i class="fa-solid fa-lock mr-1 text-indigo-500"></i> Senha';
     if (submitBtn) submitBtn.innerHTML = '<i class="fa-solid fa-right-to-bracket mr-1.5"></i> Entrar na Conta';
     if (modeToggleText) {
       modeToggleText.innerHTML = `Ainda não tem conta? <button type="button" onclick="toggleAuthMode('signup')" class="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">Criar Conta Gratuita</button>`;
     }
+    if (tabBtnLogin) tabBtnLogin.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition bg-indigo-600 text-white shadow-sm flex items-center justify-center gap-1.5';
+    if (tabBtnSignup) tabBtnSignup.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-600 dark:text-slate-300 hover:text-indigo-600 flex items-center justify-center gap-1.5';
   }
 };
 
@@ -938,6 +974,8 @@ function updateAuthUI() {
     targetCourse: SupabaseManager.profile?.target_course || SupabaseManager.user.user_metadata?.target_course || 'FUVEST & ENEM'
   } : null);
 
+  const tabsContainer = document.getElementById('auth-tabs-container');
+
   if (currentStudent) {
     const name = currentStudent.displayName || 'Estudante';
     const email = currentStudent.email || '';
@@ -947,6 +985,7 @@ function updateAuthUI() {
     if (navStatusDot) navStatusDot.className = 'w-2 h-2 rounded-full bg-emerald-500';
     if (navAuthIcon) navAuthIcon.className = 'fa-solid fa-user-graduate text-emerald-600 dark:text-emerald-400';
 
+    if (tabsContainer) tabsContainer.classList.add('hidden');
     if (loggedOutView) loggedOutView.classList.add('hidden');
     if (loggedInView) loggedInView.classList.remove('hidden');
 
@@ -967,10 +1006,11 @@ function updateAuthUI() {
       if (statBooksEl) statBooksEl.innerText = `${booksRead}/9`;
     }
   } else {
-    if (navBtnText) navBtnText.innerText = 'Entrar';
+    if (navBtnText) navBtnText.innerText = 'Criar Conta / Entrar';
     if (navStatusDot) navStatusDot.className = 'w-2 h-2 rounded-full bg-indigo-500';
     if (navAuthIcon) navAuthIcon.className = 'fa-solid fa-user-graduate text-indigo-600 dark:text-indigo-400';
 
+    if (tabsContainer) tabsContainer.classList.remove('hidden');
     if (loggedOutView) loggedOutView.classList.remove('hidden');
     if (loggedInView) loggedInView.classList.add('hidden');
   }
