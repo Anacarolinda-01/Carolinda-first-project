@@ -274,9 +274,10 @@ function initModalsDismissal() {
     });
   }
 
-  // Atalho da tecla ESC para fechar qualquer modal ativo
+  // Atalho da tecla ESC para fechar qualquer modal ou menu lateral ativo
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' || e.key === 'Esc') {
+      if (typeof closeSideMenu === 'function') closeSideMenu();
       if (typeof closeAuthModal === 'function') closeAuthModal();
       if (typeof closeBookModal === 'function') closeBookModal();
       if (typeof closeAddFlashcardModal === 'function') closeAddFlashcardModal();
@@ -285,6 +286,55 @@ function initModalsDismissal() {
     }
   });
 }
+
+// =============================================================================
+// MENU LATERAL RETRÁTIL (DRAWER 3 TRAÇOS / PONTINHOS)
+// =============================================================================
+
+window.openSideMenu = function() {
+  const drawer = document.getElementById('side-menu-drawer');
+  const backdrop = document.getElementById('side-menu-backdrop');
+  const panel = document.getElementById('side-menu-panel');
+  if (!drawer || !backdrop || !panel) return;
+
+  // Atualizar dados do usuário no menu lateral
+  const nameEl = document.getElementById('side-menu-user-name');
+  const subtitleEl = document.getElementById('side-menu-user-subtitle');
+  const avatarEl = document.getElementById('side-menu-user-avatar');
+
+  const student = (typeof getCurrentStudent === 'function' ? getCurrentStudent() : null) || 
+                  (typeof SupabaseManager !== 'undefined' && SupabaseManager.user ? {
+                    displayName: SupabaseManager.profile?.display_name || SupabaseManager.user.user_metadata?.display_name || SupabaseManager.user.email?.split('@')[0] || 'Estudante',
+                    targetCourse: SupabaseManager.profile?.target_course || SupabaseManager.user.user_metadata?.target_course || 'FUVEST & ENEM'
+                  } : null);
+
+  if (student) {
+    if (nameEl) nameEl.textContent = student.displayName || 'Estudante';
+    if (subtitleEl) subtitleEl.textContent = `🎯 ${student.targetCourse || 'FUVEST & ENEM'}`;
+    if (avatarEl) avatarEl.textContent = (student.displayName || 'E').charAt(0).toUpperCase();
+  } else {
+    if (nameEl) nameEl.textContent = 'Olá, Vestibulando!';
+    if (subtitleEl) subtitleEl.textContent = 'Clique para criar conta ou entrar';
+    if (avatarEl) avatarEl.textContent = 'V';
+  }
+
+  drawer.classList.remove('pointer-events-none');
+  backdrop.classList.add('opacity-100');
+  panel.classList.remove('-translate-x-full');
+};
+
+window.closeSideMenu = function() {
+  const drawer = document.getElementById('side-menu-drawer');
+  const backdrop = document.getElementById('side-menu-backdrop');
+  const panel = document.getElementById('side-menu-panel');
+  if (!drawer || !backdrop || !panel) return;
+
+  panel.classList.add('-translate-x-full');
+  backdrop.classList.remove('opacity-100');
+  setTimeout(() => {
+    drawer.classList.add('pointer-events-none');
+  }, 250);
+};
 
 // Navegação entre Abas
 function initNavigation() {

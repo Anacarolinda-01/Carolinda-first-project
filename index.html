@@ -66,43 +66,55 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
         
-        <!-- Logo e Título -->
-        <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('dashboard')">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-md shadow-indigo-200">
-            <i class="fa-solid fa-graduation-cap text-lg"></i>
-          </div>
-          <div>
-            <div class="flex items-center gap-2">
-              <span class="text-xl font-bold bg-gradient-to-r from-indigo-900 to-indigo-600 dark:from-indigo-400 dark:to-violet-400 bg-clip-text text-transparent">BrilhaVest</span>
-              <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">FUVEST & ENEM</span>
+        <!-- Botão Menu Lateral (3 traços) + Logo e Título -->
+        <div class="flex items-center gap-3">
+          <button 
+            id="btn-open-sidebar"
+            onclick="openSideMenu()" 
+            class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center transition shadow-sm border border-slate-200/70 dark:border-slate-700 shrink-0" 
+            title="Menu de Conteúdos & Leituras"
+            aria-label="Abrir Menu Lateral"
+          >
+            <i class="fa-solid fa-bars text-base"></i>
+          </button>
+
+          <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('dashboard')">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-md shadow-indigo-200 shrink-0">
+              <i class="fa-solid fa-graduation-cap text-lg"></i>
             </div>
-            <p class="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:block">Seu portal definitivo rumo à aprovação</p>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-xl font-bold bg-gradient-to-r from-indigo-900 to-indigo-600 dark:from-indigo-400 dark:to-violet-400 bg-clip-text text-transparent">BrilhaVest</span>
+                <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">FUVEST & ENEM</span>
+              </div>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:block">Seu portal definitivo rumo à aprovação</p>
+            </div>
           </div>
         </div>
 
         <!-- Links de Navegação Desktop -->
-        <nav class="hidden md:flex items-center gap-1">
-          <button data-tab-target="dashboard" class="px-3 py-2 text-sm font-semibold text-indigo-600 border-b-2 border-indigo-600 transition flex items-center gap-2">
+        <nav class="hidden lg:flex items-center gap-1">
+          <button data-tab-target="dashboard" class="px-3 py-2 text-sm font-semibold text-indigo-600 border-b-2 border-indigo-600 transition flex items-center gap-1.5">
             <i class="fa-solid fa-chart-pie text-xs"></i> Início
           </button>
-          <button data-tab-target="questions" class="px-3 py-2 text-sm font-semibold text-slate-600 hover:text-indigo-600 border-b-2 border-transparent transition flex items-center gap-2">
-            <i class="fa-solid fa-list-check text-xs"></i> Questões & Simulados
+          <button data-tab-target="books" class="px-3 py-2 text-sm font-semibold text-slate-600 hover:text-indigo-600 border-b-2 border-transparent transition flex items-center gap-1.5">
+            <i class="fa-solid fa-book text-xs"></i> Leituras 2027
           </button>
-          <button data-tab-target="books" class="px-3 py-2 text-sm font-semibold text-slate-600 hover:text-indigo-600 border-b-2 border-transparent transition flex items-center gap-2">
-            <i class="fa-solid fa-book text-xs"></i> Leituras FUVEST 2027
-          </button>
-          <button data-tab-target="redacao" class="px-3 py-2 text-sm font-semibold text-slate-600 hover:text-indigo-600 border-b-2 border-transparent transition flex items-center gap-2">
+          <button data-tab-target="redacao" class="px-3 py-2 text-sm font-semibold text-slate-600 hover:text-indigo-600 border-b-2 border-transparent transition flex items-center gap-1.5">
             <i class="fa-solid fa-pen-nib text-xs"></i> Redação
           </button>
-          <button data-tab-target="checklist" class="px-3 py-2 text-sm font-semibold text-slate-600 hover:text-indigo-600 border-b-2 border-transparent transition flex items-center gap-2">
-            <i class="fa-solid fa-bullseye text-xs"></i> Raio-X Ranqueado
+          <button data-tab-target="questions" class="px-3 py-2 text-sm font-semibold text-slate-600 hover:text-indigo-600 border-b-2 border-transparent transition flex items-center gap-1.5">
+            <i class="fa-solid fa-list-check text-xs"></i> Questões
           </button>
-          <button data-tab-target="flashcards" class="px-3 py-2 text-sm font-semibold text-slate-600 hover:text-indigo-600 border-b-2 border-transparent transition flex items-center gap-2">
+          <button data-tab-target="checklist" class="px-3 py-2 text-sm font-semibold text-slate-600 hover:text-indigo-600 border-b-2 border-transparent transition flex items-center gap-1.5">
+            <i class="fa-solid fa-bullseye text-xs"></i> Raio-X
+          </button>
+          <button data-tab-target="flashcards" class="px-3 py-2 text-sm font-semibold text-slate-600 hover:text-indigo-600 border-b-2 border-transparent transition flex items-center gap-1.5">
             <i class="fa-solid fa-bolt text-xs"></i> Flashcards
           </button>
         </nav>
 
-        <!-- Ações: Botão Instalar App + Nuvem/Conta + Modo Escuro + Treinar -->
+        <!-- Ações do Topo: Instalar App + Conta + Modo Escuro + Configurações + Treinar -->
         <div class="flex items-center gap-2">
           <!-- Botão Instalar App (PWA) -->
           <button 
@@ -154,18 +166,192 @@
         </div>
 
       </div>
-
-      <!-- Menu Mobile Horizontal Scroll -->
-      <div class="flex md:hidden overflow-x-auto py-2 gap-2 border-t border-slate-100 dark:border-slate-800 no-scrollbar">
-        <button data-tab-target="dashboard" class="whitespace-nowrap px-3 py-1.5 text-xs font-semibold text-indigo-600 border-b-2 border-indigo-600">Início</button>
-        <button data-tab-target="questions" class="whitespace-nowrap px-3 py-1.5 text-xs font-semibold text-slate-600 border-b-2 border-transparent">Questões</button>
-        <button data-tab-target="books" class="whitespace-nowrap px-3 py-1.5 text-xs font-semibold text-slate-600 border-b-2 border-transparent">FUVEST 2027</button>
-        <button data-tab-target="redacao" class="whitespace-nowrap px-3 py-1.5 text-xs font-semibold text-slate-600 border-b-2 border-transparent">Redação</button>
-        <button data-tab-target="checklist" class="whitespace-nowrap px-3 py-1.5 text-xs font-semibold text-slate-600 border-b-2 border-transparent">Raio-X</button>
-        <button data-tab-target="flashcards" class="whitespace-nowrap px-3 py-1.5 text-xs font-semibold text-slate-600 border-b-2 border-transparent">Flashcards</button>
-      </div>
     </div>
   </header>
+
+  <!-- ======================================================== -->
+  <!-- MENU LATERAL RETRÁTIL (DRAWER 3 TRAÇOS / PONTINHOS)      -->
+  <!-- ======================================================== -->
+  <div id="side-menu-drawer" class="fixed inset-0 z-50 pointer-events-none transition-all duration-300">
+    <!-- Fundo escurecido -->
+    <div 
+      id="side-menu-backdrop" 
+      onclick="closeSideMenu()" 
+      class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm opacity-0 transition-opacity duration-300"
+    ></div>
+
+    <!-- Painel Lateral -->
+    <aside 
+      id="side-menu-panel" 
+      class="absolute top-0 left-0 bottom-0 w-80 max-w-[85vw] bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-2xl -translate-x-full transition-transform duration-300 flex flex-col justify-between overflow-y-auto"
+    >
+      <!-- Topo do Menu -->
+      <div>
+        <!-- Cabeçalho com Logo e Fechar -->
+        <div class="p-5 flex items-center justify-between border-b border-slate-100 dark:border-slate-800">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center text-white shadow-sm">
+              <i class="fa-solid fa-graduation-cap text-sm"></i>
+            </div>
+            <div>
+              <h3 class="font-bold text-slate-900 dark:text-slate-100 text-sm">BrilhaVest</h3>
+              <p class="text-[10px] text-slate-500 dark:text-slate-400">Menu de Estudos FUVEST & ENEM</p>
+            </div>
+          </div>
+          <button 
+            onclick="closeSideMenu()" 
+            class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center text-xs transition"
+            title="Fechar menu"
+          >
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <!-- Card do Aluno no Menu Lateral -->
+        <div class="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40">
+          <div id="side-menu-user-box" class="flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div id="side-menu-user-avatar" class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                E
+              </div>
+              <div class="min-w-0">
+                <h4 id="side-menu-user-name" class="font-bold text-slate-900 dark:text-slate-100 text-xs truncate">Estudante</h4>
+                <p id="side-menu-user-subtitle" class="text-[10px] text-slate-500 dark:text-slate-400 truncate">Meta: FUVEST & ENEM</p>
+              </div>
+            </div>
+            <button onclick="closeSideMenu(); openAuthModal('signup');" class="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline shrink-0 ml-2">
+              Conta
+            </button>
+          </div>
+        </div>
+
+        <!-- Lista de Módulos de Estudo -->
+        <div class="p-3 space-y-1">
+          <div class="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+            Módulos & Conteúdos
+          </div>
+
+          <!-- 1. Leituras Obrigatórias FUVEST 2027 -->
+          <button 
+            onclick="closeSideMenu(); switchTab('books');" 
+            class="w-full p-2.5 rounded-2xl hover:bg-purple-50 dark:hover:bg-purple-950/40 text-left transition flex items-center gap-3 group border border-transparent hover:border-purple-200/60 dark:hover:border-purple-900/60"
+          >
+            <div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 flex items-center justify-center text-base shrink-0 group-hover:scale-105 transition shadow-sm">
+              <i class="fa-solid fa-book-open"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-xs text-slate-800 dark:text-slate-200 group-hover:text-purple-600 dark:group-hover:text-purple-400">Leituras FUVEST 2027</span>
+                <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300">9 Obras</span>
+              </div>
+              <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate">Resumos, personagens, eixos & questões</p>
+            </div>
+          </button>
+
+          <!-- 2. Laboratório de Redação -->
+          <button 
+            onclick="closeSideMenu(); switchTab('redacao');" 
+            class="w-full p-2.5 rounded-2xl hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-left transition flex items-center gap-3 group border border-transparent hover:border-emerald-200/60 dark:hover:border-emerald-900/60"
+          >
+            <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 flex items-center justify-center text-base shrink-0 group-hover:scale-105 transition shadow-sm">
+              <i class="fa-solid fa-pen-fancy"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-xs text-slate-800 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400">Redação (FUVEST & ENEM)</span>
+                <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300">Nota 1000</span>
+              </div>
+              <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate">Temas até 2026, livre e repertórios</p>
+            </div>
+          </button>
+
+          <!-- 3. Questões & Simulados -->
+          <button 
+            onclick="closeSideMenu(); switchTab('questions');" 
+            class="w-full p-2.5 rounded-2xl hover:bg-indigo-50 dark:hover:bg-indigo-950/40 text-left transition flex items-center gap-3 group border border-transparent hover:border-indigo-200/60 dark:hover:border-indigo-900/60"
+          >
+            <div class="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 flex items-center justify-center text-base shrink-0 group-hover:scale-105 transition shadow-sm">
+              <i class="fa-solid fa-list-check"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-xs text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">Questões & Simulados</span>
+                <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300">Prática</span>
+              </div>
+              <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate">Filtros por banca, matéria e gabarito</p>
+            </div>
+          </button>
+
+          <!-- 4. Raio-X Ranqueado -->
+          <button 
+            onclick="closeSideMenu(); switchTab('checklist');" 
+            class="w-full p-2.5 rounded-2xl hover:bg-amber-50 dark:hover:bg-amber-950/40 text-left transition flex items-center gap-3 group border border-transparent hover:border-amber-200/60 dark:hover:border-amber-900/60"
+          >
+            <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 flex items-center justify-center text-base shrink-0 group-hover:scale-105 transition shadow-sm">
+              <i class="fa-solid fa-bullseye"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-xs text-slate-800 dark:text-slate-200 group-hover:text-amber-600 dark:group-hover:text-amber-400">Raio-X de Matérias</span>
+                <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300">Rankings</span>
+              </div>
+              <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate">Top 10 temas mais frequentes</p>
+            </div>
+          </button>
+
+          <!-- 5. Flashcards -->
+          <button 
+            onclick="closeSideMenu(); switchTab('flashcards');" 
+            class="w-full p-2.5 rounded-2xl hover:bg-blue-50 dark:hover:bg-blue-950/40 text-left transition flex items-center gap-3 group border border-transparent hover:border-blue-200/60 dark:hover:border-blue-900/60"
+          >
+            <div class="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 flex items-center justify-center text-base shrink-0 group-hover:scale-105 transition shadow-sm">
+              <i class="fa-solid fa-bolt"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-xs text-slate-800 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400">Flashcards</span>
+                <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300">Cards</span>
+              </div>
+              <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate">Memorização ativa e repetição espaçada</p>
+            </div>
+          </button>
+
+          <!-- 6. Início / Painel Geral -->
+          <button 
+            onclick="closeSideMenu(); switchTab('dashboard');" 
+            class="w-full p-2.5 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition flex items-center gap-3 group"
+          >
+            <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center text-base shrink-0 group-hover:scale-105 transition shadow-sm">
+              <i class="fa-solid fa-chart-pie"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <span class="font-bold text-xs text-slate-800 dark:text-slate-200 group-hover:text-indigo-600">Início (Painel Geral)</span>
+              <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate">Cronômetro, metas e resumo geral</p>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Rodapé do Menu Lateral -->
+      <div class="p-4 border-t border-slate-100 dark:border-slate-800 space-y-2 bg-slate-50/50 dark:bg-slate-800/30">
+        <button 
+          onclick="closeSideMenu(); openSettingsModal();" 
+          class="w-full p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:border-indigo-500 hover:text-indigo-600 transition flex items-center gap-2.5 shadow-sm"
+        >
+          <i class="fa-solid fa-gear text-slate-400"></i>
+          <span>Configurações & Notificações</span>
+        </button>
+
+        <button 
+          onclick="closeSideMenu(); openCountdownSettingsModal();" 
+          class="w-full p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:border-indigo-500 hover:text-indigo-600 transition flex items-center gap-2.5 shadow-sm"
+        >
+          <i class="fa-solid fa-calendar-days text-amber-500"></i>
+          <span>Datas dos Vestibulares</span>
+        </button>
+      </div>
+    </aside>
+  </div>
 
   <!-- ================= CONTEÚDO PRINCIPAL ================= -->
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -1773,7 +1959,7 @@
   <script src="js/data/redacao.js"></script>
   <script src="js/data/checklist.js"></script>
   <script src="js/data/flashcards.js"></script>
-  <script src="js/supabaseClient.js?v=2.6"></script>
-  <script src="js/app.js?v=2.6"></script>
+  <script src="js/supabaseClient.js?v=2.7"></script>
+  <script src="js/app.js?v=2.7"></script>
 </body>
 </html>
