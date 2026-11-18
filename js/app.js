@@ -267,6 +267,13 @@ function initModalsDismissal() {
     });
   }
 
+  const settingsModal = document.getElementById('settings-modal');
+  if (settingsModal) {
+    settingsModal.addEventListener('click', (e) => {
+      if (e.target === settingsModal && typeof closeSettingsModal === 'function') closeSettingsModal();
+    });
+  }
+
   // Atalho da tecla ESC para fechar qualquer modal ativo
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' || e.key === 'Esc') {
@@ -274,6 +281,7 @@ function initModalsDismissal() {
       if (typeof closeBookModal === 'function') closeBookModal();
       if (typeof closeAddFlashcardModal === 'function') closeAddFlashcardModal();
       if (typeof closeCountdownSettingsModal === 'function') closeCountdownSettingsModal();
+      if (typeof closeSettingsModal === 'function') closeSettingsModal();
     }
   });
 }
@@ -2633,3 +2641,186 @@ function triggerLocalPushNotification(title, body, tag = 'brilhavest-reminder') 
     }
   }
 }
+
+// =============================================================================
+// MODAL DE CONFIGURAÇÕES & PERFIL DO ESTUDANTE
+// =============================================================================
+
+window.openSettingsModal = function() {
+  const modal = document.getElementById('settings-modal');
+  if (!modal) return;
+
+  updateSettingsModalUI();
+  modal.classList.remove('hidden');
+};
+
+window.closeSettingsModal = function() {
+  const modal = document.getElementById('settings-modal');
+  if (modal) modal.classList.add('hidden');
+};
+
+window.updateSettingsModalUI = function() {
+  // 1. Atualizar Seção do Usuário
+  const loggedInDiv = document.getElementById('settings-user-logged-in');
+  const loggedOutDiv = document.getElementById('settings-user-logged-out');
+  const authBadge = document.getElementById('settings-auth-badge');
+  const avatarEl = document.getElementById('settings-user-avatar');
+  const nameEl = document.getElementById('settings-user-name');
+  const emailEl = document.getElementById('settings-user-email');
+  const editName = document.getElementById('settings-edit-name');
+  const editCourse = document.getElementById('settings-edit-course');
+
+  const student = (typeof getCurrentStudent === 'function' ? getCurrentStudent() : null) || 
+                  (typeof SupabaseManager !== 'undefined' && SupabaseManager.user ? {
+                    displayName: SupabaseManager.profile?.display_name || SupabaseManager.user.user_metadata?.display_name || SupabaseManager.user.email?.split('@')[0] || 'Estudante',
+                    email: SupabaseManager.user.email,
+                    targetCourse: SupabaseManager.profile?.target_course || SupabaseManager.user.user_metadata?.target_course || 'FUVEST & ENEM'
+                  } : null);
+
+  if (student) {
+    if (loggedInDiv) loggedInDiv.classList.remove('hidden');
+    if (loggedOutDiv) loggedOutDiv.classList.add('hidden');
+    if (authBadge) {
+      authBadge.textContent = 'Conta Conectada';
+      authBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800';
+    }
+    if (avatarEl) avatarEl.textContent = (student.displayName || 'E').charAt(0).toUpperCase();
+    if (nameEl) nameEl.textContent = student.displayName || 'Estudante';
+    if (emailEl) emailEl.textContent = student.email || '';
+    if (editName) editName.value = student.displayName || '';
+    if (editCourse) editCourse.value = student.targetCourse || 'FUVEST & ENEM';
+  } else {
+    if (loggedInDiv) loggedInDiv.classList.add('hidden');
+    if (loggedOutDiv) loggedOutDiv.classList.remove('hidden');
+    if (authBadge) {
+      authBadge.textContent = 'Visitante (Offline)';
+      authBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300';
+    }
+  }
+
+  // 2. Atualizar Seção de Notificações
+  const notifBadge = document.getElementById('settings-notif-status-badge');
+  const notifBtn = document.getElementById('settings-btn-enable-notif');
+  const notifBtnText = document.getElementById('settings-btn-notif-text');
+
+  if (!('Notification' in window)) {
+    if (notifBadge) {
+      notifBadge.textContent = 'Não Suportado';
+      notifBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500';
+    }
+    if (notifBtn) notifBtn.disabled = true;
+    return;
+  }
+
+  const perm = Notification.permission;
+  if (perm === 'granted') {
+    if (notifBadge) {
+      notifBadge.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-500 mr-1"></i> Ativadas';
+      notifBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800';
+    }
+    if (notifBtnText) notifBtnText.textContent = 'Notificações Já Ativadas';
+    if (notifBtn) notifBtn.className = 'px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm transition flex items-center gap-1.5';
+  } else if (perm === 'denied') {
+    if (notifBadge) {
+      notifBadge.innerHTML = '<i class="fa-solid fa-circle-xmark text-rose-500 mr-1"></i> Bloqueadas no Navegador';
+      notifBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800';
+    }
+    if (notifBtnText) notifBtnText.textContent = 'Permitir no Navegador';
+    if (notifBtn) notifBtn.className = 'px-3.5 py-2 rounded-xl bg-slate-500 hover:bg-slate-600 text-white font-bold text-xs shadow-sm transition flex items-center gap-1.5';
+  } else {
+    if (notifBadge) {
+      notifBadge.innerHTML = '<i class="fa-solid fa-bell text-amber-500 mr-1"></i> Desativadas';
+      notifBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800';
+    }
+    if (notifBtnText) notifBtnText.textContent = 'Ativar Notificações';
+    if (notifBtn) notifBtn.className = 'px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-sm transition flex items-center gap-1.5';
+  }
+};
+
+window.enableNotificationsFromSettings = async function() {
+  if (!('Notification' in window)) {
+    alert('Seu navegador não oferece suporte nativo a notificações de sistema.');
+    return;
+  }
+
+  if (Notification.permission === 'granted') {
+    if (typeof showToast === 'function') {
+      showToast('Suas notificações já estão ativadas e funcionando!');
+    } else {
+      alert('Suas notificações já estão ativadas e funcionando!');
+    }
+    return;
+  }
+
+  if (Notification.permission === 'denied') {
+    alert('As notificações foram bloqueadas nas permissões do seu navegador. Para ativá-las, clique no ícone de configurações ao lado da barra de endereço e autorize as notificações.');
+    return;
+  }
+
+  try {
+    const permission = await Notification.requestPermission();
+    updateSettingsModalUI();
+    if (permission === 'granted') {
+      triggerLocalPushNotification(
+        "BrilhaVest: Notificações Ativadas! 🎉",
+        "Muito bem! Agora você receberá frases de incentivo e lembretes diários para não deixar a peteca cair nos estudos.",
+        "welcome-notif"
+      );
+      if (typeof showToast === 'function') {
+        showToast('Notificações ativadas com sucesso!');
+      }
+    }
+  } catch (err) {
+    console.error('Erro ao solicitar permissão de notificações:', err);
+  }
+};
+
+window.saveSettingsProfile = function() {
+  const editName = document.getElementById('settings-edit-name')?.value.trim();
+  const editCourse = document.getElementById('settings-edit-course')?.value.trim();
+  const current = typeof getCurrentStudent === 'function' ? getCurrentStudent() : null;
+
+  if (!current) {
+    if (typeof showToast === 'function') {
+      showToast('Faça login ou crie uma conta para salvar dados do perfil.');
+    }
+    return;
+  }
+
+  if (editName) current.displayName = editName;
+  if (editCourse) current.targetCourse = editCourse;
+
+  if (typeof setCurrentStudent === 'function') {
+    setCurrentStudent(current);
+  }
+
+  if (typeof getLocalStudentAccounts === 'function' && typeof saveLocalStudentAccounts === 'function') {
+    const accounts = getLocalStudentAccounts();
+    const idx = accounts.findIndex(a => a.email === current.email);
+    if (idx !== -1) {
+      accounts[idx].displayName = current.displayName;
+      accounts[idx].targetCourse = current.targetCourse;
+      saveLocalStudentAccounts(accounts);
+    }
+  }
+
+  if (typeof updateAuthUI === 'function') updateAuthUI();
+  updateSettingsModalUI();
+  if (typeof showToast === 'function') {
+    showToast('Perfil de estudante salvo com sucesso!');
+  }
+};
+
+window.handleSignOutFromSettings = function() {
+  if (typeof handleSignOut === 'function') {
+    handleSignOut();
+  }
+  updateSettingsModalUI();
+};
+
+window.openAuthModalFromSettings = function(mode) {
+  closeSettingsModal();
+  if (typeof openAuthModal === 'function') {
+    openAuthModal(mode);
+  }
+};

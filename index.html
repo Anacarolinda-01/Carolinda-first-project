@@ -137,6 +137,17 @@
             <i id="theme-toggle-icon" class="fa-solid fa-moon text-sm"></i>
           </button>
 
+          <!-- Botão Configurações -->
+          <button 
+            id="btn-open-settings" 
+            onclick="openSettingsModal()" 
+            title="Configurações da Plataforma e Notificações" 
+            class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1.5 transition shadow-sm border border-slate-200/70 dark:border-slate-700"
+          >
+            <i class="fa-solid fa-gear text-xs text-slate-500 dark:text-slate-400"></i>
+            <span class="hidden md:inline">Configurações</span>
+          </button>
+
           <button onclick="switchTab('questions')" class="px-4 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition flex items-center gap-1.5">
             <i class="fa-solid fa-play text-[10px]"></i> Treinar
           </button>
@@ -1592,6 +1603,146 @@
       </div>
     </div>
 
+    <!-- ======================================================== -->
+    <!-- MODAL: CONFIGURAÇÕES & NOTIFICAÇÕES                      -->
+    <!-- ======================================================== -->
+    <div id="settings-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+      <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 animate-fadeIn max-h-[92vh] overflow-y-auto">
+        <!-- Cabeçalho -->
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-5">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white flex items-center justify-center shadow-sm">
+              <i class="fa-solid fa-gear text-sm"></i>
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-slate-900 dark:text-slate-100">Configurações & Perfil</h3>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400">Conta do estudante, notificações e preferências</p>
+            </div>
+          </div>
+          <button onclick="closeSettingsModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 flex items-center justify-center text-xs">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div class="space-y-4 text-xs">
+          <!-- SEÇÃO 1: PERFIL DO ESTUDANTE -->
+          <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-user-graduate text-indigo-600 dark:text-indigo-400 text-sm"></i>
+                <span class="font-bold text-slate-900 dark:text-slate-100 text-xs">Sua Conta de Estudante</span>
+              </div>
+              <span id="settings-auth-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                Não conectado
+              </span>
+            </div>
+
+            <!-- Visão quando logado -->
+            <div id="settings-user-logged-in" class="space-y-3 hidden">
+              <div class="flex items-center gap-3 pb-2 border-b border-slate-200/70 dark:border-slate-700">
+                <div id="settings-user-avatar" class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white flex items-center justify-center font-bold text-sm shadow-sm">
+                  E
+                </div>
+                <div>
+                  <h4 id="settings-user-name" class="font-bold text-slate-900 dark:text-slate-100">Nome do Estudante</h4>
+                  <p id="settings-user-email" class="text-[11px] text-slate-500 dark:text-slate-400">email@exemplo.com</p>
+                </div>
+              </div>
+
+              <!-- Edição rápida de Perfil -->
+              <div class="space-y-2 pt-1">
+                <div>
+                  <label class="block font-semibold text-slate-600 dark:text-slate-400 mb-1">Nome ou Apelido</label>
+                  <input type="text" id="settings-edit-name" class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-600 dark:text-slate-400 mb-1">Curso / Vestibular Alvo</label>
+                  <input type="text" id="settings-edit-course" class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="flex items-center justify-between pt-1">
+                  <button type="button" onclick="saveSettingsProfile()" class="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition flex items-center gap-1 shadow-sm">
+                    <i class="fa-solid fa-floppy-disk"></i> Salvar Dados
+                  </button>
+                  <button type="button" onclick="handleSignOutFromSettings()" class="text-rose-600 hover:text-rose-700 dark:text-rose-400 font-bold text-xs flex items-center gap-1">
+                    <i class="fa-solid fa-right-from-bracket"></i> Sair da Conta
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Visão quando deslogado -->
+            <div id="settings-user-logged-out" class="space-y-2.5">
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                Você ainda não está conectado a uma conta de estudante. Crie sua conta para acompanhar seu histórico, redações e simulados.
+              </p>
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="openAuthModalFromSettings('signup')" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-sm transition flex items-center gap-1.5">
+                  <i class="fa-solid fa-user-plus"></i> Criar Conta Gratuita
+                </button>
+                <button type="button" onclick="openAuthModalFromSettings('login')" class="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 text-slate-700 dark:text-slate-200 font-semibold text-xs transition">
+                  Fazer Login
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- SEÇÃO 2: NOTIFICAÇÕES & LEMBRETES -->
+          <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-bell text-rose-500 text-sm"></i>
+                <span class="font-bold text-slate-900 dark:text-slate-100 text-xs">Notificações & Lembretes de Estudo</span>
+              </div>
+              <span id="settings-notif-status-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold">
+                Verificando...
+              </span>
+            </div>
+
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+              Receba lembretes carinhosos e frases motivacionais caso fique 1 dia sem estudar, ajudando a manter sua constância até o dia da prova.
+            </p>
+
+            <div class="flex flex-wrap items-center gap-2 pt-1">
+              <button 
+                id="settings-btn-enable-notif" 
+                onclick="enableNotificationsFromSettings()" 
+                class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-sm transition flex items-center gap-1.5"
+              >
+                <i class="fa-solid fa-bell"></i>
+                <span id="settings-btn-notif-text">Ativar Notificações</span>
+              </button>
+              <button 
+                onclick="sendSampleMotivationNotification()" 
+                class="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs transition flex items-center gap-1.5 shadow-sm"
+              >
+                <i class="fa-solid fa-paper-plane text-indigo-500"></i>
+                Testar Alerta Agora
+              </button>
+            </div>
+          </div>
+
+          <!-- SEÇÃO 3: CRONÔMETRO E PROVAS -->
+          <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+            <div>
+              <h4 class="font-bold text-slate-900 dark:text-slate-100 text-xs flex items-center gap-1.5">
+                <i class="fa-solid fa-calendar-days text-amber-500"></i> Datas das Provas FUVEST & ENEM
+              </h4>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Personalize os anos e horários dos vestibulares</p>
+            </div>
+            <button onclick="closeSettingsModal(); openCountdownSettingsModal();" class="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:text-indigo-600 text-slate-700 dark:text-slate-200 font-bold text-xs transition">
+              Alterar Datas
+            </button>
+          </div>
+        </div>
+
+        <div class="pt-4 mt-5 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+          <button onclick="closeSettingsModal()" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 font-bold text-xs transition">
+            Fechar
+          </button>
+        </div>
+      </div>
+    </div>
+
   </main>
 
   <!-- ================= FOOTER ================= -->
@@ -1622,7 +1773,7 @@
   <script src="js/data/redacao.js"></script>
   <script src="js/data/checklist.js"></script>
   <script src="js/data/flashcards.js"></script>
-  <script src="js/supabaseClient.js?v=2.5"></script>
-  <script src="js/app.js?v=2.5"></script>
+  <script src="js/supabaseClient.js?v=2.6"></script>
+  <script src="js/app.js?v=2.6"></script>
 </body>
 </html>
