@@ -688,18 +688,193 @@
     <!-- ABA 3: LEITURAS OBRIGATÓRIAS FUVEST 2027                -->
     <!-- ======================================================== -->
     <section id="tab-books" class="tab-section hidden">
-      <div class="mb-8">
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-100 text-indigo-800 text-xs font-bold mb-2">
-          <i class="fa-solid fa-graduation-cap"></i> Vestibular USP 2027
+      <div class="mb-6">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-300 text-xs font-bold mb-2">
+          <i class="fa-solid fa-graduation-cap"></i> Vestibular USP 2027 • Guia de Literatura & Suplemento
         </div>
-        <h2 class="text-3xl font-serif font-bold text-slate-900">Leituras Obrigatórias da FUVEST 2027</h2>
-        <p class="text-sm text-slate-600 mt-1 max-w-3xl leading-relaxed">
-          A FUVEST 2027 traz uma lista histórica composta exclusivamente por escritoras mulheres da Língua Portuguesa (Brasil, Portugal e Moçambique). Clique em cada obra para acessar o enredo, personagens, eixos temáticos e dicas de prova.
+        <h2 class="text-3xl font-serif font-bold text-slate-900 dark:text-slate-100">Leituras Obrigatórias da FUVEST 2027</h2>
+        <p class="text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-3xl leading-relaxed">
+          Lista histórica composta exclusivamente por escritoras mulheres da Língua Portuguesa (Brasil, Portugal e Moçambique). Explore resumos aprofundados, galeria de personagens, eixos comparativos, linha do tempo, método discursivo e checklist de revisão.
         </p>
+
+        <!-- Pílulas de Navegação do Guia Literário -->
+        <div class="flex flex-wrap items-center gap-2 mt-5 p-1.5 rounded-2xl bg-slate-100 dark:bg-slate-800/80 w-fit max-w-full overflow-x-auto">
+          <button 
+            id="btn-bview-cards"
+            onclick="switchBooksSubview('cards')" 
+            class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm"
+          >
+            <i class="fa-solid fa-book-open"></i> As 9 Obras & Personagens
+          </button>
+
+          <button 
+            id="btn-bview-comparisons"
+            onclick="switchBooksSubview('comparisons')" 
+            class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400"
+          >
+            <i class="fa-solid fa-scale-balanced"></i> Comparações & Eixos
+          </button>
+
+          <button 
+            id="btn-bview-timeline"
+            onclick="switchBooksSubview('timeline')" 
+            class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400"
+          >
+            <i class="fa-solid fa-timeline"></i> Linha do Tempo (1853–2019)
+          </button>
+
+          <button 
+            id="btn-bview-method"
+            onclick="switchBooksSubview('method')" 
+            class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400"
+          >
+            <i class="fa-solid fa-pen-fancy"></i> Método Discursivo 2ª Fase
+          </button>
+
+          <button 
+            id="btn-bview-checklist"
+            onclick="switchBooksSubview('checklist')" 
+            class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400"
+          >
+            <i class="fa-solid fa-list-check"></i> Checklist de Revisão
+          </button>
+        </div>
       </div>
 
-      <!-- Grid com as 9 Obras Injetadas via JS -->
-      <div id="books-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+      <!-- SUBVIEW 1: GRID DAS 9 OBRAS -->
+      <div id="books-subview-cards" class="transition-all">
+        <div id="books-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+      </div>
+
+      <!-- SUBVIEW 2: COMPARAÇÕES ENTRE AS OBRAS & EIXOS TRANSVERSAIS -->
+      <div id="books-subview-comparisons" class="hidden space-y-8">
+        <!-- Eixos que Atravessam a Lista -->
+        <div>
+          <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100 mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-diagram-project text-indigo-600"></i> Eixos Temáticos que Atravessam a Lista
+          </h3>
+          <div id="books-cross-axes-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </div>
+
+        <!-- Comparações Detalhadas entre as Obras -->
+        <div>
+          <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100 mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-scale-balanced text-indigo-600"></i> Comparações Diretas entre as Obras (Foco FUVEST)
+          </h3>
+          <div id="books-comparisons-list" class="space-y-4"></div>
+        </div>
+
+        <!-- Tabela Comparativa Geral -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm overflow-hidden">
+          <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-table-list text-indigo-600"></i> Tabela Comparativa Geral das 9 Obras
+          </h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  <th class="py-3 px-4">Obra</th>
+                  <th class="py-3 px-4">Autora / Ano</th>
+                  <th class="py-3 px-4">Gênero Literário</th>
+                  <th class="py-3 px-4">Tema Central</th>
+                  <th class="py-3 px-4">Foco Interpretativo</th>
+                </tr>
+              </thead>
+              <tbody id="books-comparison-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUBVIEW 3: LINHA DO TEMPO (1853 a 2019) -->
+      <div id="books-subview-timeline" class="hidden">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 md:p-8 shadow-sm">
+          <div class="mb-6">
+            <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+              <i class="fa-solid fa-timeline text-indigo-600"></i> Linha do Tempo de Publicação (1853 a 2019)
+            </h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              A ordem de publicação é essencial para perceber mudanças de contexto histórico, estético e forma literária. Não é uma escala linear de importância.
+            </p>
+          </div>
+          <div id="books-timeline-container" class="relative pl-6 md:pl-8 border-l-2 border-indigo-200 dark:border-indigo-800 space-y-6"></div>
+        </div>
+      </div>
+
+      <!-- SUBVIEW 4: MÉTODO DISCURSIVO 2ª FASE FUVEST -->
+      <div id="books-subview-method" class="hidden space-y-6">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 md:p-8 shadow-sm">
+          <div class="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+            <div class="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xl shrink-0">
+              <i class="fa-solid fa-pen-nib"></i>
+            </div>
+            <div>
+              <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100">Método para Responder Questões Discursivas da FUVEST</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Estrutura simples, clara e fundamentada para garantir nota máxima nas questões de literatura da 2ª Fase.</p>
+            </div>
+          </div>
+
+          <!-- Os 4 Passos Estruturais -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div class="p-4 rounded-2xl bg-indigo-50/70 dark:bg-slate-800/80 border border-indigo-100 dark:border-slate-700">
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-600 text-white mb-2 inline-block">Passo 1</span>
+              <h4 class="text-xs font-bold text-slate-900 dark:text-slate-100 mb-1">Resposta Direta</h4>
+              <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">Responda diretamente e sem rodeios ao que foi perguntado pela banca examinadora.</p>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-indigo-50/70 dark:bg-slate-800/80 border border-indigo-100 dark:border-slate-700">
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-600 text-white mb-2 inline-block">Passo 2</span>
+              <h4 class="text-xs font-bold text-slate-900 dark:text-slate-100 mb-1">Explicação Central</h4>
+              <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">Explique a ideia central e o conceito literário/social que sustenta a sua tese.</p>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-indigo-50/70 dark:bg-slate-800/80 border border-indigo-100 dark:border-slate-700">
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-600 text-white mb-2 inline-block">Passo 3</span>
+              <h4 class="text-xs font-bold text-slate-900 dark:text-slate-100 mb-1">Relação Concreta</h4>
+              <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">Relacione a um acontecimento, personagem, símbolo, metáfora ou trecho específico da obra.</p>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-indigo-50/70 dark:bg-slate-800/80 border border-indigo-100 dark:border-slate-700">
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-600 text-white mb-2 inline-block">Passo 4</span>
+              <h4 class="text-xs font-bold text-slate-900 dark:text-slate-100 mb-1">Significado Geral</h4>
+              <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">Conclua indicando o significado e o impacto desse elemento dentro do projeto da obra.</p>
+            </div>
+          </div>
+
+          <!-- Exemplo Real de Resposta Nota 10 -->
+          <div class="p-5 md:p-6 rounded-2xl bg-gradient-to-br from-indigo-50/90 to-purple-50/60 dark:from-slate-850 dark:to-slate-800 border border-indigo-200 dark:border-slate-700">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-400 mb-1 block">
+              <i class="fa-solid fa-award"></i> Exemplo Prático de Resposta Nota Máxima (Segunda Fase):
+            </span>
+            <h4 class="text-sm font-bold text-slate-900 dark:text-slate-100 mb-3">
+              "Analise como a trajetória da protagonista Noemi em 'Caminho de pedras' expõe as contradições entre os discursos políticos libertários e a realidade das relações de gênero."
+            </h4>
+            <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-indigo-100 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-serif">
+              "A obra evidencia a desigualdade de gênero por meio da maneira como Noemi enfrenta as expectativas sociais provincianas de Fortaleza ao romper o casamento para militar no partido. Essa situação demonstra que, embora os companheiros defendessem a revolução e a libertação dos trabalhadores na esfera pública, sua liberdade feminina continuou condicionada por preconceitos tradicionais que julgavam sua moral privada e dificultavam seu vínculo com o filho Guri. Assim, o conflito individual de Noemi ultrapassa a esfera sentimental e consolida uma crítica contundente à incapacidade dos movimentos de transformar as estruturas de poder cotidianas."
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUBVIEW 5: CHECKLIST DE REVISÃO (11 ITENS) -->
+      <div id="books-subview-checklist" class="hidden">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 md:p-8 shadow-sm">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+            <div>
+              <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <i class="fa-solid fa-list-check text-indigo-600"></i> Checklist de Revisão das 9 Obras
+              </h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Marque cada competência conforme você consolidar a leitura e a compreensão dos pontos críticos.
+              </p>
+            </div>
+            <div class="px-3.5 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 text-xs font-bold border border-indigo-100 dark:border-indigo-800 shrink-0">
+              <span id="books-chk-progress">0 de 11 dominados</span>
+            </div>
+          </div>
+          <div id="books-checklist-container" class="space-y-3"></div>
+        </div>
+      </div>
 
       <!-- Modal de Detalhamento da Obra Literária -->
       <div id="book-detail-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">

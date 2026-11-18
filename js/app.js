@@ -1293,7 +1293,36 @@ window.restartExamSetup = function() {
 // ==========================================
 function initBooks() {
   renderBooks();
+  renderBooksComparative();
+  renderBooksTimeline();
+  renderBooksChecklist();
 }
+
+let activeBooksSubview = 'cards';
+
+window.switchBooksSubview = function(subview) {
+  activeBooksSubview = subview;
+  const subviews = ['cards', 'comparisons', 'timeline', 'method', 'checklist'];
+  
+  subviews.forEach(s => {
+    const el = document.getElementById(`books-subview-${s}`);
+    const btn = document.getElementById(`btn-bview-${s}`);
+    if (el) {
+      if (s === subview) {
+        el.classList.remove('hidden');
+      } else {
+        el.classList.add('hidden');
+      }
+    }
+    if (btn) {
+      if (s === subview) {
+        btn.className = "px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm";
+      } else {
+        btn.className = "px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400";
+      }
+    }
+  });
+};
 
 function renderBooks() {
   const container = document.getElementById('books-grid');
@@ -1311,7 +1340,7 @@ function renderBooks() {
           <div class="flex items-start justify-between gap-3 mb-3">
             <div>
               <span class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800">
-                ${book.period}
+                ${book.genreFocus || book.period}
               </span>
               <h3 class="text-xl font-serif font-bold text-slate-900 dark:text-slate-100 mt-2">${book.title}</h3>
               <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">${book.author} (${book.yearOfPub})</p>
@@ -1335,7 +1364,7 @@ function renderBooks() {
               </span>
               ${topCharacters.map(c => `
                 <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                  ${c.name.split(' (')[0]}
+                  ${c.name.split(' (')[0].split(' /')[0]}
                 </span>
               `).join('')}
               ${remainingChars > 0 ? `
@@ -1371,6 +1400,140 @@ function renderBooks() {
   }).join('');
 }
 
+function renderBooksComparative() {
+  const axesContainer = document.getElementById('books-cross-axes-grid');
+  const compListContainer = document.getElementById('books-comparisons-list');
+  const tableBody = document.getElementById('books-comparison-tbody');
+
+  if (axesContainer && typeof booksComparisons !== 'undefined') {
+    axesContainer.innerHTML = booksComparisons.crossCuttingAxes.map(axis => `
+      <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-indigo-600"></span>
+          <h4 class="text-sm font-bold text-slate-900 dark:text-slate-100">${axis.title}</h4>
+        </div>
+        <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mb-3">${axis.description}</p>
+        <div class="flex flex-wrap gap-1.5">
+          ${axis.books.map(b => `
+            <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800">
+              <i class="fa-solid fa-book text-[9px] mr-1"></i> ${b}
+            </span>
+          `).join('')}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  if (compListContainer && typeof booksComparisons !== 'undefined') {
+    compListContainer.innerHTML = booksComparisons.comparativeEssays.map(comp => `
+      <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 pb-2.5 border-b border-slate-100 dark:border-slate-800">
+          <h4 class="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+            <i class="fa-solid ${comp.icon} text-indigo-600 dark:text-indigo-400"></i>
+            ${comp.title}
+          </h4>
+          <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 w-fit">
+            ${comp.pair}
+          </span>
+        </div>
+        <p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-sans">
+          ${comp.analysis}
+        </p>
+      </div>
+    `).join('');
+  }
+
+  if (tableBody && typeof booksComparisons !== 'undefined') {
+    tableBody.innerHTML = booksComparisons.comparativeTable.map(row => `
+      <tr class="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition">
+        <td class="py-3 px-4 text-xs font-bold text-slate-900 dark:text-slate-100">${row.book}</td>
+        <td class="py-3 px-4 text-xs text-slate-600 dark:text-slate-300">${row.author} (${row.year})</td>
+        <td class="py-3 px-4 text-xs"><span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">${row.genre}</span></td>
+        <td class="py-3 px-4 text-xs text-slate-700 dark:text-slate-300 font-medium">${row.centralTheme}</td>
+        <td class="py-3 px-4 text-xs text-indigo-600 dark:text-indigo-400 font-semibold">${row.focus}</td>
+      </tr>
+    `).join('');
+  }
+}
+
+function renderBooksTimeline() {
+  const container = document.getElementById('books-timeline-container');
+  if (!container || typeof booksTimeline === 'undefined') return;
+
+  container.innerHTML = booksTimeline.map((item, idx) => `
+    <div class="relative group">
+      <!-- Marcador no ponto da linha -->
+      <div class="absolute -left-[31px] md:-left-[39px] top-1.5 w-4 h-4 rounded-full bg-white dark:bg-slate-900 border-4 border-indigo-600"></div>
+      
+      <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 hover:border-indigo-300 transition">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+          <span class="text-xs font-black px-2.5 py-0.5 rounded-md bg-indigo-600 text-white">
+            ${item.year}
+          </span>
+          <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">
+            ${item.author}
+          </span>
+        </div>
+        <h4 class="text-base font-serif font-bold text-slate-900 dark:text-slate-100 mt-1">${item.book}</h4>
+        <p class="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
+          <strong class="text-indigo-700 dark:text-indigo-300">Ponto de atenção:</strong> ${item.note}
+        </p>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderBooksChecklist() {
+  const container = document.getElementById('books-checklist-container');
+  const progressEl = document.getElementById('books-chk-progress');
+  if (!container || typeof booksChecklistData === 'undefined') return;
+
+  const saved = JSON.parse(localStorage.getItem('brilhavest_books_checklist') || '{}');
+  const total = booksChecklistData.length;
+  let completed = 0;
+
+  container.innerHTML = booksChecklistData.map(item => {
+    const isChecked = !!saved[item.id];
+    if (isChecked) completed++;
+
+    return `
+      <div 
+        onclick="toggleBookChecklistItem('${item.id}')"
+        class="p-3.5 rounded-2xl border transition cursor-pointer flex items-start gap-3 ${
+          isChecked 
+            ? 'bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800' 
+            : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 hover:border-indigo-300'
+        }"
+      >
+        <button class="w-5 h-5 rounded-md flex items-center justify-center shrink-0 mt-0.5 text-xs transition ${
+          isChecked ? 'bg-emerald-600 text-white' : 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800'
+        }">
+          <i class="fa-solid fa-check text-[10px] ${isChecked ? 'opacity-100' : 'opacity-0'}"></i>
+        </button>
+        <div>
+          <span class="text-[10px] font-bold uppercase tracking-wider ${isChecked ? 'text-emerald-700 dark:text-emerald-400' : 'text-indigo-600 dark:text-indigo-400'} block mb-0.5">
+            ${item.book}
+          </span>
+          <p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed ${isChecked ? 'line-through opacity-80' : ''}">
+            ${item.text}
+          </p>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  if (progressEl) {
+    progressEl.textContent = `${completed} de ${total} dominados`;
+  }
+}
+
+window.toggleBookChecklistItem = function(itemId) {
+  const saved = JSON.parse(localStorage.getItem('brilhavest_books_checklist') || '{}');
+  saved[itemId] = !saved[itemId];
+  localStorage.setItem('brilhavest_books_checklist', JSON.stringify(saved));
+  renderBooksChecklist();
+};
+
 window.toggleBookRead = function(bookId) {
   AppState.readBooks[bookId] = !AppState.readBooks[bookId];
   saveToLocalStorage();
@@ -1395,7 +1558,7 @@ window.openBookModal = function(bookId) {
       <div>
         <div class="flex flex-wrap items-center gap-2 mb-1.5">
           <span class="text-xs font-bold px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800">
-            ${book.period}
+            ${book.genreFocus || book.period}
           </span>
           <button 
             onclick="toggleBookRead('${book.id}'); openBookModal('${book.id}');"
@@ -1431,23 +1594,40 @@ window.openBookModal = function(bookId) {
         </div>
       </div>
 
-      <!-- Enredo Detalhado & Síntese Crítica -->
-      <div>
-        <h4 class="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide mb-2.5 flex items-center gap-2">
-          <i class="fa-solid fa-scroll text-indigo-600 dark:text-indigo-400"></i> Enredo Minucioso & Análise Crítica
-        </h4>
-        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80">
-          ${book.detailedSummary ? book.detailedSummary : `<p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">${book.summary}</p>`}
+      <!-- Contexto & Autora -->
+      ${book.contextoAutora ? `
+        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+          <h4 class="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
+            <i class="fa-solid fa-landmark text-indigo-600"></i> Contexto Histórico & Autora
+          </h4>
+          <p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">${book.contextoAutora}</p>
         </div>
-      </div>
+      ` : ''}
 
-      <!-- Galeria Completa de Personagens -->
+      <!-- Subseções Temáticas Detalhadas -->
+      ${book.thematicSections && book.thematicSections.length > 0 ? `
+        <div>
+          <h4 class="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-scroll text-indigo-600 dark:text-indigo-400"></i> Análise Temática Detalhada
+          </h4>
+          <div class="space-y-3">
+            ${book.thematicSections.map(sec => `
+              <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+                <h5 class="text-xs font-bold text-indigo-700 dark:text-indigo-300 uppercase tracking-wide mb-1.5">${sec.title}</h5>
+                <p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">${sec.content}</p>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- Galeria Completa de Personagens & Figuras Narrativas -->
       <div>
         <div class="flex items-center justify-between mb-3">
           <h4 class="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide flex items-center gap-2">
-            <i class="fa-solid fa-users text-indigo-600 dark:text-indigo-400"></i> Personagens & Figuras Narrativas (${book.characters.length})
+            <i class="fa-solid fa-users text-indigo-600 dark:text-indigo-400"></i> Personagens & Figuras do Suplemento (${book.characters.length})
           </h4>
-          <span class="text-[11px] font-semibold text-slate-500">Perfis psicológicos e simbólicos</span>
+          <span class="text-[11px] font-semibold text-slate-500">Funções interpretativas e conflitos</span>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
           ${book.characters.map(c => `
@@ -1469,40 +1649,56 @@ window.openBookModal = function(bookId) {
         </div>
       </div>
 
-      <!-- Contexto Literário e Estética -->
-      ${book.literaryContext ? `
+      <!-- Símbolos Centrais da Obra -->
+      ${book.symbols && book.symbols.length > 0 ? `
         <div>
-          <h4 class="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide mb-2 flex items-center gap-2">
-            <i class="fa-solid fa-feather text-indigo-600 dark:text-indigo-400"></i> Movimento Literário & Estilo
+          <h4 class="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide mb-2.5 flex items-center gap-2">
+            <i class="fa-solid fa-gem text-indigo-600 dark:text-indigo-400"></i> Símbolos & Imagens Estruturantes
           </h4>
-          <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
-            ${book.literaryContext}
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            ${book.symbols.map(s => `
+              <div class="p-3 rounded-xl bg-purple-50/60 dark:bg-slate-800 border border-purple-100 dark:border-slate-700 text-xs">
+                <strong class="text-purple-900 dark:text-purple-300 block mb-0.5">${s.name}:</strong>
+                <span class="text-slate-600 dark:text-slate-300 leading-relaxed">${s.desc}</span>
+              </div>
+            `).join('')}
           </div>
         </div>
       ` : ''}
 
-      <!-- Eixos Temáticos Essenciais -->
-      <div>
-        <h4 class="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide mb-2.5 flex items-center gap-2">
-          <i class="fa-solid fa-bullseye text-indigo-600 dark:text-indigo-400"></i> Eixos Temáticos & Conceitos Fundamentais
-        </h4>
-        <div class="grid grid-cols-1 gap-2">
-          ${book.keyThemes.map(th => `
-            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-start gap-2.5 text-xs text-slate-700 dark:text-slate-300">
-              <i class="fa-solid fa-circle-check text-indigo-500 mt-0.5 shrink-0"></i>
-              <span class="leading-relaxed">${th}</span>
-            </div>
-          `).join('')}
+      <!-- Ideias-Chave da Obra -->
+      ${book.ideiasChave && book.ideiasChave.length > 0 ? `
+        <div>
+          <h4 class="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide mb-2 flex items-center gap-2">
+            <i class="fa-solid fa-tags text-indigo-600 dark:text-indigo-400"></i> Ideias-Chave
+          </h4>
+          <div class="flex flex-wrap gap-2">
+            ${book.ideiasChave.map(tag => `
+              <span class="px-3 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-semibold border border-slate-200 dark:border-slate-700">
+                # ${tag}
+              </span>
+            `).join('')}
+          </div>
         </div>
-      </div>
+      ` : ''}
 
-      <!-- Raio-X da Banca FUVEST -->
+      <!-- O que a Prova Pode Cobrar -->
       <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60">
         <h4 class="text-xs font-bold text-amber-900 dark:text-amber-300 uppercase tracking-wide mb-1.5 flex items-center gap-2">
-          <i class="fa-solid fa-lightbulb text-amber-600 dark:text-amber-400"></i> Raio-X FUVEST: Como essa obra cai no vestibular
+          <i class="fa-solid fa-bullseye text-amber-600 dark:text-amber-400"></i> O que a Prova da FUVEST Pode Cobrar
         </h4>
         <p class="text-xs text-amber-950 dark:text-amber-200 leading-relaxed">${book.fuvestTips}</p>
       </div>
+
+      <!-- Interpretação Crítica Oficial -->
+      ${book.interpretacao ? `
+        <div class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60">
+          <h4 class="text-xs font-bold text-emerald-900 dark:text-emerald-300 uppercase tracking-wide mb-1.5 flex items-center gap-2">
+            <i class="fa-solid fa-brain text-emerald-600 dark:text-emerald-400"></i> Interpretação Crítica Sintética
+          </h4>
+          <p class="text-xs text-emerald-950 dark:text-emerald-200 leading-relaxed">${book.interpretacao}</p>
+        </div>
+      ` : ''}
 
     </div>
   `;
