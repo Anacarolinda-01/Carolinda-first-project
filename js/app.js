@@ -1293,48 +1293,69 @@ function renderBooks() {
 
   container.innerHTML = booksData.map(book => {
     const isRead = !!AppState.readBooks[book.id];
+    const topCharacters = (book.characters || []).slice(0, 3);
+    const remainingChars = (book.characters || []).length - 3;
 
     return `
-      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col justify-between transition-card">
+      <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 flex flex-col justify-between transition-card">
         <div>
           <!-- Header com status de leitura -->
           <div class="flex items-start justify-between gap-3 mb-3">
             <div>
-              <span class="text-xs font-semibold px-2.5 py-1 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-100">
+              <span class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800">
                 ${book.period}
               </span>
-              <h3 class="text-xl font-serif font-bold text-slate-900 mt-2">${book.title}</h3>
-              <p class="text-sm font-medium text-slate-600">${book.author} (${book.yearOfPub})</p>
+              <h3 class="text-xl font-serif font-bold text-slate-900 dark:text-slate-100 mt-2">${book.title}</h3>
+              <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">${book.author} (${book.yearOfPub})</p>
             </div>
             <button 
               onclick="toggleBookRead('${book.id}')"
               title="${isRead ? 'Marcar como não lida' : 'Marcar como lida'}"
               class="w-9 h-9 rounded-full flex items-center justify-center transition-all ${
-                isRead ? 'bg-emerald-500 text-white shadow-md' : 'bg-slate-100 text-slate-400 hover:text-slate-600'
+                isRead ? 'bg-emerald-500 text-white shadow-md shadow-emerald-200 dark:shadow-none' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-slate-600'
               }"
             >
               <i class="fa-solid fa-check text-sm"></i>
             </button>
           </div>
 
+          <!-- Preview dos Personagens -->
+          ${topCharacters.length > 0 ? `
+            <div class="flex flex-wrap items-center gap-1.5 my-3">
+              <span class="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 mr-1 flex items-center gap-1">
+                <i class="fa-solid fa-users text-[10px]"></i> Personagens:
+              </span>
+              ${topCharacters.map(c => `
+                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                  ${c.name.split(' (')[0]}
+                </span>
+              `).join('')}
+              ${remainingChars > 0 ? `
+                <span class="px-1.5 py-0.5 rounded-md text-[10px] font-bold text-slate-400">
+                  +${remainingChars}
+                </span>
+              ` : ''}
+            </div>
+          ` : ''}
+
           <!-- Resumo -->
-          <p class="text-sm text-slate-600 leading-relaxed mb-4 line-clamp-3">
+          <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mb-4 line-clamp-3">
             ${book.summary}
           </p>
 
           <!-- Citação marcante -->
-          <blockquote class="italic text-xs text-slate-500 border-l-2 border-indigo-400 pl-3 my-3">
+          <blockquote class="italic text-[11px] text-slate-500 dark:text-slate-400 border-l-2 border-indigo-400 dark:border-indigo-500 pl-3 my-3">
             ${book.quote}
           </blockquote>
         </div>
 
-        <div class="pt-4 border-t border-slate-100 mt-2">
+        <div class="pt-4 border-t border-slate-100 dark:border-slate-800 mt-2">
           <button 
             onclick="openBookModal('${book.id}')"
-            class="w-full py-2.5 rounded-xl text-sm font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition flex items-center justify-center gap-2"
+            class="w-full py-2.5 rounded-xl text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition flex items-center justify-center gap-2"
           >
             <i class="fa-solid fa-book-open-reader"></i>
-            Ver Análise Completa da Obra
+            Ver Análise Completa & Personagens
           </button>
         </div>
       </div>
@@ -1356,67 +1377,125 @@ window.openBookModal = function(bookId) {
   const book = booksData.find(b => b.id === bookId);
   if (!book) return;
 
+  const isRead = !!AppState.readBooks[book.id];
   const modal = document.getElementById('book-detail-modal');
   const modalContent = document.getElementById('book-modal-content');
 
   modalContent.innerHTML = `
-    <div class="flex items-start justify-between pb-4 border-b border-slate-200">
+    <!-- Topo do Modal -->
+    <div class="flex items-start justify-between pb-4 border-b border-slate-200 dark:border-slate-800 gap-4">
       <div>
-        <span class="text-xs font-semibold px-2.5 py-1 rounded bg-indigo-50 text-indigo-700">${book.period}</span>
-        <h2 class="text-2xl font-serif font-bold text-slate-900 mt-2">${book.title} (${book.yearOfPub})</h2>
-        <p class="text-base text-slate-600 font-medium">Por ${book.author}</p>
+        <div class="flex flex-wrap items-center gap-2 mb-1.5">
+          <span class="text-xs font-bold px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800">
+            ${book.period}
+          </span>
+          <button 
+            onclick="toggleBookRead('${book.id}'); openBookModal('${book.id}');"
+            class="px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+              isRead 
+                ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700' 
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 border border-slate-200 dark:border-slate-700'
+            }"
+          >
+            <i class="fa-solid ${isRead ? 'fa-circle-check text-emerald-600' : 'fa-circle text-slate-400'}"></i>
+            <span>${isRead ? 'Obra Lida' : 'Marcar como Lida'}</span>
+          </button>
+        </div>
+        <h2 class="text-2xl md:text-3xl font-serif font-bold text-slate-900 dark:text-slate-100">${book.title} (${book.yearOfPub})</h2>
+        <p class="text-sm text-slate-600 dark:text-slate-400 font-medium">Autora: <strong class="text-slate-800 dark:text-slate-200">${book.author}</strong></p>
       </div>
-      <button onclick="closeBookModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center text-sm">
+      <button onclick="closeBookModal()" class="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center text-sm shrink-0 transition">
         <i class="fa-solid fa-xmark"></i>
       </button>
     </div>
 
-    <div class="py-4 space-y-6 max-h-[70vh] overflow-y-auto pr-2">
-      <!-- Enredo e Contexto -->
-      <div>
-        <h4 class="text-sm font-bold text-slate-900 uppercase tracking-wide mb-2 flex items-center gap-2">
-          <i class="fa-solid fa-scroll text-indigo-600"></i> Enredo & Síntese Crítica
-        </h4>
-        <p class="text-sm text-slate-700 leading-relaxed">${book.summary}</p>
+    <!-- Corpo com Rolagem e Conteúdo Aprofundado -->
+    <div class="py-5 space-y-6 max-h-[75vh] overflow-y-auto pr-2 custom-scrollbar">
+      
+      <!-- Citação Chave em Destaque -->
+      <div class="p-4 rounded-2xl bg-gradient-to-r from-indigo-50/80 to-purple-50/60 dark:from-slate-800 dark:to-slate-850 border border-indigo-100 dark:border-slate-700">
+        <div class="flex items-start gap-3">
+          <i class="fa-solid fa-quote-left text-indigo-500 dark:text-indigo-400 text-lg mt-0.5 shrink-0"></i>
+          <div>
+            <p class="text-xs md:text-sm italic font-serif text-indigo-950 dark:text-indigo-200 leading-relaxed">${book.quote}</p>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 mt-1 block">— Passagem emblemática da obra</span>
+          </div>
+        </div>
       </div>
 
-      <!-- Personagens Centrais -->
+      <!-- Enredo Detalhado & Síntese Crítica -->
       <div>
-        <h4 class="text-sm font-bold text-slate-900 uppercase tracking-wide mb-2 flex items-center gap-2">
-          <i class="fa-solid fa-users text-indigo-600"></i> Personagens Principais
+        <h4 class="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide mb-2.5 flex items-center gap-2">
+          <i class="fa-solid fa-scroll text-indigo-600 dark:text-indigo-400"></i> Enredo Minucioso & Análise Crítica
         </h4>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80">
+          ${book.detailedSummary ? book.detailedSummary : `<p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">${book.summary}</p>`}
+        </div>
+      </div>
+
+      <!-- Galeria Completa de Personagens -->
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <h4 class="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide flex items-center gap-2">
+            <i class="fa-solid fa-users text-indigo-600 dark:text-indigo-400"></i> Personagens & Figuras Narrativas (${book.characters.length})
+          </h4>
+          <span class="text-[11px] font-semibold text-slate-500">Perfis psicológicos e simbólicos</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
           ${book.characters.map(c => `
-            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs">
-              <span class="font-bold text-slate-900">${c.name}:</span>
-              <span class="text-slate-600 ml-1">${c.desc}</span>
+            <div class="p-3.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:border-indigo-300 transition">
+              <div class="flex items-center justify-between gap-2 mb-1.5 pb-1.5 border-b border-slate-100 dark:border-slate-700">
+                <span class="font-bold text-xs text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                  <i class="fa-solid fa-user text-indigo-500 text-[11px]"></i>
+                  ${c.name}
+                </span>
+                ${c.role ? `
+                  <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800 shrink-0">
+                    ${c.role}
+                  </span>
+                ` : ''}
+              </div>
+              <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">${c.desc}</p>
             </div>
           `).join('')}
         </div>
       </div>
 
-      <!-- Temas Centrais -->
+      <!-- Contexto Literário e Estética -->
+      ${book.literaryContext ? `
+        <div>
+          <h4 class="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide mb-2 flex items-center gap-2">
+            <i class="fa-solid fa-feather text-indigo-600 dark:text-indigo-400"></i> Movimento Literário & Estilo
+          </h4>
+          <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+            ${book.literaryContext}
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- Eixos Temáticos Essenciais -->
       <div>
-        <h4 class="text-sm font-bold text-slate-900 uppercase tracking-wide mb-2 flex items-center gap-2">
-          <i class="fa-solid fa-bullseye text-indigo-600"></i> Eixos Temáticos Essenciais
+        <h4 class="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide mb-2.5 flex items-center gap-2">
+          <i class="fa-solid fa-bullseye text-indigo-600 dark:text-indigo-400"></i> Eixos Temáticos & Conceitos Fundamentais
         </h4>
-        <ul class="space-y-1.5 text-xs text-slate-700">
+        <div class="grid grid-cols-1 gap-2">
           ${book.keyThemes.map(th => `
-            <li class="flex items-start gap-2">
-              <i class="fa-solid fa-circle-check text-indigo-500 mt-0.5"></i>
-              <span>${th}</span>
-            </li>
+            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-start gap-2.5 text-xs text-slate-700 dark:text-slate-300">
+              <i class="fa-solid fa-circle-check text-indigo-500 mt-0.5 shrink-0"></i>
+              <span class="leading-relaxed">${th}</span>
+            </div>
           `).join('')}
-        </ul>
+        </div>
       </div>
 
-      <!-- Dicas de Prova FUVEST -->
-      <div class="p-4 rounded-xl bg-amber-50 border border-amber-200">
-        <h4 class="text-xs font-bold text-amber-900 uppercase tracking-wide mb-1 flex items-center gap-2">
-          <i class="fa-solid fa-lightbulb text-amber-600"></i> Como a FUVEST cobra essa obra:
+      <!-- Raio-X da Banca FUVEST -->
+      <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60">
+        <h4 class="text-xs font-bold text-amber-900 dark:text-amber-300 uppercase tracking-wide mb-1.5 flex items-center gap-2">
+          <i class="fa-solid fa-lightbulb text-amber-600 dark:text-amber-400"></i> Raio-X FUVEST: Como essa obra cai no vestibular
         </h4>
-        <p class="text-xs text-amber-900 leading-relaxed">${book.fuvestTips}</p>
+        <p class="text-xs text-amber-950 dark:text-amber-200 leading-relaxed">${book.fuvestTips}</p>
       </div>
+
     </div>
   `;
 
