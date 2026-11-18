@@ -2456,8 +2456,8 @@ const MOTIVATIONAL_QUOTES = [
 
 function initMotivationAndNotifications() {
   updateDailyMotivationQuote();
-  updateNotificationUI();
   checkInactivityAndEncourage();
+  autoPromptNotificationPermission();
 }
 
 function updateDailyMotivationQuote() {
@@ -2465,48 +2465,71 @@ function updateDailyMotivationQuote() {
   if (!quoteEl) return;
 
   const dayIndex = Math.floor(Date.now() / (1000 * 60 * 60 * 24)) % MOTIVATIONAL_QUOTES.length;
-  quoteEl.textContent = MOTIVATIONAL_QUOTES[dayIndex];
+  quoteEl.textContent = `"${MOTIVATIONAL_QUOTES[dayIndex]}"`;
 }
 
-function updateNotificationUI() {
-  const badge = document.getElementById('notif-status-badge');
-  const btnText = document.getElementById('btn-toggle-notif-text');
-  const btn = document.getElementById('btn-toggle-notifications');
+/**
+ * Pergunta automaticamente se o usuário deseja ativar as notificações ao abrir o site
+ */
+async function autoPromptNotificationPermission() {
+  if (!('Notification' in window)) return;
 
-  if (!('Notification' in window)) {
-    if (badge) {
-      badge.textContent = "Não suportado no navegador";
-      badge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500";
-    }
-    if (btn) btn.disabled = true;
+  // Se já foi concedida ou bloqueada pelo navegador, não precisa perguntar novamente
+  if (Notification.permission === 'granted' || Notification.permission === 'denied') {
     return;
   }
 
-  const perm = Notification.permission;
+  // Aguarda 1 segundo após o carregamento da página para exibir o pedido
+  setTimeout(async () => {
+    try {
+      // Tenta disparar o diálogo nativo do navegador
+      const perm = await Notification.requestPermission();
+      if (perm === 'granted') {
+        triggerLocalPushNotification(
+          "BrilhaVest: Notificações Ativadas! 🎉",
+          "Muito bem! Você receberá lembretes diários e mensagens motivacionais para conquistar a sua aprovação.",
+          "welcome-notif"
+        );
+        return;
+      }
+    } catch (e) {
+      // Navegadores que exigem interação explícita do usuário (ex: Safari iOS / Chrome mobile)
+    }
 
-  if (perm === 'granted') {
-    if (badge) {
-      badge.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500"></i> Lembretes Ativos`;
-      badge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 flex items-center gap-1";
+    // Se o navegador não disparou o diálogo nativo ou aguarda gesto, exibe o banner flutuante
+    if (Notification.permission === 'default') {
+      const banner = document.getElementById('notification-auto-prompt-banner');
+      if (banner) {
+        banner.classList.remove('hidden');
+      }
     }
-    if (btnText) btnText.textContent = "Lembretes Ativados";
-    if (btn) btn.className = "flex-1 lg:flex-initial px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm transition flex items-center justify-center gap-2";
-  } else if (perm === 'denied') {
-    if (badge) {
-      badge.innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-500"></i> Notificações Bloqueadas`;
-      badge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 flex items-center gap-1";
-    }
-    if (btnText) btnText.textContent = "Permitir no Navegador";
-    if (btn) btn.className = "flex-1 lg:flex-initial px-4 py-2.5 rounded-xl bg-slate-500 hover:bg-slate-600 text-white font-bold text-xs shadow-sm transition flex items-center justify-center gap-2";
-  } else {
-    if (badge) {
-      badge.innerHTML = `<i class="fa-solid fa-bell text-amber-500"></i> Lembretes Disponíveis`;
-      badge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 flex items-center gap-1";
-    }
-    if (btnText) btnText.textContent = "Ativar Lembretes";
-    if (btn) btn.className = "flex-1 lg:flex-initial px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-sm transition flex items-center justify-center gap-2";
-  }
+  }, 1000);
 }
+
+window.acceptNotificationPermission = async function() {
+  const banner = document.getElementById('notification-auto-prompt-banner');
+  if (banner) banner.classList.add('hidden');
+
+  if (!('Notification' in window)) return;
+
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+      triggerLocalPushNotification(
+        "BrilhaVest: Notificações Ativadas! 🎉",
+        "Muito bem! Agora você receberá frases de incentivo e lembretes diários para não deixar a peteca cair nos estudos.",
+        "welcome-notif"
+      );
+    }
+  } catch (err) {
+    console.error("Erro ao solicitar permissão de notificações:", err);
+  }
+};
+
+window.dismissNotificationPrompt = function() {
+  const banner = document.getElementById('notification-auto-prompt-banner');
+  if (banner) banner.classList.add('hidden');
+};
 
 function checkInactivityAndEncourage() {
   const LAST_ACTIVE_KEY = 'brilhavest_last_active_timestamp';
