@@ -5,10 +5,10 @@
 
 const SUPABASE_CONFIG_STORAGE_KEY = 'brilhavest_supabase_config';
 
-// Credenciais oficiais do projeto Supabase configuradas por padrão
+// Credenciais padrão (vazias por segurança - configure via painel ou variáveis locais)
 const DEFAULT_SUPABASE_CONFIG = {
-  url: 'https://hkgtqmlbbfdcysxazlcx.supabase.co',
-  anonKey: 'sb_publishable_bMDva8BgSlsP75Vz1SLG-Q_idpPRhFJ'
+  url: '',
+  anonKey: ''
 };
 
 const SupabaseManager = {
