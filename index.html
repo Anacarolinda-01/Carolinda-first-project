@@ -92,29 +92,15 @@
           </div>
         </div>
 
-        <!-- Links de Navegação Desktop -->
-        <nav class="hidden lg:flex items-center gap-1">
-          <button data-tab-target="dashboard" class="px-3 py-2 text-sm font-semibold text-indigo-600 border-b-2 border-indigo-600 transition flex items-center gap-1.5">
-            <i class="fa-solid fa-chart-pie text-xs"></i> Início
-          </button>
-          <button data-tab-target="books" class="px-3 py-2 text-sm font-semibold text-slate-600 hover:text-indigo-600 border-b-2 border-transparent transition flex items-center gap-1.5">
-            <i class="fa-solid fa-book text-xs"></i> Leituras 2027
-          </button>
-          <button data-tab-target="redacao" class="px-3 py-2 text-sm font-semibold text-slate-600 hover:text-indigo-600 border-b-2 border-transparent transition flex items-center gap-1.5">
-            <i class="fa-solid fa-pen-nib text-xs"></i> Redação
-          </button>
-          <button data-tab-target="questions" class="px-3 py-2 text-sm font-semibold text-slate-600 hover:text-indigo-600 border-b-2 border-transparent transition flex items-center gap-1.5">
-            <i class="fa-solid fa-list-check text-xs"></i> Questões
-          </button>
-          <button data-tab-target="checklist" class="px-3 py-2 text-sm font-semibold text-slate-600 hover:text-indigo-600 border-b-2 border-transparent transition flex items-center gap-1.5">
-            <i class="fa-solid fa-bullseye text-xs"></i> Raio-X
-          </button>
-          <button data-tab-target="flashcards" class="px-3 py-2 text-sm font-semibold text-slate-600 hover:text-indigo-600 border-b-2 border-transparent transition flex items-center gap-1.5">
-            <i class="fa-solid fa-bolt text-xs"></i> Flashcards
+        <!-- Navegação: Apenas o botão Início na frente -->
+        <nav class="flex items-center">
+          <button data-tab-target="dashboard" onclick="switchTab('dashboard')" class="px-3.5 py-2 text-sm font-bold text-indigo-600 border-b-2 border-indigo-600 transition flex items-center gap-1.5 hover:text-indigo-700">
+            <i class="fa-solid fa-house text-xs"></i>
+            <span>Início</span>
           </button>
         </nav>
 
-        <!-- Ações do Topo: Instalar App + Conta + Modo Escuro + Configurações + Treinar -->
+        <!-- Ações do Topo: Instalar App + Conta + Modo Escuro + Configurações -->
         <div class="flex items-center gap-2">
           <!-- Botão Instalar App (PWA) -->
           <button 
@@ -158,10 +144,6 @@
           >
             <i class="fa-solid fa-gear text-xs text-slate-500 dark:text-slate-400"></i>
             <span class="hidden md:inline">Configurações</span>
-          </button>
-
-          <button onclick="switchTab('questions')" class="px-4 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition flex items-center gap-1.5">
-            <i class="fa-solid fa-play text-[10px]"></i> Treinar
           </button>
         </div>
 
@@ -1959,7 +1941,7 @@
   <script src="js/data/redacao.js"></script>
   <script src="js/data/checklist.js"></script>
   <script src="js/data/flashcards.js"></script>
-  <script src="js/supabaseClient.js?v=2.7"></script>
-  <script src="js/app.js?v=2.7"></script>
+  <script src="js/supabaseClient.js?v=2.8"></script>
+  <script src="js/app.js?v=2.8"></script>
 </body>
 </html>
