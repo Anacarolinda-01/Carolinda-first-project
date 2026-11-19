@@ -274,6 +274,20 @@ function initModalsDismissal() {
     });
   }
 
+  const adminModal = document.getElementById('admin-panel-modal');
+  if (adminModal) {
+    adminModal.addEventListener('click', (e) => {
+      if (e.target === adminModal && typeof closeAdminModal === 'function') closeAdminModal();
+    });
+  }
+
+  const adminDetailModal = document.getElementById('admin-student-detail-modal');
+  if (adminDetailModal) {
+    adminDetailModal.addEventListener('click', (e) => {
+      if (e.target === adminDetailModal && typeof closeAdminStudentDetailModal === 'function') closeAdminStudentDetailModal();
+    });
+  }
+
   // Atalho da tecla ESC para fechar qualquer modal ou menu lateral ativo
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' || e.key === 'Esc') {
@@ -283,6 +297,8 @@ function initModalsDismissal() {
       if (typeof closeAddFlashcardModal === 'function') closeAddFlashcardModal();
       if (typeof closeCountdownSettingsModal === 'function') closeCountdownSettingsModal();
       if (typeof closeSettingsModal === 'function') closeSettingsModal();
+      if (typeof closeAdminStudentDetailModal === 'function') closeAdminStudentDetailModal();
+      if (typeof closeAdminModal === 'function') closeAdminModal();
     }
   });
 }

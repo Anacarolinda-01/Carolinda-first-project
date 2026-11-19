@@ -331,6 +331,17 @@
           <i class="fa-solid fa-calendar-days text-amber-500"></i>
           <span>Datas dos Vestibulares</span>
         </button>
+
+        <button 
+          onclick="closeSideMenu(); openAdminModal();" 
+          class="w-full p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-indigo-600 dark:hover:bg-indigo-700 text-xs font-bold transition flex items-center justify-between shadow-sm"
+        >
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-user-shield text-xs text-amber-400"></i>
+            <span>Área do Administrador</span>
+          </div>
+          <i class="fa-solid fa-lock text-[10px] text-white/70"></i>
+        </button>
       </div>
     </aside>
   </div>
@@ -1901,10 +1912,325 @@
               Alterar Datas
             </button>
           </div>
+
+          <!-- SEÇÃO 4: ÁREA DO ADMINISTRADOR -->
+          <div class="p-4 rounded-2xl bg-indigo-50/60 dark:bg-slate-800/80 border border-indigo-100 dark:border-slate-700 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-sm shadow-sm shrink-0">
+                <i class="fa-solid fa-user-shield"></i>
+              </div>
+              <div>
+                <h4 class="font-bold text-slate-900 dark:text-slate-100 text-xs flex items-center gap-1.5">
+                  Área do Administrador
+                  <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300">Restrito</span>
+                </h4>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Acesso exclusivo para visualização dos estudantes cadastrados e exportação de dados</p>
+              </div>
+            </div>
+            <button 
+              type="button" 
+              onclick="closeSettingsModal(); openAdminModal();" 
+              class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white font-bold text-xs transition flex items-center gap-1.5 shadow-sm shrink-0 ml-2"
+            >
+              <i class="fa-solid fa-lock text-xs text-amber-400"></i>
+              Painel Admin
+            </button>
+          </div>
         </div>
 
         <div class="pt-4 mt-5 border-t border-slate-100 dark:border-slate-800 flex justify-end">
           <button onclick="closeSettingsModal()" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 font-bold text-xs transition">
+            Fechar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- MODAL: ÁREA DO ADMINISTRADOR                             -->
+    <!-- ======================================================== -->
+    <div id="admin-panel-modal" class="fixed inset-0 z-[80] bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 hidden">
+      <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-4xl w-full p-5 sm:p-7 shadow-2xl border border-slate-200 dark:border-slate-800 animate-fadeIn max-h-[94vh] flex flex-col">
+        
+        <!-- ================= TELA 1: AUTENTICAÇÃO DO ADMIN ================= -->
+        <div id="admin-auth-view" class="py-6 sm:py-10 max-w-md w-full mx-auto text-center space-y-5">
+          <div class="w-16 h-16 rounded-3xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white flex items-center justify-center mx-auto text-2xl shadow-xl shadow-indigo-500/20">
+            <i class="fa-solid fa-user-shield"></i>
+          </div>
+          <div>
+            <h3 class="text-xl font-black text-slate-900 dark:text-slate-100">Área do Administrador</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Acesso protegido para visualização dos dados de quem está se cadastrando no portal</p>
+          </div>
+
+          <form onsubmit="handleAdminLogin(event); return false;" class="space-y-3 pt-2 text-left">
+            <div id="admin-auth-error" class="hidden p-3 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-xs text-rose-700 dark:text-rose-300 font-medium"></div>
+
+            <div>
+              <label class="block font-bold text-slate-700 dark:text-slate-300 text-xs mb-1.5">
+                <i class="fa-solid fa-key text-indigo-500 mr-1"></i> Senha Mestra do Administrador
+              </label>
+              <div class="relative">
+                <input 
+                  type="password" 
+                  id="admin-pin-input" 
+                  placeholder="Digite a senha do admin..." 
+                  required
+                  class="w-full pl-3.5 pr-10 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+                >
+                <button type="button" onclick="toggleAdminPasswordVisibility()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" title="Mostrar/ocultar senha">
+                  <i id="admin-pin-toggle-icon" class="fa-solid fa-eye-slash text-xs"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="pt-1">
+              <button 
+                type="submit" 
+                class="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-2"
+              >
+                <i class="fa-solid fa-lock-open text-xs"></i>
+                Desbloquear Painel
+              </button>
+            </div>
+
+            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+              <i class="fa-solid fa-circle-info text-indigo-500 mr-1"></i>
+              Senha padrão inicial: <span class="font-mono font-bold text-indigo-600 dark:text-indigo-400">admin2027</span>. Você poderá alterá-la para qualquer outra senha dentro do painel.
+            </div>
+          </form>
+
+          <div class="pt-2">
+            <button type="button" onclick="closeAdminModal()" class="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-medium transition">
+              <i class="fa-solid fa-arrow-left mr-1"></i> Voltar ao site
+            </button>
+          </div>
+        </div>
+
+        <!-- ================= TELA 2: DASHBOARD DO ADMIN ================= -->
+        <div id="admin-dashboard-view" class="hidden flex flex-col flex-1 min-h-0 space-y-4">
+          <!-- Cabeçalho do Painel -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 border-b border-slate-100 dark:border-slate-800">
+            <div class="flex items-center gap-2.5">
+              <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white flex items-center justify-center shadow-md shrink-0">
+                <i class="fa-solid fa-user-shield text-base"></i>
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h3 class="text-base font-bold text-slate-900 dark:text-slate-100">Painel do Administrador</h3>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Online
+                  </span>
+                </div>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">Acesso completo aos dados de quem está se cadastrando no BrilhaVest</p>
+              </div>
+            </div>
+
+            <!-- Botões de Ação Topo -->
+            <div class="flex items-center flex-wrap gap-2">
+              <button 
+                type="button" 
+                onclick="exportStudentsToCSV()" 
+                title="Exportar planilha completa em formato CSV"
+                class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-sm"
+              >
+                <i class="fa-solid fa-file-csv"></i>
+                <span>Exportar CSV</span>
+              </button>
+              <button 
+                type="button" 
+                onclick="createSampleStudent()" 
+                title="Adicionar estudante simulado para testes rápidos"
+                class="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition flex items-center gap-1.5 shadow-sm"
+              >
+                <i class="fa-solid fa-plus text-indigo-500"></i>
+                <span>+ Aluno Teste</span>
+              </button>
+              <button 
+                type="button" 
+                onclick="promptChangeAdminPassword()" 
+                title="Alterar a senha mestra de acesso do administrador"
+                class="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition flex items-center gap-1.5 shadow-sm"
+              >
+                <i class="fa-solid fa-key text-amber-500"></i>
+                <span>Senha Admin</span>
+              </button>
+              <button 
+                type="button" 
+                onclick="handleAdminLogout()" 
+                title="Bloquear painel"
+                class="px-3 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 hover:bg-rose-100 text-xs font-bold transition flex items-center gap-1.5"
+              >
+                <i class="fa-solid fa-lock"></i>
+                <span>Sair</span>
+              </button>
+              <button 
+                type="button" 
+                onclick="closeAdminModal()" 
+                class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 flex items-center justify-center text-xs transition"
+                title="Fechar"
+              >
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Cards de Métricas (KPIs) -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-0.5">Total de Cadastros</span>
+              <div class="flex items-baseline gap-1.5">
+                <span id="admin-stat-total-students" class="text-xl font-black text-indigo-600 dark:text-indigo-400">0</span>
+                <span class="text-[10px] text-slate-500">alunos</span>
+              </div>
+            </div>
+            <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-0.5">Últimos 7 Dias</span>
+              <div class="flex items-baseline gap-1.5">
+                <span id="admin-stat-recent-students" class="text-xl font-black text-emerald-600 dark:text-emerald-400">0</span>
+                <span class="text-[10px] text-slate-500">novos</span>
+              </div>
+            </div>
+            <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-0.5">Curso Top 1</span>
+              <span id="admin-stat-top-course" class="text-xs font-black text-purple-600 dark:text-purple-400 truncate block">FUVEST & ENEM</span>
+            </div>
+            <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-0.5">Armazenamento</span>
+              <div id="admin-stat-cloud-status" class="text-xs">
+                <span class="text-indigo-600 font-bold">Offline Local</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Barra de Busca e Filtros -->
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-1">
+            <div class="relative flex-1">
+              <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+              <input 
+                type="text" 
+                id="admin-search-input" 
+                oninput="filterAdminStudents(this.value)" 
+                placeholder="Buscar por nome, e-mail ou curso do vestibulando..." 
+                class="w-full pl-9 pr-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <button 
+                type="button" 
+                onclick="setAdminCourseFilter('all')" 
+                class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white shadow-sm"
+              >
+                Todos
+              </button>
+              <button 
+                type="button" 
+                onclick="setAdminCourseFilter('medicina')" 
+                class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300"
+              >
+                Medicina
+              </button>
+              <button 
+                type="button" 
+                onclick="setAdminCourseFilter('direito')" 
+                class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300"
+              >
+                Direito
+              </button>
+              <button 
+                type="button" 
+                onclick="setAdminCourseFilter('engenharia')" 
+                class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300"
+              >
+                Engenharia
+              </button>
+            </div>
+          </div>
+
+          <!-- Contador de Resultados -->
+          <div class="flex items-center justify-between px-1 text-[11px] text-slate-400">
+            <span id="admin-filtered-count">0 estudante(s) cadastrado(s)</span>
+            <span><i class="fa-solid fa-shield-halved text-emerald-500 mr-1"></i> Dados protegidos e isolados na área administrativa</span>
+          </div>
+
+          <!-- Tabela com Rolagem -->
+          <div class="flex-1 min-h-[220px] max-h-[46vh] overflow-y-auto rounded-2xl border border-slate-200 dark:border-slate-800">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead class="sticky top-0 bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider z-10">
+                <tr>
+                  <th class="py-2.5 px-3.5">Estudante</th>
+                  <th class="py-2.5 px-3.5">E-mail Cadastrado</th>
+                  <th class="py-2.5 px-3.5">Meta / Curso</th>
+                  <th class="py-2.5 px-3.5">Data do Cadastro</th>
+                  <th class="py-2.5 px-3.5 text-right">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="admin-students-table-body" class="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900">
+                <!-- Inserido dinamicamente via JS -->
+              </tbody>
+            </table>
+
+            <!-- Estado Vazio -->
+            <div id="admin-empty-state" class="hidden p-8 text-center space-y-3">
+              <div class="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-slate-800 text-indigo-500 flex items-center justify-center mx-auto text-lg">
+                <i class="fa-solid fa-user-graduate"></i>
+              </div>
+              <h4 class="font-bold text-slate-800 dark:text-slate-200 text-xs">Nenhum estudante encontrado</h4>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 max-w-sm mx-auto leading-relaxed">
+                Conforme os vestibulandos preencherem o cadastro na plataforma, seus nomes, e-mails e metas aparecerão nesta tabela.
+              </p>
+              <button 
+                type="button" 
+                onclick="createSampleStudent()" 
+                class="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition inline-flex items-center gap-1.5 shadow-sm"
+              >
+                <i class="fa-solid fa-plus"></i> Gerar Cadastro Simulado
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+    <!-- MODAL SECUNDÁRIO: DETALHES COMPLETOS DO ALUNO -->
+    <div id="admin-student-detail-modal" class="fixed inset-0 z-[90] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+      <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 animate-fadeIn space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+          <div class="flex items-center gap-2.5">
+            <div id="admin-detail-avatar" class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white font-black text-sm flex items-center justify-center shadow-sm">
+              E
+            </div>
+            <div>
+              <h4 id="admin-detail-name" class="font-bold text-slate-900 dark:text-slate-100 text-sm">Estudante</h4>
+              <span class="text-[10px] text-slate-400">Perfil Registrado</span>
+            </div>
+          </div>
+          <button onclick="closeAdminStudentDetailModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 flex items-center justify-center text-xs">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div class="space-y-3 text-xs">
+          <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+            <span class="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">E-mail do Aluno</span>
+            <span id="admin-detail-email" class="font-semibold text-slate-800 dark:text-slate-200 select-all">-</span>
+          </div>
+
+          <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+            <span class="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Meta / Curso & Vestibular</span>
+            <span id="admin-detail-course" class="font-semibold text-indigo-600 dark:text-indigo-400">-</span>
+          </div>
+
+          <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+            <span class="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Data & Hora de Cadastro</span>
+            <span id="admin-detail-date" class="font-semibold text-slate-700 dark:text-slate-300">-</span>
+          </div>
+        </div>
+
+        <div class="pt-2 flex justify-end">
+          <button onclick="closeAdminStudentDetailModal()" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 font-bold text-xs transition">
             Fechar
           </button>
         </div>
@@ -1923,7 +2249,12 @@
           </div>
           <span class="font-bold text-slate-700">BrilhaVest</span> - O seu guia definitivo para FUVEST e ENEM
         </div>
-        <p class="text-slate-400">Desenvolvido com foco total na sua rotina de estudos e na sua aprovação.</p>
+        <div class="flex items-center gap-4 text-slate-400">
+          <p>Desenvolvido com foco total na sua rotina de estudos e na sua aprovação.</p>
+          <button onclick="openAdminModal()" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition text-[11px] font-medium flex items-center gap-1">
+            <i class="fa-solid fa-user-shield text-[10px]"></i> Área do Administrador
+          </button>
+        </div>
       </div>
     </div>
   </footer>
@@ -1931,7 +2262,7 @@
   <!-- SDK Oficial do Supabase v2 -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <!-- Scripts de Dados Modulares, Persistência Supabase e Aplicação -->
+  <!-- Scripts de Dados Modulares, Persistência Supabase, Painel Admin e Aplicação -->
   <script src="js/data/questions_matematica.js"></script>
   <script src="js/data/questions_natureza.js"></script>
   <script src="js/data/questions_humanas.js"></script>
@@ -1941,7 +2272,8 @@
   <script src="js/data/redacao.js"></script>
   <script src="js/data/checklist.js"></script>
   <script src="js/data/flashcards.js"></script>
-  <script src="js/supabaseClient.js?v=2.9"></script>
-  <script src="js/app.js?v=2.9"></script>
+  <script src="js/supabaseClient.js?v=3.0"></script>
+  <script src="js/admin.js?v=3.0"></script>
+  <script src="js/app.js?v=3.0"></script>
 </body>
 </html>
