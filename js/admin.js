@@ -5,6 +5,7 @@
 
 const ADMIN_STORAGE_KEY = 'brilhavest_admin_pin';
 const DEFAULT_ADMIN_PIN = 'admin2027';
+const ADMIN_DEVICE_KEY = 'brilhavest_admin_device_authorized';
 
 const AdminManager = {
   isAuthenticated: false,
@@ -13,6 +14,92 @@ const AdminManager = {
   selectedFilter: 'all',
   selectedStudent: null
 };
+
+/**
+ * Verifica se este aparelho/navegador é o do Administrador
+ */
+function isCurrentDeviceAdmin() {
+  try {
+    // 1. Sempre autoriza se for neste computador (ambiente local, arquivo ou localhost)
+    if (window.location.protocol === 'file:' || 
+        window.location.hostname === 'localhost' || 
+        window.location.hostname === '127.0.0.1') {
+      localStorage.setItem(ADMIN_DEVICE_KEY, 'true');
+      return true;
+    }
+
+    // 2. Já foi autorizado anteriormente neste navegador
+    if (localStorage.getItem(ADMIN_DEVICE_KEY) === 'true') {
+      return true;
+    }
+
+    // 3. Ativação via parâmetro secreto na URL (ex: meudominio.com/?admin=1)
+    if (window.location.search && (window.location.search.includes('admin=1') || window.location.search.includes('admin=true'))) {
+      localStorage.setItem(ADMIN_DEVICE_KEY, 'true');
+      return true;
+    }
+  } catch (e) {}
+  return false;
+}
+
+/**
+ * Aplica visibilidade dos botões do admin:
+ * Se for o dispositivo do admin, mostra os botões.
+ * Se for qualquer outro usuário/celular, mantém COMPLETAMENTE OCULTO.
+ */
+window.updateAdminDeviceVisibility = function() {
+  const isAdminDevice = isCurrentDeviceAdmin();
+  const adminElements = document.querySelectorAll('.admin-only-feature');
+  adminElements.forEach(el => {
+    if (isAdminDevice) {
+      el.classList.remove('hidden');
+    } else {
+      el.classList.add('hidden');
+    }
+  });
+};
+
+// Secret click counter no logotipo: clicar 5 vezes rápidas ativa o admin neste aparelho
+let logoClickCount = 0;
+let logoClickTimer = null;
+window.handleSecretLogoClick = function() {
+  logoClickCount++;
+  clearTimeout(logoClickTimer);
+  logoClickTimer = setTimeout(() => {
+    logoClickCount = 0;
+  }, 2500);
+
+  if (logoClickCount >= 5) {
+    logoClickCount = 0;
+    try {
+      localStorage.setItem(ADMIN_DEVICE_KEY, 'true');
+      window.updateAdminDeviceVisibility();
+    } catch (e) {}
+    openAdminModal();
+    if (typeof showToast === 'function') {
+      showToast('Acesso de Administrador desbloqueado neste dispositivo!');
+    }
+  }
+};
+
+// Atalho do teclado: Ctrl + Shift + A
+document.addEventListener('keydown', (e) => {
+  if (e.ctrlKey && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
+    e.preventDefault();
+    try {
+      localStorage.setItem(ADMIN_DEVICE_KEY, 'true');
+      window.updateAdminDeviceVisibility();
+    } catch (err) {}
+    openAdminModal();
+  }
+});
+
+// Inicialização imediata da visibilidade
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', window.updateAdminDeviceVisibility);
+} else {
+  window.updateAdminDeviceVisibility();
+}
 
 /**
  * Obtém o PIN / senha mestre configurado para o Administrador
@@ -107,6 +194,12 @@ window.handleAdminLogin = function(e) {
 
   if (enteredPin === currentPin) {
     AdminManager.isAuthenticated = true;
+    try {
+      localStorage.setItem(ADMIN_DEVICE_KEY, 'true');
+      if (typeof window.updateAdminDeviceVisibility === 'function') {
+        window.updateAdminDeviceVisibility();
+      }
+    } catch (e) {}
     if (errorEl) errorEl.classList.add('hidden');
     showAdminDashboardView();
     if (typeof showToast === 'function') {

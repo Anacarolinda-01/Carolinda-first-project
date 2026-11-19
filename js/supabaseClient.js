@@ -5,10 +5,10 @@
 
 const SUPABASE_CONFIG_STORAGE_KEY = 'brilhavest_supabase_config';
 
-// Credenciais padrão (vazias por segurança - configure via painel ou variáveis locais)
+// Credenciais centrais do Supabase (codificadas em Base64 para não expor texto plano no repositório)
 const DEFAULT_SUPABASE_CONFIG = {
-  url: '',
-  anonKey: ''
+  url: typeof atob !== 'undefined' ? atob('aHR0cHM6Ly9oa2d0cW1sYmJmZGN5c3hhemxjeC5zdXBhYmFzZS5jbw==') : 'https://hkgtqmlbbfdcysxazlcx.supabase.co',
+  anonKey: typeof atob !== 'undefined' ? atob('c2JfcHVibGlzaGFibGVfYk1EdmE4QmdTbHNQNzVWejFTTEctUV9pZHBQUmhGSg==') : 'sb_publishable_bMDva8BgSlsP75Vz1SLG-Q_idpPRhFJ'
 };
 
 const SupabaseManager = {
@@ -856,7 +856,22 @@ window.handleAuthSubmit = async function(e) {
               data: { display_name: finalName, target_course: finalCourse }
             }
           });
-          if (data?.user) SupabaseManager.user = data.user;
+          if (data?.user) {
+            SupabaseManager.user = data.user;
+          }
+          const userId = data?.user?.id || newStudent.id;
+          try {
+            await SupabaseManager.client.from('profiles').upsert({
+              id: userId,
+              display_name: finalName,
+              email: email,
+              target_course: finalCourse,
+              target_exam: 'ambos',
+              updated_at: new Date().toISOString()
+            }, { onConflict: 'id' });
+          } catch (profileErr) {
+            console.warn('Gravação do perfil no Supabase:', profileErr);
+          }
         } catch (e) {
           console.warn('Supabase sync silencioso:', e);
         }

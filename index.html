@@ -78,7 +78,7 @@
             <i class="fa-solid fa-bars text-base"></i>
           </button>
 
-          <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('dashboard')">
+          <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('dashboard'); if (typeof handleSecretLogoClick === 'function') handleSecretLogoClick();">
             <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-md shadow-indigo-200 shrink-0">
               <i class="fa-solid fa-graduation-cap text-lg"></i>
             </div>
@@ -332,9 +332,11 @@
           <span>Datas dos Vestibulares</span>
         </button>
 
+        <!-- Botão do Administrador (Visível somente no dispositivo do admin) -->
         <button 
+          id="side-menu-admin-btn" 
           onclick="closeSideMenu(); openAdminModal();" 
-          class="w-full p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-indigo-600 dark:hover:bg-indigo-700 text-xs font-bold transition flex items-center justify-between shadow-sm"
+          class="admin-only-feature hidden w-full p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-indigo-600 dark:hover:bg-indigo-700 text-xs font-bold transition flex items-center justify-between shadow-sm"
         >
           <div class="flex items-center gap-2">
             <i class="fa-solid fa-user-shield text-xs text-amber-400"></i>
@@ -1913,8 +1915,8 @@
             </button>
           </div>
 
-          <!-- SEÇÃO 4: ÁREA DO ADMINISTRADOR -->
-          <div class="p-4 rounded-2xl bg-indigo-50/60 dark:bg-slate-800/80 border border-indigo-100 dark:border-slate-700 flex items-center justify-between">
+          <!-- SEÇÃO 4: ÁREA DO ADMINISTRADOR (Visível somente no dispositivo do admin) -->
+          <div id="settings-admin-section" class="admin-only-feature hidden p-4 rounded-2xl bg-indigo-50/60 dark:bg-slate-800/80 border border-indigo-100 dark:border-slate-700 flex items-center justify-between">
             <div class="flex items-center gap-3">
               <div class="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-sm shadow-sm shrink-0">
                 <i class="fa-solid fa-user-shield"></i>
@@ -2251,7 +2253,7 @@
         </div>
         <div class="flex items-center gap-4 text-slate-400">
           <p>Desenvolvido com foco total na sua rotina de estudos e na sua aprovação.</p>
-          <button onclick="openAdminModal()" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition text-[11px] font-medium flex items-center gap-1">
+          <button id="footer-admin-link" onclick="openAdminModal()" class="admin-only-feature hidden hover:text-indigo-600 dark:hover:text-indigo-400 transition text-[11px] font-medium flex items-center gap-1">
             <i class="fa-solid fa-user-shield text-[10px]"></i> Área do Administrador
           </button>
         </div>
@@ -2272,8 +2274,8 @@
   <script src="js/data/redacao.js"></script>
   <script src="js/data/checklist.js"></script>
   <script src="js/data/flashcards.js"></script>
-  <script src="js/supabaseClient.js?v=3.0"></script>
-  <script src="js/admin.js?v=3.0"></script>
-  <script src="js/app.js?v=3.0"></script>
+  <script src="js/supabaseClient.js?v=3.1"></script>
+  <script src="js/admin.js?v=3.1"></script>
+  <script src="js/app.js?v=3.1"></script>
 </body>
 </html>
