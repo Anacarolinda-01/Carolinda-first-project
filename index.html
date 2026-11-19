@@ -116,7 +116,7 @@
           <!-- Botão Conta do Estudante -->
           <button 
             id="btn-auth-account" 
-            onclick="openAuthModal('signup')" 
+            onclick="handleHeaderAccountClick()" 
             title="Conta do Estudante" 
             class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-2 transition shadow-sm border border-slate-200/70 dark:border-slate-700"
           >
@@ -201,7 +201,7 @@
                 <p id="side-menu-user-subtitle" class="text-[10px] text-slate-500 dark:text-slate-400 truncate">Meta: FUVEST & ENEM</p>
               </div>
             </div>
-            <button onclick="closeSideMenu(); openAuthModal('signup');" class="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline shrink-0 ml-2">
+            <button onclick="closeSideMenu(); handleHeaderAccountClick();" class="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline shrink-0 ml-2">
               Conta
             </button>
           </div>
@@ -1492,7 +1492,7 @@
     <!-- ======================================================== -->
     <!-- MODAL: CONTA DO ESTUDANTE                                -->
     <!-- ======================================================== -->
-    <div id="supabase-auth-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div id="supabase-auth-modal" class="fixed inset-0 z-[70] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
       <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 animate-fadeIn max-h-[92vh] overflow-y-auto">
         <!-- Cabeçalho do Modal -->
         <div class="flex items-center justify-between pb-3.5 border-b border-slate-100 dark:border-slate-800 mb-4">
@@ -1536,7 +1536,7 @@
         <div id="auth-tab-account">
           <!-- Visão Deslogado -->
           <div id="auth-logged-out-view">
-            <form onsubmit="handleAuthSubmit(event)" class="space-y-3.5 text-xs">
+            <form id="student-auth-form" onsubmit="handleAuthSubmit(event); return false;" novalidate class="space-y-3.5 text-xs">
               <div id="auth-form-feedback" class="hidden"></div>
 
               <!-- Campos de Cadastro -->
@@ -1941,7 +1941,7 @@
   <script src="js/data/redacao.js"></script>
   <script src="js/data/checklist.js"></script>
   <script src="js/data/flashcards.js"></script>
-  <script src="js/supabaseClient.js?v=2.8"></script>
-  <script src="js/app.js?v=2.8"></script>
+  <script src="js/supabaseClient.js?v=2.9"></script>
+  <script src="js/app.js?v=2.9"></script>
 </body>
 </html>

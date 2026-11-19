@@ -612,17 +612,37 @@ function setCurrentStudent(student) {
 // INTERFACE DE USUÁRIO: MODAL DE CONTA DO ESTUDANTE
 // =============================================================================
 
+window.handleHeaderAccountClick = function() {
+  const current = getCurrentStudent() || (SupabaseManager.user ? {
+    displayName: SupabaseManager.profile?.display_name || SupabaseManager.user.user_metadata?.display_name || SupabaseManager.user.email?.split('@')[0] || 'Estudante',
+    email: SupabaseManager.user.email,
+    targetCourse: SupabaseManager.profile?.target_course || SupabaseManager.user.user_metadata?.target_course || 'FUVEST & ENEM'
+  } : null);
+
+  const modal = document.getElementById('supabase-auth-modal');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+
+  if (current) {
+    updateAuthUI();
+  } else {
+    toggleAuthMode('signup');
+  }
+};
+
 window.openAuthModal = function(initialMode = 'signup') {
   const modal = document.getElementById('supabase-auth-modal');
   if (!modal) return;
   modal.classList.remove('hidden');
 
   const current = getCurrentStudent();
-  if (!current) {
-    const targetMode = (initialMode === 'login' || initialMode === 'reset') ? initialMode : 'signup';
-    toggleAuthMode(targetMode);
+  if (initialMode === 'signup' || initialMode === 'login' || initialMode === 'reset') {
+    toggleAuthMode(initialMode);
+  } else if (current) {
+    updateAuthUI();
+  } else {
+    toggleAuthMode('signup');
   }
-  updateAuthUI();
 };
 
 window.closeAuthModal = function() {
@@ -676,10 +696,14 @@ window.toggleAuthMode = function(mode) {
   const tabBtnSignup = document.getElementById('auth-tab-btn-signup');
   const tabBtnLogin = document.getElementById('auth-tab-btn-login');
   const tabsContainer = document.getElementById('auth-tabs-container');
+  const loggedOutView = document.getElementById('auth-logged-out-view');
+  const loggedInView = document.getElementById('auth-logged-in-view');
   const feedbackEl = document.getElementById('auth-form-feedback');
-  if (feedbackEl) feedbackEl.classList.add('hidden');
 
+  if (feedbackEl) feedbackEl.classList.add('hidden');
   if (tabsContainer) tabsContainer.classList.remove('hidden');
+  if (loggedOutView) loggedOutView.classList.remove('hidden');
+  if (loggedInView) loggedInView.classList.add('hidden');
 
   if (mode === 'signup') {
     if (modalTitle) modalTitle.innerText = 'Criar Conta do Estudante';
@@ -722,33 +746,55 @@ window.toggleAuthMode = function(mode) {
 };
 
 window.handleAuthSubmit = async function(e) {
-  if (e) e.preventDefault();
+  if (e) {
+    if (typeof e.preventDefault === 'function') e.preventDefault();
+    if (typeof e.stopPropagation === 'function') e.stopPropagation();
+  }
   const feedbackEl = document.getElementById('auth-form-feedback');
-  const email = (document.getElementById('auth-email')?.value || '').trim().toLowerCase();
-  const password = document.getElementById('auth-password')?.value || '';
-  const displayName = (document.getElementById('auth-display-name')?.value || '').trim();
-  const targetCourse = (document.getElementById('auth-target-course')?.value || '').trim();
+  const emailInput = document.getElementById('auth-email');
+  const passwordInput = document.getElementById('auth-password');
+  const nameInput = document.getElementById('auth-display-name');
+  const courseInput = document.getElementById('auth-target-course');
+
+  const email = (emailInput?.value || '').trim().toLowerCase();
+  const password = passwordInput?.value || '';
+  const displayName = (nameInput?.value || '').trim();
+  const targetCourse = (courseInput?.value || '').trim();
+
+  const showFeedback = (msg, isSuccess = false) => {
+    if (!feedbackEl) return;
+    feedbackEl.className = isSuccess
+      ? 'p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-300 font-medium'
+      : 'p-3 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-xs text-rose-700 dark:text-rose-300 font-medium';
+    feedbackEl.innerHTML = isSuccess
+      ? `<i class="fa-solid fa-circle-check text-emerald-600 mr-1.5"></i> ${msg}`
+      : `<i class="fa-solid fa-circle-exclamation text-rose-600 mr-1.5"></i> ${msg}`;
+    feedbackEl.classList.remove('hidden');
+  };
 
   if (!email) {
-    if (feedbackEl) {
-      feedbackEl.className = 'p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium';
-      feedbackEl.innerText = 'Por favor, informe seu endereço de e-mail.';
-      feedbackEl.classList.remove('hidden');
-    }
+    showFeedback('Por favor, informe seu endereço de e-mail.');
+    emailInput?.focus();
+    return;
+  }
+
+  if (!email.includes('@') || !email.includes('.')) {
+    showFeedback('Por favor, digite um endereço de e-mail válido.');
+    emailInput?.focus();
     return;
   }
 
   if (!password || password.length < 6) {
-    if (feedbackEl) {
-      feedbackEl.className = 'p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium';
-      feedbackEl.innerText = 'A senha precisa ter no mínimo 6 caracteres.';
-      feedbackEl.classList.remove('hidden');
-    }
+    showFeedback('A senha precisa ter no mínimo 6 caracteres.');
+    passwordInput?.focus();
     return;
   }
 
   const submitBtn = document.getElementById('auth-submit-btn');
-  if (submitBtn) submitBtn.disabled = true;
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
+  }
 
   try {
     const accounts = getLocalStudentAccounts();
@@ -757,11 +803,7 @@ window.handleAuthSubmit = async function(e) {
     if (SupabaseManager.authMode === 'reset') {
       const accIndex = accounts.findIndex(a => a.email === email);
       if (accIndex === -1) {
-        if (feedbackEl) {
-          feedbackEl.className = 'p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium';
-          feedbackEl.innerText = 'Nenhuma conta de estudante encontrada com este e-mail.';
-          feedbackEl.classList.remove('hidden');
-        }
+        showFeedback('Nenhuma conta de estudante encontrada com este e-mail.');
         return;
       }
 
@@ -769,12 +811,7 @@ window.handleAuthSubmit = async function(e) {
       accounts[accIndex].updatedAt = new Date().toISOString();
       saveLocalStudentAccounts(accounts);
 
-      if (feedbackEl) {
-        feedbackEl.className = 'p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-medium';
-        feedbackEl.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-600 mr-1.5"></i> Senha redefinida com sucesso! Você já pode entrar.';
-        feedbackEl.classList.remove('hidden');
-      }
-
+      showFeedback('Senha redefinida com sucesso! Você já pode entrar.', true);
       setTimeout(() => toggleAuthMode('login'), 1200);
       return;
     }
@@ -783,11 +820,7 @@ window.handleAuthSubmit = async function(e) {
     if (SupabaseManager.authMode === 'signup') {
       const exists = accounts.find(a => a.email === email);
       if (exists) {
-        if (feedbackEl) {
-          feedbackEl.className = 'p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium';
-          feedbackEl.innerText = 'Este e-mail já está cadastrado. Clique em "Fazer Login" abaixo.';
-          feedbackEl.classList.remove('hidden');
-        }
+        showFeedback('Este e-mail já está cadastrado. Clique em "Já Tenho Conta" acima para entrar.');
         return;
       }
 
@@ -806,6 +839,12 @@ window.handleAuthSubmit = async function(e) {
       accounts.push(newStudent);
       saveLocalStudentAccounts(accounts);
       setCurrentStudent(newStudent);
+
+      // Limpar campos
+      if (emailInput) emailInput.value = '';
+      if (passwordInput) passwordInput.value = '';
+      if (nameInput) nameInput.value = '';
+      if (courseInput) courseInput.value = '';
 
       // Sincronização em segundo plano com Supabase se estiver configurado
       if (SupabaseManager.isConfigured && SupabaseManager.client) {
@@ -828,7 +867,7 @@ window.handleAuthSubmit = async function(e) {
       closeAuthModal();
 
       if (typeof showToast === 'function') {
-        showToast(`Bem-vindo(a), ${finalName}! Sua conta de estudante foi criada.`);
+        showToast(`🎉 Bem-vindo(a), ${finalName}! Sua conta de estudante foi criada.`);
       }
       return;
     }
@@ -837,6 +876,10 @@ window.handleAuthSubmit = async function(e) {
     const student = accounts.find(a => a.email === email && a.password === password);
     if (student) {
       setCurrentStudent(student);
+
+      // Limpar campos
+      if (emailInput) emailInput.value = '';
+      if (passwordInput) passwordInput.value = '';
 
       // Sincronização em segundo plano com Supabase se estiver configurado
       if (SupabaseManager.isConfigured && SupabaseManager.client) {
@@ -883,19 +926,14 @@ window.handleAuthSubmit = async function(e) {
       } catch (err) {}
     }
 
-    if (feedbackEl) {
-      feedbackEl.className = 'p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium';
-      feedbackEl.innerText = 'E-mail ou senha incorretos. Por favor, verifique os dados digitados.';
-      feedbackEl.classList.remove('hidden');
-    }
+    showFeedback('E-mail ou senha incorretos. Por favor, verifique os dados digitados.');
   } catch (err) {
-    if (feedbackEl) {
-      feedbackEl.className = 'p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium';
-      feedbackEl.innerText = 'Ocorreu um erro ao processar. Tente novamente.';
-      feedbackEl.classList.remove('hidden');
-    }
+    showFeedback('Ocorreu um erro ao processar. Tente novamente.');
   } finally {
-    if (submitBtn) submitBtn.disabled = false;
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+    }
     updateAuthUI();
   }
 };

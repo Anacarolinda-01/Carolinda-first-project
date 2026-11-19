@@ -329,11 +329,9 @@ window.closeSideMenu = function() {
   const panel = document.getElementById('side-menu-panel');
   if (!drawer || !backdrop || !panel) return;
 
+  drawer.classList.add('pointer-events-none');
   panel.classList.add('-translate-x-full');
   backdrop.classList.remove('opacity-100');
-  setTimeout(() => {
-    drawer.classList.add('pointer-events-none');
-  }, 250);
 };
 
 // Navegação entre Abas
