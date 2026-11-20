@@ -5,6 +5,8 @@
 
 const ADMIN_STORAGE_KEY = 'brilhavest_admin_pin';
 const DEFAULT_ADMIN_PIN = 'admin2027';
+const ADMIN_EMAIL_STORAGE_KEY = 'brilhavest_admin_email';
+const DEFAULT_ADMIN_EMAIL = 'admin@brilhavest.com';
 const ADMIN_DEVICE_KEY = 'brilhavest_admin_device_authorized';
 
 const AdminManager = {
@@ -13,6 +15,51 @@ const AdminManager = {
   searchQuery: '',
   selectedFilter: 'all',
   selectedStudent: null
+};
+
+/**
+ * Obtém o e-mail de login do Administrador
+ */
+function getAdminEmail() {
+  try {
+    return (localStorage.getItem(ADMIN_EMAIL_STORAGE_KEY) || DEFAULT_ADMIN_EMAIL).trim().toLowerCase();
+  } catch (e) {
+    return DEFAULT_ADMIN_EMAIL;
+  }
+}
+
+/**
+ * Salva um novo e-mail de Administrador
+ */
+function setAdminEmail(newEmail) {
+  try {
+    localStorage.setItem(ADMIN_EMAIL_STORAGE_KEY, newEmail.trim().toLowerCase());
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+/**
+ * Valida credenciais de login de Administrador inseridas na tela de login comum
+ * Permite que o administrador entre de qualquer celular ou computador!
+ */
+window.checkAdminLoginCredentials = function(email, password) {
+  if (!email || !password) return false;
+  const currentEmail = getAdminEmail();
+  const currentPin = getAdminPin();
+
+  if (email.trim().toLowerCase() === currentEmail && password === currentPin) {
+    AdminManager.isAuthenticated = true;
+    try {
+      localStorage.setItem(ADMIN_DEVICE_KEY, 'true');
+      if (typeof window.updateAdminDeviceVisibility === 'function') {
+        window.updateAdminDeviceVisibility();
+      }
+    } catch (e) {}
+    return true;
+  }
+  return false;
 };
 
 /**
@@ -366,6 +413,12 @@ function renderAdminMetrics() {
       ? '<span class="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1"><i class="fa-solid fa-cloud"></i> Sincronizado</span>'
       : '<span class="text-indigo-600 dark:text-indigo-400 font-bold flex items-center gap-1"><i class="fa-solid fa-hard-drive"></i> Offline Local</span>';
   }
+
+  // Atualizar badge do e-mail do admin no topo do painel
+  const emailBadge = document.getElementById('admin-current-email-badge');
+  if (emailBadge) {
+    emailBadge.textContent = getAdminEmail();
+  }
 }
 
 /**
@@ -653,11 +706,13 @@ window.createSampleStudent = function() {
 };
 
 /**
- * Permite ao administrador alterar a senha mestra
+ * Permite ao administrador alterar seu e-mail e senha de login
  */
-window.promptChangeAdminPassword = function() {
+window.promptChangeAdminCredentials = function() {
+  const currentEmail = getAdminEmail();
   const currentPin = getAdminPin();
-  const verifyOld = prompt('Digite a senha atual do Administrador:');
+
+  const verifyOld = prompt('Para sua segurança, confirme sua SENHA atual do Administrador:');
   if (verifyOld === null) return;
 
   if (verifyOld.trim() !== currentPin) {
@@ -665,7 +720,15 @@ window.promptChangeAdminPassword = function() {
     return;
   }
 
-  const newPin = prompt('Digite a NOVA senha do Administrador (mínimo de 4 dígitos):');
+  const newEmail = prompt('Digite seu novo E-MAIL de login como Administrador:', currentEmail);
+  if (newEmail === null) return;
+
+  if (!newEmail.trim() || !newEmail.includes('@') || !newEmail.includes('.')) {
+    alert('Por favor, informe um endereço de e-mail válido.');
+    return;
+  }
+
+  const newPin = prompt('Digite sua nova SENHA do Administrador (mínimo de 4 caracteres):', currentPin);
   if (newPin === null) return;
 
   if (newPin.trim().length < 4) {
@@ -673,12 +736,20 @@ window.promptChangeAdminPassword = function() {
     return;
   }
 
+  setAdminEmail(newEmail.trim());
   setAdminPin(newPin.trim());
-  alert('Senha do Administrador alterada com sucesso! Guarde-a em segurança.');
+
+  alert(`Sucesso! Suas credenciais de Administrador foram atualizadas:\n\n• E-mail: ${newEmail.trim()}\n• Senha: ${newPin.trim()}\n\nAgora você pode entrar de qualquer celular ou computador usando esses dados na tela de Login comum.`);
+
+  const emailBadge = document.getElementById('admin-current-email-badge');
+  if (emailBadge) emailBadge.textContent = newEmail.trim();
+
   if (typeof showToast === 'function') {
-    showToast('Senha mestra do Administrador atualizada!');
+    showToast('Credenciais de Administrador atualizadas com sucesso!');
   }
 };
+
+window.promptChangeAdminPassword = window.promptChangeAdminCredentials;
 
 /**
  * Auxiliar: Copiar texto

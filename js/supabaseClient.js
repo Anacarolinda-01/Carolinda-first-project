@@ -888,6 +888,19 @@ window.handleAuthSubmit = async function(e) {
     }
 
     // 3. MODO LOGIN
+    // Verificação de credenciais de Administrador (login de qualquer celular ou computador)
+    if (typeof checkAdminLoginCredentials === 'function' && checkAdminLoginCredentials(email, password)) {
+      if (emailInput) emailInput.value = '';
+      if (passwordInput) passwordInput.value = '';
+      if (feedbackEl) feedbackEl.classList.add('hidden');
+      closeAuthModal();
+      openAdminModal();
+      if (typeof showToast === 'function') {
+        showToast('👑 Bem-vindo(a), Administrador! Modo de gestão ativado neste dispositivo.');
+      }
+      return;
+    }
+
     const student = accounts.find(a => a.email === email && a.password === password);
     if (student) {
       setCurrentStudent(student);

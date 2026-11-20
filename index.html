@@ -2050,12 +2050,12 @@
               </button>
               <button 
                 type="button" 
-                onclick="promptChangeAdminPassword()" 
-                title="Alterar a senha mestra de acesso do administrador"
+                onclick="promptChangeAdminCredentials()" 
+                title="Configurar seu e-mail e senha de login como Administrador"
                 class="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition flex items-center gap-1.5 shadow-sm"
               >
                 <i class="fa-solid fa-key text-amber-500"></i>
-                <span>Senha Admin</span>
+                <span>Login & Senha Admin</span>
               </button>
               <button 
                 type="button" 
@@ -2075,6 +2075,19 @@
                 <i class="fa-solid fa-xmark"></i>
               </button>
             </div>
+          </div>
+
+          <!-- Banner Informativo: Credenciais do Administrador para entrar de outros aparelhos -->
+          <div class="px-3.5 py-2.5 rounded-2xl bg-indigo-50/80 dark:bg-slate-800/80 border border-indigo-100 dark:border-slate-700 flex flex-wrap items-center justify-between gap-2 text-xs">
+            <div class="flex items-center gap-2 text-slate-700 dark:text-slate-200">
+              <div class="w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-[10px]">
+                <i class="fa-solid fa-mobile-screen"></i>
+              </div>
+              <span>Seu login de Administrador para entrar de qualquer celular/PC: <strong id="admin-current-email-badge" class="font-mono text-indigo-700 dark:text-indigo-400 bg-white dark:bg-slate-900 px-2 py-0.5 rounded border border-indigo-200 dark:border-slate-700">admin@brilhavest.com</strong></span>
+            </div>
+            <button type="button" onclick="promptChangeAdminCredentials()" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1">
+              <i class="fa-solid fa-pen-to-square"></i> Alterar E-mail / Senha
+            </button>
           </div>
 
           <!-- Cards de Métricas (KPIs) -->
@@ -2274,8 +2287,8 @@
   <script src="js/data/redacao.js"></script>
   <script src="js/data/checklist.js"></script>
   <script src="js/data/flashcards.js"></script>
-  <script src="js/supabaseClient.js?v=3.1"></script>
-  <script src="js/admin.js?v=3.1"></script>
-  <script src="js/app.js?v=3.1"></script>
+  <script src="js/supabaseClient.js?v=3.2"></script>
+  <script src="js/admin.js?v=3.2"></script>
+  <script src="js/app.js?v=3.2"></script>
 </body>
 </html>
