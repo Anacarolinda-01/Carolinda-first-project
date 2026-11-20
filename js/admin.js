@@ -607,6 +607,16 @@ window.deleteStudentAccount = function(studentId, email) {
 };
 
 /**
+ * Atualiza manualmente a lista de cadastros consultando nuvem e cache local
+ */
+window.refreshAdminData = async function() {
+  await loadAndRenderAdminData();
+  if (typeof showToast === 'function') {
+    showToast('Lista de cadastros atualizada com sucesso!');
+  }
+};
+
+/**
  * Exibe detalhes do estudante
  */
 window.viewStudentDetails = function(studentId, email) {
