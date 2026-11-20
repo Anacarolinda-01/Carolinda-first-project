@@ -799,6 +799,26 @@ window.handleAuthSubmit = async function(e) {
   }
 
   try {
+    // 0. VERIFICAÇÃO UNIVERSAL DE ADMINISTRADOR
+    // Permite entrar como Admin em QUALQUER aparelho, seja na aba "Criar Conta" ou "Já Tenho Conta"
+    if (typeof checkAdminLoginCredentials === 'function' && checkAdminLoginCredentials(email, password)) {
+      if (emailInput) emailInput.value = '';
+      if (passwordInput) passwordInput.value = '';
+      if (nameInput) nameInput.value = '';
+      if (courseInput) courseInput.value = '';
+      if (feedbackEl) feedbackEl.classList.add('hidden');
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+      }
+      closeAuthModal();
+      openAdminModal();
+      if (typeof showToast === 'function') {
+        showToast('👑 Bem-vindo(a), Administrador! Modo de gestão ativado neste aparelho.');
+      }
+      return;
+    }
+
     const accounts = getLocalStudentAccounts();
 
     // 1. MODO RECUPERAÇÃO DE SENHA
@@ -890,19 +910,6 @@ window.handleAuthSubmit = async function(e) {
     }
 
     // 3. MODO LOGIN
-    // Verificação de credenciais de Administrador (login de qualquer celular ou computador)
-    if (typeof checkAdminLoginCredentials === 'function' && checkAdminLoginCredentials(email, password)) {
-      if (emailInput) emailInput.value = '';
-      if (passwordInput) passwordInput.value = '';
-      if (feedbackEl) feedbackEl.classList.add('hidden');
-      closeAuthModal();
-      openAdminModal();
-      if (typeof showToast === 'function') {
-        showToast('👑 Bem-vindo(a), Administrador! Modo de gestão ativado neste dispositivo.');
-      }
-      return;
-    }
-
     const student = accounts.find(a => a.email === email && a.password === password);
     if (student) {
       setCurrentStudent(student);
