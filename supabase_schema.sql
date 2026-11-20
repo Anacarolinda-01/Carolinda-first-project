@@ -16,6 +16,7 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   display_name TEXT,
+  email TEXT,
   target_exam TEXT NOT NULL DEFAULT 'ambos' CHECK (target_exam IN ('enem', 'fuvest', 'ambos')),
   target_course TEXT,
   theme_preference TEXT NOT NULL DEFAULT 'light' CHECK (theme_preference IN ('light', 'dark')),
@@ -30,13 +31,18 @@ LANGUAGE plpgsql
 SECURITY DEFINER SET search_path = public
 AS $$
 BEGIN
-  INSERT INTO public.profiles (id, display_name, target_course)
+  INSERT INTO public.profiles (id, display_name, email, target_course)
   VALUES (
     NEW.id,
     COALESCE(NEW.raw_user_meta_data->>'display_name', split_part(NEW.email, '@', 1)),
-    COALESCE(NEW.raw_user_meta_data->>'target_course', NULL)
+    NEW.email,
+    COALESCE(NEW.raw_user_meta_data->>'target_course', 'FUVEST & ENEM')
   )
-  ON CONFLICT (id) DO NOTHING;
+  ON CONFLICT (id) DO UPDATE SET
+    email = EXCLUDED.email,
+    display_name = COALESCE(EXCLUDED.display_name, profiles.display_name),
+    target_course = COALESCE(EXCLUDED.target_course, profiles.target_course),
+    updated_at = now();
   RETURN NEW;
 END;
 $$;
@@ -188,6 +194,12 @@ CREATE POLICY "Usuários gerenciam próprio perfil"
   ON public.profiles FOR ALL
   USING (auth.uid() = id)
   WITH CHECK (auth.uid() = id);
+
+-- Permite leitura de perfis e cadastros para o painel de administração
+DROP POLICY IF EXISTS "Leitura de cadastros para o painel" ON public.profiles;
+CREATE POLICY "Leitura de cadastros para o painel"
+  ON public.profiles FOR SELECT
+  USING (true);
 
 -- Políticas para question_attempts
 DROP POLICY IF EXISTS "Usuários gerenciam próprias tentativas de questões" ON public.question_attempts;
