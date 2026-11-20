@@ -8,6 +8,7 @@ const DEFAULT_ADMIN_PIN = 'admin2027';
 const ADMIN_EMAIL_STORAGE_KEY = 'brilhavest_admin_email';
 const DEFAULT_ADMIN_EMAIL = 'admin@brilhavest.com';
 const ADMIN_DEVICE_KEY = 'brilhavest_admin_device_authorized';
+const ADMIN_SESSION_KEY = 'brilhavest_admin_session_active';
 
 const AdminManager = {
   isAuthenticated: false,
@@ -16,6 +17,18 @@ const AdminManager = {
   selectedFilter: 'all',
   selectedStudent: null
 };
+
+/**
+ * Verifica se a sessão do administrador está ativa e autenticada
+ */
+function isAdminAuthenticated() {
+  try {
+    return AdminManager.isAuthenticated === true || localStorage.getItem(ADMIN_SESSION_KEY) === 'true';
+  } catch (e) {
+    return AdminManager.isAuthenticated === true;
+  }
+}
+window.isAdminAuthenticated = isAdminAuthenticated;
 
 /**
  * Obtém o e-mail de login do Administrador
@@ -59,6 +72,7 @@ window.checkAdminLoginCredentials = function(email, password) {
   if (isEmailMatch && isPassMatch) {
     AdminManager.isAuthenticated = true;
     try {
+      localStorage.setItem(ADMIN_SESSION_KEY, 'true');
       localStorage.setItem(ADMIN_DEVICE_KEY, 'true');
       if (typeof window.updateAdminDeviceVisibility === 'function') {
         window.updateAdminDeviceVisibility();
@@ -186,7 +200,8 @@ window.openAdminModal = function() {
   if (!modal) return;
   modal.classList.remove('hidden');
 
-  if (AdminManager.isAuthenticated) {
+  if (isAdminAuthenticated()) {
+    AdminManager.isAuthenticated = true;
     showAdminDashboardView();
   } else {
     showAdminAuthView();
@@ -249,6 +264,7 @@ window.handleAdminLogin = function(e) {
   if (enteredPin === currentPin || enteredPin === 'admin2027') {
     AdminManager.isAuthenticated = true;
     try {
+      localStorage.setItem(ADMIN_SESSION_KEY, 'true');
       localStorage.setItem(ADMIN_DEVICE_KEY, 'true');
       if (typeof window.updateAdminDeviceVisibility === 'function') {
         window.updateAdminDeviceVisibility();
@@ -272,10 +288,24 @@ window.handleAdminLogin = function(e) {
 };
 
 /**
- * Desconecta da sessão de Administrador
+ * Desconecta da sessão de Administrador (somente quando clicado explicitamente em Sair)
  */
 window.handleAdminLogout = function() {
   AdminManager.isAuthenticated = false;
+  try {
+    localStorage.removeItem(ADMIN_SESSION_KEY);
+  } catch (e) {}
+
+  try {
+    if (typeof getCurrentStudent === 'function' && typeof setCurrentStudent === 'function') {
+      const current = getCurrentStudent();
+      if (current && (current.isAdmin || current.email === 'admin@brilhavest.com')) {
+        setCurrentStudent(null);
+        if (typeof updateAuthUI === 'function') updateAuthUI();
+      }
+    }
+  } catch (err) {}
+
   showAdminAuthView();
   if (typeof showToast === 'function') {
     showToast('Sessão de Administrador encerrada.');
@@ -608,11 +638,23 @@ window.deleteStudentAccount = function(studentId, email) {
 
 /**
  * Atualiza manualmente a lista de cadastros consultando nuvem e cache local
+ * Mantém a sessão de administrador 100% ativa sem desconectar!
  */
-window.refreshAdminData = async function() {
+window.refreshAdminData = async function(e) {
+  if (e) {
+    if (typeof e.preventDefault === 'function') e.preventDefault();
+    if (typeof e.stopPropagation === 'function') e.stopPropagation();
+  }
+
+  // Garante persistência da sessão do admin
+  AdminManager.isAuthenticated = true;
+  try {
+    localStorage.setItem(ADMIN_SESSION_KEY, 'true');
+  } catch (err) {}
+
   await loadAndRenderAdminData();
   if (typeof showToast === 'function') {
-    showToast('Lista de cadastros atualizada com sucesso!');
+    showToast('Lista de cadastros sincronizada com sucesso!');
   }
 };
 

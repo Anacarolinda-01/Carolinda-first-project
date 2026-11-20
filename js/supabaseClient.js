@@ -621,6 +621,16 @@ window.handleHeaderAccountClick = function() {
     targetCourse: SupabaseManager.profile?.target_course || SupabaseManager.user.user_metadata?.target_course || 'FUVEST & ENEM'
   } : null);
 
+  const isAdmin = (current && (current.isAdmin || current.email === 'admin@brilhavest.com')) ||
+                  (typeof isAdminAuthenticated === 'function' && isAdminAuthenticated());
+
+  if (isAdmin) {
+    if (typeof openAdminModal === 'function') {
+      openAdminModal();
+      return;
+    }
+  }
+
   const modal = document.getElementById('supabase-auth-modal');
   if (!modal) return;
   modal.classList.remove('hidden');
@@ -811,6 +821,18 @@ window.handleAuthSubmit = async function(e) {
         submitBtn.disabled = false;
         submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
       }
+
+      // Salva sessão persistente do Administrador no navegador
+      setCurrentStudent({
+        id: 'admin_root',
+        displayName: 'Administrador',
+        email: email.trim().toLowerCase(),
+        targetCourse: 'Gestão da Plataforma',
+        isAdmin: true,
+        createdAt: new Date().toISOString()
+      });
+      updateAuthUI();
+
       closeAuthModal();
       openAdminModal();
       if (typeof showToast === 'function') {
@@ -1014,6 +1036,12 @@ window.handleManualCloudSync = async function() {
 
 window.handleSignOut = async function() {
   setCurrentStudent(null);
+  try {
+    localStorage.removeItem('brilhavest_admin_session_active');
+  } catch (e) {}
+  if (typeof AdminManager !== 'undefined') {
+    AdminManager.isAuthenticated = false;
+  }
   if (SupabaseManager.client) {
     try {
       await SupabaseManager.client.auth.signOut();
@@ -1055,19 +1083,20 @@ function updateAuthUI() {
     const name = currentStudent.displayName || 'Estudante';
     const email = currentStudent.email || '';
     const course = currentStudent.targetCourse || 'FUVEST & ENEM';
+    const isAdmin = currentStudent.isAdmin === true || email === 'admin@brilhavest.com';
 
-    if (navBtnText) navBtnText.innerText = name.split(' ')[0];
-    if (navStatusDot) navStatusDot.className = 'w-2 h-2 rounded-full bg-emerald-500';
-    if (navAuthIcon) navAuthIcon.className = 'fa-solid fa-user-graduate text-emerald-600 dark:text-emerald-400';
+    if (navBtnText) navBtnText.innerText = isAdmin ? 'Admin' : name.split(' ')[0];
+    if (navStatusDot) navStatusDot.className = isAdmin ? 'w-2 h-2 rounded-full bg-amber-500 animate-pulse' : 'w-2 h-2 rounded-full bg-emerald-500';
+    if (navAuthIcon) navAuthIcon.className = isAdmin ? 'fa-solid fa-user-shield text-amber-600 dark:text-amber-400' : 'fa-solid fa-user-graduate text-emerald-600 dark:text-emerald-400';
 
     if (tabsContainer) tabsContainer.classList.add('hidden');
     if (loggedOutView) loggedOutView.classList.add('hidden');
     if (loggedInView) loggedInView.classList.remove('hidden');
 
-    if (userNameEl) userNameEl.innerText = name;
+    if (userNameEl) userNameEl.innerText = isAdmin ? 'Administrador' : name;
     if (userEmailEl) userEmailEl.innerText = email;
-    if (userCourseEl) userCourseEl.innerText = `🎯 Meta: ${course}`;
-    if (userAvatarEl) userAvatarEl.innerText = name.charAt(0).toUpperCase() || 'E';
+    if (userCourseEl) userCourseEl.innerText = isAdmin ? '👑 Gestor do BrilhaVest' : `🎯 Meta: ${course}`;
+    if (userAvatarEl) userAvatarEl.innerText = isAdmin ? '👑' : (name.charAt(0).toUpperCase() || 'E');
 
     // Atualizar estatísticas se AppState estiver disponível
     if (typeof AppState !== 'undefined') {
