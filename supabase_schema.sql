@@ -201,6 +201,17 @@ CREATE POLICY "Leitura de cadastros para o painel"
   ON public.profiles FOR SELECT
   USING (true);
 
+-- Permite gravação de perfil no cadastro e sincronização
+DROP POLICY IF EXISTS "Gravação inicial de perfil no cadastro" ON public.profiles;
+CREATE POLICY "Gravação inicial de perfil no cadastro"
+  ON public.profiles FOR INSERT
+  WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Atualização de perfil" ON public.profiles;
+CREATE POLICY "Atualização de perfil"
+  ON public.profiles FOR UPDATE
+  USING (true);
+
 -- Políticas para question_attempts
 DROP POLICY IF EXISTS "Usuários gerenciam próprias tentativas de questões" ON public.question_attempts;
 CREATE POLICY "Usuários gerenciam próprias tentativas de questões"
