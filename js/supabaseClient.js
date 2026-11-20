@@ -567,6 +567,8 @@ function refreshAllUIComponents() {
   if (typeof renderBooks === 'function') renderBooks();
   if (typeof renderChecklist === 'function') renderChecklist();
   if (typeof renderCurrentFlashcard === 'function') renderCurrentFlashcard();
+}
+
 // =============================================================================
 // GERENCIADOR DE CONTAS DE ESTUDANTE (OFFLINE-FIRST & LOCALSTORAGE)
 // =============================================================================
