@@ -1784,11 +1784,11 @@
     <!-- BANNER FLUTUANTE: PERMISSÃO AUTOMÁTICA DE NOTIFICAÇÕES    -->
     <!-- ======================================================== -->
     <div id="notification-auto-prompt-banner" class="fixed bottom-5 right-5 left-5 sm:left-auto sm:max-w-md z-50 bg-white dark:bg-slate-900 border-2 border-indigo-600 rounded-3xl p-5 shadow-2xl animate-fadeIn hidden">
-      <div class="flex items-start gap-3.5">
+      <div class="flex items-start gap-3.5 relative">
         <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-indigo-600 to-rose-500 text-white flex items-center justify-center text-lg shrink-0 shadow-md">
           <i class="fa-solid fa-bell animate-bounce"></i>
         </div>
-        <div class="flex-1">
+        <div class="flex-1 pr-6">
           <h4 class="text-sm font-bold text-slate-900 dark:text-slate-100">Ativar Notificações do BrilhaVest?</h4>
           <p class="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
             Receba lembretes diários e frases motivacionais para não desanimar na sua rotina rumo à aprovação na USP e no ENEM!
@@ -1802,6 +1802,9 @@
             </button>
           </div>
         </div>
+        <button onclick="dismissNotificationPrompt()" class="absolute top-0 right-0 w-7 h-7 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center justify-center transition" title="Fechar">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
       </div>
     </div>
 

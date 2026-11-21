@@ -2715,43 +2715,41 @@ function updateDailyMotivationQuote() {
 
 /**
  * Pergunta automaticamente se o usuário deseja ativar as notificações ao abrir o site
+ * Respeita a escolha do usuário: se já respondeu (Sim, Depois ou Bloqueou), nunca mais pergunta ao atualizar
  */
 async function autoPromptNotificationPermission() {
   if (!('Notification' in window)) return;
 
-  // Se já foi concedida ou bloqueada pelo navegador, não precisa perguntar novamente
-  if (Notification.permission === 'granted' || Notification.permission === 'denied') {
+  const NOTIF_ANSWERED_KEY = 'brilhavest_notif_prompt_answered';
+
+  // Se o usuário já respondeu em algum momento, respeita a decisão e não pergunta mais
+  if (localStorage.getItem(NOTIF_ANSWERED_KEY)) {
     return;
   }
 
-  // Aguarda 1 segundo após o carregamento da página para exibir o pedido
-  setTimeout(async () => {
-    try {
-      // Tenta disparar o diálogo nativo do navegador
-      const perm = await Notification.requestPermission();
-      if (perm === 'granted') {
-        triggerLocalPushNotification(
-          "BrilhaVest: Notificações Ativadas! 🎉",
-          "Muito bem! Você receberá lembretes diários e mensagens motivacionais para conquistar a sua aprovação.",
-          "welcome-notif"
-        );
-        return;
-      }
-    } catch (e) {
-      // Navegadores que exigem interação explícita do usuário (ex: Safari iOS / Chrome mobile)
+  // Se o navegador já possui a permissão definida (concedida ou bloqueada), memoriza e encerra
+  if (Notification.permission === 'granted' || Notification.permission === 'denied') {
+    localStorage.setItem(NOTIF_ANSWERED_KEY, Notification.permission);
+    return;
+  }
+
+  // Aguarda 2.5 segundos após carregar a página e exibe o banner flutuante apenas uma vez
+  setTimeout(() => {
+    if (localStorage.getItem(NOTIF_ANSWERED_KEY)) return;
+    if (Notification.permission !== 'default') {
+      localStorage.setItem(NOTIF_ANSWERED_KEY, Notification.permission);
+      return;
     }
 
-    // Se o navegador não disparou o diálogo nativo ou aguarda gesto, exibe o banner flutuante
-    if (Notification.permission === 'default') {
-      const banner = document.getElementById('notification-auto-prompt-banner');
-      if (banner) {
-        banner.classList.remove('hidden');
-      }
+    const banner = document.getElementById('notification-auto-prompt-banner');
+    if (banner) {
+      banner.classList.remove('hidden');
     }
-  }, 1000);
+  }, 2500);
 }
 
 window.acceptNotificationPermission = async function() {
+  localStorage.setItem('brilhavest_notif_prompt_answered', 'granted');
   const banner = document.getElementById('notification-auto-prompt-banner');
   if (banner) banner.classList.add('hidden');
 
@@ -2759,12 +2757,16 @@ window.acceptNotificationPermission = async function() {
 
   try {
     const permission = await Notification.requestPermission();
+    localStorage.setItem('brilhavest_notif_prompt_answered', permission);
     if (permission === 'granted') {
       triggerLocalPushNotification(
         "BrilhaVest: Notificações Ativadas! 🎉",
         "Muito bem! Agora você receberá frases de incentivo e lembretes diários para não deixar a peteca cair nos estudos.",
         "welcome-notif"
       );
+      if (typeof showToast === 'function') {
+        showToast('Notificações ativadas com sucesso!');
+      }
     }
   } catch (err) {
     console.error("Erro ao solicitar permissão de notificações:", err);
@@ -2772,6 +2774,8 @@ window.acceptNotificationPermission = async function() {
 };
 
 window.dismissNotificationPrompt = function() {
+  // Salva no localStorage para não voltar a perguntar ao atualizar a página
+  localStorage.setItem('brilhavest_notif_prompt_answered', 'dismissed');
   const banner = document.getElementById('notification-auto-prompt-banner');
   if (banner) banner.classList.add('hidden');
 };
@@ -2996,6 +3000,7 @@ window.enableNotificationsFromSettings = async function() {
 
   try {
     const permission = await Notification.requestPermission();
+    localStorage.setItem('brilhavest_notif_prompt_answered', permission);
     updateSettingsModalUI();
     if (permission === 'granted') {
       triggerLocalPushNotification(
