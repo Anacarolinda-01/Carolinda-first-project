@@ -1849,6 +1849,16 @@ function initRedacao() {
   renderPastThemes();
   populateEssayPromptSelector();
   toggleEssayTypeGuidance();
+
+  if (AppState.essayDraft?.topic) {
+    updateEnemProposalLabBanner(AppState.essayDraft.topic);
+  }
+  const topicInput = document.getElementById('essay-topic');
+  if (topicInput) {
+    topicInput.addEventListener('input', () => {
+      updateEnemProposalLabBanner(topicInput.value);
+    });
+  }
 }
 
 function updateEssayCounters() {
@@ -1989,19 +1999,36 @@ function renderPastThemes() {
            <i class="fa-solid fa-pen-nib"></i> Treinar na FUVEST
          </button>`;
 
+    const hasProposal = Boolean(redacaoData.enemProposals?.[t.year]);
+    const enemProposalButton = hasProposal
+      ? `<button 
+           type="button"
+           onclick="openEnemProposalModal(${t.year})"
+           title="Ver proposta oficial completa do ENEM ${t.year} com textos motivadores e caderno original"
+           class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 border border-blue-200 dark:border-blue-800 transition shadow-sm"
+         >
+           <i class="fa-solid fa-file-lines text-blue-600 dark:text-blue-400"></i> Proposta Completa
+         </button>`
+      : '';
+
     return `
-      <tr class="border-b border-slate-100 hover:bg-slate-50/70 transition">
-        <td class="py-3.5 px-4 text-xs font-bold text-slate-900 align-top">${yearBadge}</td>
-        <td class="py-3.5 px-4 text-xs text-slate-800 align-top">
-          <div class="font-medium leading-relaxed">${t.enem}</div>
-          <button 
-            onclick="applyThemeToLab('${t.enem.replace(/'/g, "\\'")}', 'ENEM')"
-            class="mt-2 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition"
-          >
-            <i class="fa-solid fa-pen-nib"></i> Treinar no ENEM
-          </button>
+      <tr class="border-b border-slate-100 dark:border-slate-800/80 hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition">
+        <td class="py-3.5 px-4 text-xs font-bold text-slate-900 dark:text-slate-100 align-top">${yearBadge}</td>
+        <td class="py-3.5 px-4 text-xs text-slate-800 dark:text-slate-200 align-top">
+          <div class="font-semibold leading-relaxed text-slate-900 dark:text-slate-100">${t.enem}</div>
+          <div class="mt-2 flex flex-wrap items-center gap-1.5">
+            ${enemProposalButton}
+            <button 
+              type="button"
+              onclick="applyThemeToLab('${t.enem.replace(/'/g, "\\'")}', 'ENEM')"
+              title="Carregar este tema no laboratório de redação"
+              class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-200 dark:border-amber-800 transition shadow-sm"
+            >
+              <i class="fa-solid fa-pen-nib text-amber-600 dark:text-amber-400"></i> Treinar no ENEM
+            </button>
+          </div>
         </td>
-        <td class="py-3.5 px-4 text-xs text-slate-800 align-top">
+        <td class="py-3.5 px-4 text-xs text-slate-800 dark:text-slate-200 align-top">
           <div class="font-medium leading-relaxed">${t.fuvest}</div>
           ${fuvestExtra}
           ${fuvestActions}
@@ -2099,6 +2126,9 @@ window.applyThemeToLab = function(themeTitle, examType, customTip = null) {
   AppState.essayDraft.type = normalizedType;
   saveToLocalStorage();
 
+  // Atualiza banner de textos motivadores se for ENEM
+  updateEnemProposalLabBanner(themeTitle);
+
   // Scroll suave para o laboratório de redação
   const labElement = document.getElementById('essay-textarea');
   if (labElement) {
@@ -2111,7 +2141,148 @@ window.applyThemeToLab = function(themeTitle, examType, customTip = null) {
     ? 'FUVEST (Opção 2: Gênero Textual)' 
     : (normalizedType === 'FUVEST_DISSERTATIVA' ? 'FUVEST (Opção 1: Dissertativo-Argumentativo)' : 'ENEM');
 
-  alert(`Tema carregado no Laboratório de Redação!\n\n📋 Tema: "${themeTitle}"\n📐 Formato: ${labelType}.${tipText}`);
+  if (typeof showToast === 'function') {
+    showToast(`Tema carregado: "${themeTitle}" (${labelType})`);
+  } else {
+    alert(`Tema carregado no Laboratório de Redação!\n\n📋 Tema: "${themeTitle}"\n📐 Formato: ${labelType}.${tipText}`);
+  }
+};
+
+// ==========================================
+// CONTROLADOR: PROPOSTAS OFICIAIS DO ENEM (2018 - 2026)
+// ==========================================
+let currentViewedEnemYear = 2026;
+let currentLabEnemYear = null;
+
+function findEnemProposalByTheme(theme) {
+  if (!theme || !redacaoData?.enemProposals) return null;
+  const clean = String(theme).toLowerCase().trim();
+  for (const year in redacaoData.enemProposals) {
+    const prop = redacaoData.enemProposals[year];
+    const cleanProp = prop.theme.toLowerCase().trim();
+    if (cleanProp === clean || clean.includes(cleanProp) || cleanProp.includes(clean)) {
+      return prop;
+    }
+  }
+  return null;
+}
+
+function updateEnemProposalLabBanner(themeTitle) {
+  const banner = document.getElementById('essay-enem-proposal-banner');
+  const bannerTitle = document.getElementById('essay-enem-banner-title');
+  if (!banner) return;
+
+  const prop = findEnemProposalByTheme(themeTitle);
+  if (prop) {
+    currentLabEnemYear = prop.year;
+    if (bannerTitle) bannerTitle.textContent = `Proposta Oficial ENEM ${prop.year} Vinculada: "${prop.theme}"`;
+    banner.classList.remove('hidden');
+  } else {
+    currentLabEnemYear = null;
+    banner.classList.add('hidden');
+  }
+}
+
+window.openCurrentEnemProposalFromLab = function() {
+  if (currentLabEnemYear) {
+    openEnemProposalModal(currentLabEnemYear);
+  }
+};
+
+window.openEnemProposalModal = function(year) {
+  const proposal = redacaoData.enemProposals?.[year];
+  if (!proposal) return;
+
+  currentViewedEnemYear = year;
+
+  const modal = document.getElementById('enem-proposal-modal');
+  if (!modal) return;
+
+  const yearBadge = document.getElementById('enem-proposal-modal-year-badge');
+  const axisBadge = document.getElementById('enem-proposal-modal-axis-badge');
+  const titleEl = document.getElementById('enem-proposal-modal-title');
+  const themeHighlight = document.getElementById('enem-proposal-theme-highlight');
+  const imgEl = document.getElementById('enem-proposal-img');
+  const openImgBtn = document.getElementById('enem-proposal-open-img-btn');
+  const instructionsList = document.getElementById('enem-proposal-instructions-list');
+  const textsContainer = document.getElementById('enem-proposal-texts-container');
+
+  if (yearBadge) yearBadge.textContent = `ENEM ${proposal.year}`;
+  if (axisBadge) axisBadge.textContent = proposal.thematicAxis || 'Eixo Temático';
+  if (titleEl) titleEl.textContent = `"${proposal.theme}"`;
+  if (themeHighlight) themeHighlight.textContent = `"${proposal.theme}"`;
+
+  if (imgEl) {
+    imgEl.src = proposal.image;
+    imgEl.alt = `Caderno Oficial da Proposta de Redação do ENEM ${proposal.year}`;
+  }
+  if (openImgBtn) {
+    openImgBtn.href = proposal.image;
+  }
+
+  if (instructionsList && proposal.instructions) {
+    instructionsList.innerHTML = proposal.instructions.map(inst => `<li>${inst}</li>`).join('');
+  }
+
+  if (textsContainer && proposal.texts) {
+    textsContainer.innerHTML = proposal.texts.map(t => `
+      <div class="p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 shadow-sm">
+        <div class="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-slate-100 dark:border-slate-700/60">
+          <span class="px-2.5 py-0.5 rounded-lg text-xs font-black bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+            ${t.label}
+          </span>
+          <span class="text-[10px] text-slate-500 dark:text-slate-400 italic text-right truncate max-w-[260px]" title="${t.source}">
+            ${t.source}
+          </span>
+        </div>
+        <p class="text-xs sm:text-[13px] text-slate-700 dark:text-slate-200 leading-relaxed whitespace-pre-line font-serif">
+          ${t.content}
+        </p>
+      </div>
+    `).join('');
+  }
+
+  switchEnemProposalTab('image');
+  modal.classList.remove('hidden');
+};
+
+window.closeEnemProposalModal = function() {
+  const modal = document.getElementById('enem-proposal-modal');
+  if (modal) modal.classList.add('hidden');
+};
+
+window.switchEnemProposalTab = function(tab) {
+  const viewImg = document.getElementById('enem-proposal-view-image');
+  const viewTexts = document.getElementById('enem-proposal-view-texts');
+  const btnImg = document.getElementById('tab-btn-enem-image');
+  const btnTexts = document.getElementById('tab-btn-enem-texts');
+
+  if (tab === 'image') {
+    if (viewImg) viewImg.classList.remove('hidden');
+    if (viewTexts) viewTexts.classList.add('hidden');
+    if (btnImg) {
+      btnImg.className = "px-3 py-1.5 rounded-lg font-bold bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-sm transition flex items-center gap-1.5";
+    }
+    if (btnTexts) {
+      btnTexts.className = "px-3 py-1.5 rounded-lg font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition flex items-center gap-1.5";
+    }
+  } else {
+    if (viewImg) viewImg.classList.add('hidden');
+    if (viewTexts) viewTexts.classList.remove('hidden');
+    if (btnImg) {
+      btnImg.className = "px-3 py-1.5 rounded-lg font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition flex items-center gap-1.5";
+    }
+    if (btnTexts) {
+      btnTexts.className = "px-3 py-1.5 rounded-lg font-bold bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-sm transition flex items-center gap-1.5";
+    }
+  }
+};
+
+window.trainCurrentProposalInLab = function() {
+  const proposal = redacaoData.enemProposals?.[currentViewedEnemYear];
+  if (!proposal) return;
+  closeEnemProposalModal();
+  applyThemeToLab(proposal.theme, 'ENEM');
 };
 
 // ==========================================

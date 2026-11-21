@@ -1262,6 +1262,27 @@
           <!-- Injetado dinamicamente via JS -->
         </div>
 
+        <!-- Alerta Dinâmico de Proposta ENEM Vinculada (Textos Motivadores) -->
+        <div id="essay-enem-proposal-banner" class="hidden mb-4 p-3.5 rounded-2xl bg-blue-50/90 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 text-xs flex flex-wrap items-center justify-between gap-2.5">
+          <div class="flex items-center gap-2.5 text-blue-900 dark:text-blue-200">
+            <div class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0">
+              <i class="fa-solid fa-file-lines text-xs"></i>
+            </div>
+            <div>
+              <span class="font-bold text-xs" id="essay-enem-banner-title">Proposta Oficial ENEM vinculada</span>
+              <p class="text-[11px] text-blue-700 dark:text-blue-300">Você pode consultar os textos motivadores originais e o caderno oficial a qualquer momento durante a escrita.</p>
+            </div>
+          </div>
+          <button 
+            type="button" 
+            onclick="openCurrentEnemProposalFromLab()"
+            class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition flex items-center gap-1.5 shadow-sm"
+          >
+            <i class="fa-solid fa-book-open"></i>
+            <span>Ver Textos Motivadores</span>
+          </button>
+        </div>
+
         <!-- Seletor Rápido de Propostas ou Tema Livre -->
         <div class="mb-4">
           <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center justify-between">
@@ -1944,6 +1965,132 @@
           <button onclick="closeSettingsModal()" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 font-bold text-xs transition">
             Fechar
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- MODAL: PROPOSTA OFICIAL DE REDAÇÃO DO ENEM               -->
+    <!-- ======================================================== -->
+    <div id="enem-proposal-modal" class="fixed inset-0 z-[80] bg-slate-950/75 backdrop-blur-md flex items-center justify-center p-2 sm:p-5 hidden">
+      <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-4xl w-full p-4 sm:p-6 shadow-2xl border border-slate-200 dark:border-slate-800 animate-fadeIn max-h-[95vh] flex flex-col">
+        <!-- Cabeçalho -->
+        <div class="flex items-start justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
+          <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-600 text-white flex items-center justify-center text-lg shadow-md shrink-0">
+              <i class="fa-solid fa-file-signature"></i>
+            </div>
+            <div class="min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span id="enem-proposal-modal-year-badge" class="px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-800">ENEM 2026</span>
+                <span id="enem-proposal-modal-axis-badge" class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 truncate">Saúde Pública e Cidadania</span>
+              </div>
+              <h3 id="enem-proposal-modal-title" class="text-xs sm:text-sm md:text-base font-bold text-slate-900 dark:text-slate-100 leading-snug mt-1 line-clamp-2">Proposta de Redação</h3>
+            </div>
+          </div>
+          <button 
+            type="button" 
+            onclick="closeEnemProposalModal()" 
+            class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center text-xs transition shrink-0"
+            title="Fechar"
+          >
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <!-- Barra de Controle (Tabs + Ações Rápidas) -->
+        <div class="py-2.5 flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 text-xs">
+          <div class="inline-flex p-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+            <button 
+              type="button" 
+              id="tab-btn-enem-image"
+              onclick="switchEnemProposalTab('image')" 
+              class="px-3 py-1.5 rounded-lg font-bold bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-sm transition flex items-center gap-1.5"
+            >
+              <i class="fa-solid fa-image"></i>
+              <span>Caderno Oficial (Scan)</span>
+            </button>
+            <button 
+              type="button" 
+              id="tab-btn-enem-texts"
+              onclick="switchEnemProposalTab('texts')" 
+              class="px-3 py-1.5 rounded-lg font-semibold hover:text-slate-900 dark:hover:text-white transition flex items-center gap-1.5"
+            >
+              <i class="fa-solid fa-align-left"></i>
+              <span>Textos Transcritos</span>
+            </button>
+          </div>
+
+          <div class="flex items-center gap-1.5 sm:gap-2">
+            <a 
+              id="enem-proposal-open-img-btn"
+              href="#" 
+              target="_blank" 
+              class="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold transition flex items-center gap-1 text-[11px]"
+              title="Abrir imagem em alta resolução em tela cheia"
+            >
+              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+              <span class="hidden sm:inline">Ver Imagem</span>
+            </a>
+            <a 
+              href="docs/enem_propostas_redacao_2018_2026.pdf" 
+              target="_blank" 
+              class="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold transition flex items-center gap-1 text-[11px]"
+              title="Baixar ou visualizar caderno PDF com todos os anos"
+            >
+              <i class="fa-solid fa-file-pdf text-rose-500"></i>
+              <span class="hidden sm:inline">PDF Completo</span>
+            </a>
+            <button 
+              type="button" 
+              id="enem-proposal-train-btn"
+              onclick="trainCurrentProposalInLab()" 
+              class="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold transition flex items-center gap-1.5 text-xs shadow-sm"
+            >
+              <i class="fa-solid fa-pen-nib"></i>
+              <span>Treinar no Lab</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Conteúdo do Modal (Scrollável) -->
+        <div class="flex-1 overflow-y-auto py-3 space-y-4 pr-1">
+          <!-- Visão 1: Imagem Oficial da Prova Escaneada -->
+          <div id="enem-proposal-view-image" class="flex flex-col items-center">
+            <div class="w-full bg-slate-100 dark:bg-slate-950 p-2 sm:p-4 rounded-2xl border border-slate-200 dark:border-slate-800 flex justify-center">
+              <img 
+                id="enem-proposal-img" 
+                src="" 
+                alt="Proposta Oficial de Redação ENEM" 
+                class="max-w-full h-auto rounded-xl shadow-lg border border-slate-300 dark:border-slate-700 max-h-[70vh] object-contain"
+                loading="lazy"
+              >
+            </div>
+          </div>
+
+          <!-- Visão 2: Textos Motivadores Transcritos Digitalmente -->
+          <div id="enem-proposal-view-texts" class="hidden space-y-4">
+            <!-- Instruções Oficiais -->
+            <div class="p-3.5 rounded-2xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 text-xs">
+              <div class="font-bold text-amber-900 dark:text-amber-200 flex items-center gap-1.5 mb-2">
+                <i class="fa-solid fa-circle-exclamation text-amber-600"></i>
+                <span>Instruções para a Redação</span>
+              </div>
+              <ul id="enem-proposal-instructions-list" class="space-y-1 text-slate-700 dark:text-slate-300 pl-4 list-disc text-[11px] leading-relaxed">
+              </ul>
+            </div>
+
+            <!-- Frase Tema em Destaque -->
+            <div class="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/60 text-center">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Proposta de Redação Oficial</span>
+              <h4 id="enem-proposal-theme-highlight" class="text-sm sm:text-base md:text-lg font-black text-slate-900 dark:text-slate-100 mt-1">
+              </h4>
+            </div>
+
+            <!-- Lista de Textos Motivadores -->
+            <div id="enem-proposal-texts-container" class="space-y-3.5">
+            </div>
+          </div>
         </div>
       </div>
     </div>
