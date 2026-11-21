@@ -63,37 +63,37 @@
 
   <!-- ================= NAVBAR ================= -->
   <header class="sticky top-0 z-40 glass-nav border-b border-slate-200/80 transition-all">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-14 sm:h-16 gap-2">
         
         <!-- Botão Menu Lateral (3 traços) + Logo e Título -->
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 sm:gap-3 min-w-0">
           <button 
             id="btn-open-sidebar"
             onclick="openSideMenu()" 
-            class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center transition shadow-sm border border-slate-200/70 dark:border-slate-700 shrink-0" 
+            class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center transition shadow-sm border border-slate-200/70 dark:border-slate-700 shrink-0" 
             title="Menu de Conteúdos & Leituras"
             aria-label="Abrir Menu Lateral"
           >
-            <i class="fa-solid fa-bars text-base"></i>
+            <i class="fa-solid fa-bars text-sm sm:text-base"></i>
           </button>
 
-          <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('dashboard'); if (typeof handleSecretLogoClick === 'function') handleSecretLogoClick();">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-md shadow-indigo-200 shrink-0">
-              <i class="fa-solid fa-graduation-cap text-lg"></i>
+          <div class="flex items-center gap-2 sm:gap-3 cursor-pointer min-w-0" onclick="switchTab('dashboard'); if (typeof handleSecretLogoClick === 'function') handleSecretLogoClick();">
+            <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-md shadow-indigo-200 shrink-0">
+              <i class="fa-solid fa-graduation-cap text-base sm:text-lg"></i>
             </div>
-            <div>
+            <div class="min-w-0">
               <div class="flex items-center gap-2">
-                <span class="text-xl font-bold bg-gradient-to-r from-indigo-900 to-indigo-600 dark:from-indigo-400 dark:to-violet-400 bg-clip-text text-transparent">BrilhaVest</span>
-                <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">FUVEST & ENEM</span>
+                <span class="text-lg sm:text-xl font-extrabold bg-gradient-to-r from-indigo-900 to-indigo-600 dark:from-indigo-400 dark:to-violet-400 bg-clip-text text-transparent truncate">BrilhaVest</span>
+                <span class="hidden md:inline-flex text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">FUVEST & ENEM</span>
               </div>
-              <p class="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:block">Seu portal definitivo rumo à aprovação</p>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 hidden lg:block">Seu portal definitivo rumo à aprovação</p>
             </div>
           </div>
         </div>
 
-        <!-- Navegação: Apenas o botão Início na frente -->
-        <nav class="flex items-center">
+        <!-- Navegação: Apenas visível em telas maiores para não poluir o celular -->
+        <nav class="hidden md:flex items-center">
           <button data-tab-target="dashboard" onclick="switchTab('dashboard')" class="px-3.5 py-2 text-sm font-bold text-indigo-600 border-b-2 border-indigo-600 transition flex items-center gap-1.5 hover:text-indigo-700">
             <i class="fa-solid fa-house text-xs"></i>
             <span>Início</span>
@@ -101,13 +101,13 @@
         </nav>
 
         <!-- Ações do Topo: Instalar App + Conta + Modo Escuro + Configurações -->
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <!-- Botão Instalar App (PWA) -->
           <button 
             id="btn-install-pwa" 
             onclick="triggerPWAInstall()" 
             title="Instalar BrilhaVest no seu celular ou computador" 
-            class="hidden px-3 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-bold items-center gap-1.5 transition shadow-sm"
+            class="hidden px-2.5 sm:px-3 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-bold items-center gap-1.5 transition shadow-sm shrink-0"
           >
             <i class="fa-solid fa-download text-xs"></i>
             <span class="hidden sm:inline">Instalar App</span>
@@ -118,10 +118,10 @@
             id="btn-auth-account" 
             onclick="handleHeaderAccountClick()" 
             title="Conta do Estudante" 
-            class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-2 transition shadow-sm border border-slate-200/70 dark:border-slate-700"
+            class="h-9 px-2.5 sm:px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1.5 sm:gap-2 transition shadow-sm border border-slate-200/70 dark:border-slate-700 shrink-0"
           >
-            <span id="nav-auth-status-dot" class="w-2 h-2 rounded-full bg-indigo-500"></span>
-            <i id="nav-auth-icon" class="fa-solid fa-user-graduate text-indigo-600 dark:text-indigo-400"></i>
+            <span id="nav-auth-status-dot" class="w-2 h-2 rounded-full bg-indigo-500 shrink-0"></span>
+            <i id="nav-auth-icon" class="fa-solid fa-user-graduate text-indigo-600 dark:text-indigo-400 text-xs sm:text-sm"></i>
             <span id="nav-auth-btn-text" class="hidden sm:inline">Criar Conta / Entrar</span>
           </button>
 
@@ -130,9 +130,9 @@
             id="btn-theme-toggle" 
             onclick="toggleDarkMode()" 
             title="Alternar entre modo claro e escuro" 
-            class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-amber-400 flex items-center justify-center transition shadow-sm"
+            class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-amber-400 flex items-center justify-center transition shadow-sm shrink-0"
           >
-            <i id="theme-toggle-icon" class="fa-solid fa-moon text-sm"></i>
+            <i id="theme-toggle-icon" class="fa-solid fa-moon text-xs sm:text-sm"></i>
           </button>
 
           <!-- Botão Configurações -->
@@ -140,7 +140,7 @@
             id="btn-open-settings" 
             onclick="openSettingsModal()" 
             title="Configurações da Plataforma e Notificações" 
-            class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1.5 transition shadow-sm border border-slate-200/70 dark:border-slate-700"
+            class="w-9 h-9 sm:w-auto sm:px-3 sm:py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm border border-slate-200/70 dark:border-slate-700 shrink-0"
           >
             <i class="fa-solid fa-gear text-xs text-slate-500 dark:text-slate-400"></i>
             <span class="hidden md:inline">Configurações</span>
@@ -349,29 +349,29 @@
   </div>
 
   <!-- ================= CONTEÚDO PRINCIPAL ================= -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8">
 
     <!-- ======================================================== -->
     <!-- ABA 1: DASHBOARD                                         -->
     <!-- ======================================================== -->
     <section id="tab-dashboard" class="tab-section">
       <!-- Banner de Boas-vindas -->
-      <div class="rounded-3xl gradient-vestibular text-white p-8 md:p-10 shadow-xl mb-8 relative overflow-hidden">
+      <div class="rounded-3xl gradient-vestibular text-white p-5 sm:p-8 md:p-10 shadow-xl mb-6 sm:mb-8 relative overflow-hidden">
         <div class="relative z-10 max-w-3xl">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur text-xs font-semibold text-indigo-200 mb-4 border border-white/10">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur text-xs font-semibold text-indigo-200 mb-3 sm:mb-4 border border-white/10">
             <i class="fa-solid fa-sparkles text-amber-300"></i> Foco e Constância Vencem Qualquer Vestibular
           </div>
-          <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight mb-3">
+          <h1 class="text-2xl sm:text-3xl md:text-5xl font-extrabold tracking-tight mb-2.5 sm:mb-3 leading-tight">
             Sua aprovação na <span class="text-amber-300">USP</span> e no <span class="text-emerald-300">ENEM</span> começa aqui.
           </h1>
-          <p class="text-indigo-100 text-sm md:text-base leading-relaxed mb-6">
+          <p class="text-indigo-100 text-xs sm:text-sm md:text-base leading-relaxed mb-5 sm:mb-6">
             Banco de questões com gabarito comentado, análise das 9 novas obras da FUVEST 2027, esqueletos de redação nota máxima, raio-x ranqueado de recorrência por banca e flashcards com repetição espaçada.
           </p>
-          <div class="flex flex-wrap gap-3">
-            <button onclick="switchTab('questions')" class="px-5 py-3 rounded-xl bg-white text-indigo-900 font-bold text-sm hover:bg-indigo-50 shadow-lg transition flex items-center gap-2">
+          <div class="flex flex-col sm:flex-row gap-2.5 sm:gap-3">
+            <button onclick="switchTab('questions')" class="w-full sm:w-auto px-5 py-3 rounded-xl bg-white text-indigo-900 font-bold text-sm hover:bg-indigo-50 shadow-lg transition flex items-center justify-center gap-2">
               <i class="fa-solid fa-clipboard-question"></i> Resolver Questões
             </button>
-            <button onclick="switchTab('books')" class="px-5 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-sm backdrop-blur transition flex items-center gap-2 border border-white/20">
+            <button onclick="switchTab('books')" class="w-full sm:w-auto px-5 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-sm backdrop-blur transition flex items-center justify-center gap-2 border border-white/20">
               <i class="fa-solid fa-book-bookmark"></i> Ver Leituras FUVEST 2027
             </button>
           </div>
@@ -384,7 +384,7 @@
 
       <!-- Contagem Regressiva para as Provas Atualizada e Personalizável -->
       <div class="mb-8">
-        <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div class="flex flex-wrap items-center justify-between gap-2.5 mb-3">
           <div class="flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
             <span class="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Cronômetro Regressivo em Tempo Real</span>
@@ -398,16 +398,16 @@
           </button>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           <!-- Card ENEM -->
-          <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm flex flex-col justify-between transition-card">
-            <div class="flex items-start justify-between gap-2 mb-4">
+          <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-4 sm:p-6 shadow-sm flex flex-col justify-between transition-card">
+            <div class="flex items-start justify-between gap-2 mb-3 sm:mb-4">
               <div>
                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-extrabold uppercase bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-900/60 mb-1.5">
                   <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
                   <span id="countdown-enem-label">ENEM</span>
                 </span>
-                <h3 id="countdown-enem-title" class="text-lg font-bold text-slate-900 dark:text-slate-100">Exame Nacional do Ensino Médio</h3>
+                <h3 id="countdown-enem-title" class="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100">Exame Nacional do Ensino Médio</h3>
                 <p id="countdown-enem-desc" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">1º Dia: Linguagens, Humanas e Redação • 2º Dia: Exatas e Natureza</p>
               </div>
               <button onclick="openCountdownSettingsModal()" class="w-8 h-8 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center justify-center shrink-0" title="Editar data do ENEM">
@@ -416,28 +416,64 @@
             </div>
 
             <!-- Display Digital ENEM (Dias, Horas, Minutos, Segundos) -->
-            <div class="grid grid-cols-4 gap-2 text-center font-mono pt-3 border-t border-slate-100 dark:border-slate-800/80">
-              <div class="p-2.5 rounded-2xl bg-amber-50/60 dark:bg-slate-800/90 border border-amber-100 dark:border-slate-700">
-                <span id="countdown-enem-d" class="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400">--</span>
-                <span class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-0.5">Dias</span>
+            <div class="grid grid-cols-4 gap-1.5 sm:gap-2 text-center font-mono pt-3 border-t border-slate-100 dark:border-slate-800/80">
+              <div class="p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-amber-50/60 dark:bg-slate-800/90 border border-amber-100 dark:border-slate-700">
+                <span id="countdown-enem-d" class="text-xl sm:text-2xl md:text-3xl font-black text-amber-600 dark:text-amber-400">--</span>
+                <span class="block text-[9px] sm:text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-0.5">Dias</span>
               </div>
-              <div class="p-2.5 rounded-2xl bg-amber-50/60 dark:bg-slate-800/90 border border-amber-100 dark:border-slate-700">
-                <span id="countdown-enem-h" class="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400">--</span>
-                <span class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-0.5">Horas</span>
+              <div class="p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-amber-50/60 dark:bg-slate-800/90 border border-amber-100 dark:border-slate-700">
+                <span id="countdown-enem-h" class="text-xl sm:text-2xl md:text-3xl font-black text-amber-600 dark:text-amber-400">--</span>
+                <span class="block text-[9px] sm:text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-0.5">Horas</span>
               </div>
-              <div class="p-2.5 rounded-2xl bg-amber-50/60 dark:bg-slate-800/90 border border-amber-100 dark:border-slate-700">
-                <span id="countdown-enem-m" class="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400">--</span>
-                <span class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-0.5">Min</span>
+              <div class="p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-amber-50/60 dark:bg-slate-800/90 border border-amber-100 dark:border-slate-700">
+                <span id="countdown-enem-m" class="text-xl sm:text-2xl md:text-3xl font-black text-amber-600 dark:text-amber-400">--</span>
+                <span class="block text-[9px] sm:text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-0.5">Min</span>
               </div>
-              <div class="p-2.5 rounded-2xl bg-amber-50/60 dark:bg-slate-800/90 border border-amber-100 dark:border-slate-700">
-                <span id="countdown-enem-s" class="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400">--</span>
-                <span class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-0.5">Seg</span>
+              <div class="p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-amber-50/60 dark:bg-slate-800/90 border border-amber-100 dark:border-slate-700">
+                <span id="countdown-enem-s" class="text-xl sm:text-2xl md:text-3xl font-black text-amber-600 dark:text-amber-400">--</span>
+                <span class="block text-[9px] sm:text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-0.5">Seg</span>
               </div>
             </div>
           </div>
 
           <!-- Card FUVEST -->
-          <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm flex flex-col justify-between transition-card">
+          <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-4 sm:p-6 shadow-sm flex flex-col justify-between transition-card">
+            <div class="flex items-start justify-between gap-2 mb-3 sm:mb-4">
+              <div>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-extrabold uppercase bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-900/60 mb-1.5">
+                  <span class="w-2 h-2 rounded-full bg-indigo-600 animate-ping"></span>
+                  <span id="countdown-fuvest-label">FUVEST</span>
+                </span>
+                <h3 id="countdown-fuvest-title" class="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100">Vestibular USP (FUVEST)</h3>
+                <p id="countdown-fuvest-desc" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">1ª Fase Objetiva • 2ª Fase com Redação e Provas Dissertativas</p>
+              </div>
+              <button onclick="openCountdownSettingsModal()" class="w-8 h-8 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center justify-center shrink-0" title="Editar data da FUVEST">
+                <i class="fa-regular fa-pen-to-square text-xs"></i>
+              </button>
+            </div>
+
+            <!-- Display Digital FUVEST (Dias, Horas, Minutos, Segundos) -->
+            <div class="grid grid-cols-4 gap-1.5 sm:gap-2 text-center font-mono pt-3 border-t border-slate-100 dark:border-slate-800/80">
+              <div class="p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-indigo-50/60 dark:bg-slate-800/90 border border-indigo-100 dark:border-slate-700">
+                <span id="countdown-fuvest-d" class="text-xl sm:text-2xl md:text-3xl font-black text-indigo-600 dark:text-indigo-400">--</span>
+                <span class="block text-[9px] sm:text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-0.5">Dias</span>
+              </div>
+              <div class="p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-indigo-50/60 dark:bg-slate-800/90 border border-indigo-100 dark:border-slate-700">
+                <span id="countdown-fuvest-h" class="text-xl sm:text-2xl md:text-3xl font-black text-indigo-600 dark:text-indigo-400">--</span>
+                <span class="block text-[9px] sm:text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-0.5">Horas</span>
+              </div>
+              <div class="p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-indigo-50/60 dark:bg-slate-800/90 border border-indigo-100 dark:border-slate-700">
+                <span id="countdown-fuvest-m" class="text-xl sm:text-2xl md:text-3xl font-black text-indigo-600 dark:text-indigo-400">--</span>
+                <span class="block text-[9px] sm:text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-0.5">Min</span>
+              </div>
+              <div class="p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-indigo-50/60 dark:bg-slate-800/90 border border-indigo-100 dark:border-slate-700">
+                <span id="countdown-fuvest-s" class="text-xl sm:text-2xl md:text-3xl font-black text-indigo-600 dark:text-indigo-400">--</span>
+                <span class="block text-[9px] sm:text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-0.5">Seg</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
             <div class="flex items-start justify-between gap-2 mb-4">
               <div>
                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-extrabold uppercase bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-900/60 mb-1.5">
