@@ -1,9 +1,9 @@
 /**
  * Service Worker do BrilhaVest - PWA Offline, Cache & Notificações Push / Diárias
- * Versão: 3.8.0
+ * Versão: 3.9.0
  */
 
-const CACHE_NAME = 'brilhavest-cache-v3.8';
+const CACHE_NAME = 'brilhavest-cache-v3.9';
 
 const ASSETS_TO_CACHE = [
   './',
@@ -39,13 +39,14 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Ativação: remove caches antigos
+// Ativação: remove caches antigos imediatamente
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((name) => {
           if (name !== CACHE_NAME) {
+            console.log('[SW] Removendo cache antigo:', name);
             return caches.delete(name);
           }
         })
@@ -56,7 +57,7 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Interceptação de requisições: Stale-While-Revalidate para ativos e Network-First para APIs
+// Interceptação de requisições: Network-First com fallback para cache offline
 self.addEventListener('fetch', (event) => {
   const requestUrl = new URL(event.request.url);
 
@@ -65,22 +66,34 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Requisições GET normais do app
-  if (event.request.method === 'GET') {
+  // 1. Navegação / HTML: Network-First com fallback para cache (garante atualizações imediatas no celular!)
+  if (event.request.mode === 'navigate' || event.request.destination === 'document') {
     event.respondWith(
-      caches.match(event.request).then((cachedResponse) => {
-        const fetchPromise = fetch(event.request).then((networkResponse) => {
+      fetch(event.request)
+        .then((networkResponse) => {
           if (networkResponse && networkResponse.status === 200) {
             const responseToCache = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, responseToCache);
-            });
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
           }
           return networkResponse;
-        }).catch(() => {});
+        })
+        .catch(() => caches.match('./index.html') || caches.match(event.request))
+    );
+    return;
+  }
 
-        return cachedResponse || fetchPromise;
-      })
+  // 2. Recursos estáticos GET (JS, CSS, Imagens): Network-First para refletir alterações sem travar em cache antigo
+  if (event.request.method === 'GET') {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
+          }
+          return networkResponse;
+        })
+        .catch(() => caches.match(event.request))
     );
   }
 });
