@@ -2608,7 +2608,97 @@ window.triggerEssaySheetPhoto = function() {
   }
 };
 
-window.handleEssaySheetPhoto = function(event) {
+window.cancelEssayOCR = function() {
+  const loader = document.getElementById('essay-photo-ocr-loader');
+  if (loader) loader.classList.add('hidden');
+  if (typeof showToast === 'function') {
+    showToast("Transcrição pausada. Você pode digitar ou colar o texto diretamente.");
+  }
+};
+
+function preprocessEssayPhoto(file, maxDim = 1200) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        let detectedLines = 28;
+        try {
+          const imgData = ctx.getImageData(0, 0, width, height);
+          detectedLines = estimateLinesFromImageData(imgData, height) || 28;
+        } catch (e) {
+          detectedLines = 28;
+        }
+
+        const optimizedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        resolve({ dataUrl: optimizedDataUrl, width, height, canvas, detectedLines });
+      };
+      img.onerror = () => resolve({ dataUrl: e.target.result, width: 800, height: 1100, canvas: null, detectedLines: 28 });
+      img.src = e.target.result;
+    };
+    reader.onerror = () => resolve({ dataUrl: '', width: 800, height: 1100, canvas: null, detectedLines: 28 });
+    reader.readAsDataURL(file);
+  });
+}
+
+function estimateLinesFromImageData(imgData, height) {
+  try {
+    const w = imgData.width;
+    const h = imgData.height;
+    const data = imgData.data;
+    const rowDarkness = new Float32Array(h);
+
+    for (let y = 0; y < h; y++) {
+      let darkPixels = 0;
+      for (let x = 0; x < w; x += 4) {
+        const idx = (y * w + x) * 4;
+        const r = data[idx];
+        const g = data[idx + 1];
+        const b = data[idx + 2];
+        const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+        if (lum < 160) darkPixels++;
+      }
+      rowDarkness[y] = darkPixels / (w / 4);
+    }
+
+    let textRows = 0;
+    let inLine = false;
+    for (let y = Math.floor(h * 0.1); y < Math.floor(h * 0.95); y++) {
+      if (rowDarkness[y] > 0.12 && !inLine) {
+        inLine = true;
+        textRows++;
+      } else if (rowDarkness[y] <= 0.08 && inLine) {
+        inLine = false;
+      }
+    }
+
+    if (textRows >= 10 && textRows <= 32) {
+      return Math.min(30, Math.max(1, textRows));
+    }
+  } catch (e) {
+    // Retorna canônico padrão
+  }
+  return 28;
+}
+
+window.handleEssaySheetPhoto = async function(event) {
   const file = event?.target?.files?.[0];
   if (!file) return;
 
@@ -2617,13 +2707,28 @@ window.handleEssaySheetPhoto = function(event) {
     return;
   }
 
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const dataUrl = e.target.result;
-    openEssayPhotoModal(dataUrl, 28, '');
-    runEssayOCR(dataUrl);
-  };
-  reader.readAsDataURL(file);
+  // Abre modal imediatamente
+  openEssayPhotoModal('', 28, '');
+  const loader = document.getElementById('essay-photo-ocr-loader');
+  const statusText = document.getElementById('essay-ocr-status-text');
+  const progressBar = document.getElementById('essay-ocr-progress-bar');
+  if (loader) loader.classList.remove('hidden');
+  if (statusText) statusText.innerText = "Processando imagem da folha...";
+  if (progressBar) progressBar.style.width = '20%';
+
+  try {
+    // Redimensiona foto de alta resolução (evita travamento do navegador)
+    const processed = await preprocessEssayPhoto(file, 1200);
+    const imgPreview = document.getElementById('essay-photo-modal-preview');
+    if (imgPreview && processed?.dataUrl) {
+      imgPreview.src = processed.dataUrl;
+    }
+
+    await runEssayOCR(processed?.dataUrl, processed);
+  } catch (err) {
+    console.warn("Aviso no pré-processamento da foto:", err);
+    if (loader) loader.classList.add('hidden');
+  }
 };
 
 window.openEssayPhotoModal = function(imgSrc, defaultLines = 28, initialText = '') {
@@ -2695,54 +2800,168 @@ window.onTranscribedTextareaInput = function() {
   countEl.innerText = `${words} palavras`;
 };
 
-window.runEssayOCR = async function(imageSource) {
+window.runEssayOCR = async function(dataUrl, processedInfo) {
   const loader = document.getElementById('essay-photo-ocr-loader');
   const statusText = document.getElementById('essay-ocr-status-text');
   const progressBar = document.getElementById('essay-ocr-progress-bar');
   const textarea = document.getElementById('essay-photo-transcribed-textarea');
+  const stepper = document.getElementById('essay-photo-lines-stepper');
+
+  const suggestedLines = processedInfo?.detectedLines || 28;
+  if (stepper) {
+    stepper.value = suggestedLines;
+    updateEssayPhotoLinesBadge(suggestedLines);
+  }
+
+  let recognizedText = '';
+
+  // 1. Tenta TextDetector nativo do navegador se disponível (ultra-rápido, <150ms, sem download)
+  if ('TextDetector' in window && processedInfo?.canvas) {
+    try {
+      if (statusText) statusText.innerText = "Lendo texto com motor nativo...";
+      if (progressBar) progressBar.style.width = '55%';
+      const detector = new window.TextDetector();
+      const detected = await detector.detect(processedInfo.canvas);
+      if (detected && detected.length > 0) {
+        recognizedText = detected.map(d => d.rawValue).filter(Boolean).join('\n');
+      }
+    } catch (e) {
+      console.warn("TextDetector nativo:", e);
+    }
+  }
+
+  // 2. Se não obteve texto pelo TextDetector nativo, tenta Tesseract com timeout rigoroso de 4s
+  if (!recognizedText && typeof Tesseract !== 'undefined') {
+    try {
+      if (statusText) statusText.innerText = "Transcrevendo com motor OCR...";
+      if (progressBar) progressBar.style.width = '70%';
+
+      const tesseractPromise = (async () => {
+        const worker = await Tesseract.createWorker(['por', 'eng'], 1, {
+          langPath: 'https://cdn.jsdelivr.net/gh/naptha/tessdata@gh-pages/4.0.0',
+          logger: m => {
+            if (m.status === 'recognizing text') {
+              const p = Math.round((m.progress || 0) * 100);
+              if (progressBar) progressBar.style.width = `${Math.max(50, Math.min(95, p))}%`;
+            }
+          }
+        });
+        const ret = await worker.recognize(dataUrl);
+        await worker.terminate();
+        return ret?.data?.text || '';
+      })();
+
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('timeout')), 3800)
+      );
+
+      recognizedText = await Promise.race([tesseractPromise, timeoutPromise]);
+    } catch (err) {
+      console.warn("OCR automático completou ou atingiu timeout seguro sem travar a interface.");
+    }
+  }
+
+  // 3. Finalização garantida: o loader SEMPRE fecha e o usuário nunca fica travado
+  if (progressBar) progressBar.style.width = '100%';
+  if (statusText) statusText.innerText = "Concluído!";
+
+  if (recognizedText && recognizedText.trim().length > 15) {
+    let cleanText = recognizedText.trim().replace(/\r\n/g, '\n').replace(/\n{3,}/g, '\n\n');
+    if (textarea) textarea.value = cleanText;
+    onTranscribedTextareaInput();
+    if (typeof showToast === 'function') {
+      showToast("Texto transcrito! Revise e confirme as linhas da folha.");
+    }
+  } else {
+    // Foto carregada e linhas preservadas: pronto para digitar ou colar
+    if (typeof showToast === 'function') {
+      showToast(`Foto recebida! ${suggestedLines} linhas oficiais registradas. Revise ou digite o texto ao lado.`);
+    }
+  }
+
+  setTimeout(() => {
+    if (loader) loader.classList.add('hidden');
+  }, 350);
+};
+
+window.transcribeWithGeminiVision = async function() {
+  const textarea = document.getElementById('essay-photo-transcribed-textarea');
+  const imgPreview = document.getElementById('essay-photo-modal-preview');
+  const loader = document.getElementById('essay-photo-ocr-loader');
+  const statusText = document.getElementById('essay-ocr-status-text');
+  const progressBar = document.getElementById('essay-ocr-progress-bar');
+
+  if (!imgPreview || !imgPreview.src || imgPreview.src.length < 50) {
+    alert("Por favor, tire ou selecione a foto da folha antes de transcrever com IA.");
+    return;
+  }
+
+  let apiKey = localStorage.getItem('brilhavest_gemini_key') || '';
+  if (!apiKey) {
+    apiKey = prompt("Para transcrever caligrafia com a IA do Google Gemini Vision, digite sua Chave de API do Gemini (gratuita em https://aistudio.google.com/):\n\n(A chave será salva com segurança no seu navegador):");
+    if (!apiKey || !apiKey.trim()) return;
+    apiKey = apiKey.trim();
+    localStorage.setItem('brilhavest_gemini_key', apiKey);
+  }
 
   if (loader) loader.classList.remove('hidden');
-  if (statusText) statusText.innerText = "Inicializando motor de IA e OCR...";
-  if (progressBar) progressBar.style.width = '20%';
+  if (statusText) statusText.innerText = "Transcrevendo com Google Gemini Vision...";
+  if (progressBar) progressBar.style.width = '45%';
 
   try {
-    if (typeof Tesseract !== 'undefined') {
-      if (statusText) statusText.innerText = "Processando caligrafia da folha de redação...";
-      if (progressBar) progressBar.style.width = '45%';
+    let base64Data = imgPreview.src;
+    let mimeType = 'image/jpeg';
+    if (base64Data.startsWith('data:')) {
+      const parts = base64Data.split(',');
+      mimeType = parts[0].split(':')[1].split(';')[0];
+      base64Data = parts[1];
+    }
 
-      const worker = await Tesseract.createWorker('por', 1, {
-        logger: m => {
-          if (m.status === 'recognizing text') {
-            const p = Math.round((m.progress || 0) * 100);
-            if (progressBar) progressBar.style.width = `${Math.max(45, Math.min(95, p))}%`;
-            if (statusText) statusText.innerText = `Reconhecendo caligrafia... ${p}%`;
-          }
-        }
-      });
+    if (progressBar) progressBar.style.width = '70%';
 
-      const ret = await worker.recognize(imageSource);
-      await worker.terminate();
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            { text: "Você é um especialista em transcrição de redações do ENEM e FUVEST. Transcreva rigorosamente todo o texto manuscrito presente nesta folha de redação exatamente como escrito pelo estudante, respeitando a divisão de parágrafos. Retorne APENAS o texto da redação, sem introduções, sem explicações e sem saudações." },
+            {
+              inline_data: {
+                mime_type: mimeType,
+                data: base64Data
+              }
+            }
+          ]
+        }]
+      })
+    });
 
-      if (progressBar) progressBar.style.width = '100%';
-      if (statusText) statusText.innerText = "Transcrição concluída!";
+    if (!response.ok) {
+      const errJson = await response.json().catch(() => ({}));
+      throw new Error(errJson?.error?.message || `Erro ${response.status} na API do Gemini`);
+    }
 
-      let extracted = (ret?.data?.text || '').trim();
-      extracted = extracted.replace(/\r\n/g, '\n').replace(/\n{3,}/g, '\n\n');
+    const json = await response.json();
+    const candidateText = json?.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
-      if (extracted.length > 20) {
-        if (textarea) textarea.value = extracted;
-        onTranscribedTextareaInput();
+    if (candidateText && candidateText.trim().length > 20) {
+      if (textarea) textarea.value = candidateText.trim();
+      onTranscribedTextareaInput();
+      if (typeof showToast === 'function') {
+        showToast("Redação transcrita com sucesso pelo Gemini Vision!");
       }
     } else {
-      if (statusText) statusText.innerText = "Pronto! Você pode revisar ou digitar o texto no campo ao lado.";
+      alert("A IA do Gemini não conseguiu ler texto nítido na imagem enviada.");
     }
   } catch (err) {
-    console.warn("Aviso na transcrição OCR automática:", err);
-    if (statusText) statusText.innerText = "Você pode revisar ou colar o texto diretamente no campo ao lado.";
+    console.error("Erro no Gemini Vision:", err);
+    alert(`Erro na transcrição Gemini Vision: ${err.message}\n\nVocê pode revisar ou colar o texto diretamente no campo ao lado.`);
   } finally {
+    if (progressBar) progressBar.style.width = '100%';
     setTimeout(() => {
       if (loader) loader.classList.add('hidden');
-    }, 450);
+    }, 400);
   }
 };
 
