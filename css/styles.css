@@ -241,3 +241,12 @@ html.dark ::-webkit-scrollbar-thumb {
 html.dark ::-webkit-scrollbar-thumb:hover {
   background: #475569;
 }
+
+/* Flashcards com Imagem e Desenho Interativo */
+.cursor-zoom-in {
+  cursor: zoom-in;
+}
+
+#drawing-canvas {
+  touch-action: none;
+}

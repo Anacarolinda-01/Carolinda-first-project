@@ -290,6 +290,20 @@ function initModalsDismissal() {
     });
   }
 
+  const drawingModal = document.getElementById('drawing-canvas-modal');
+  if (drawingModal) {
+    drawingModal.addEventListener('click', (e) => {
+      if (e.target === drawingModal && typeof closeDrawingModal === 'function') closeDrawingModal();
+    });
+  }
+
+  const fcImageModal = document.getElementById('flashcard-image-modal');
+  if (fcImageModal) {
+    fcImageModal.addEventListener('click', (e) => {
+      if (e.target === fcImageModal && typeof closeFlashcardImageModal === 'function') closeFlashcardImageModal();
+    });
+  }
+
   // Atalho da tecla ESC para fechar qualquer modal ou menu lateral ativo
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' || e.key === 'Esc') {
@@ -297,6 +311,8 @@ function initModalsDismissal() {
       if (typeof closeAuthModal === 'function') closeAuthModal();
       if (typeof closeBookModal === 'function') closeBookModal();
       if (typeof closeAddFlashcardModal === 'function') closeAddFlashcardModal();
+      if (typeof closeDrawingModal === 'function') closeDrawingModal();
+      if (typeof closeFlashcardImageModal === 'function') closeFlashcardImageModal();
       if (typeof closeCountdownSettingsModal === 'function') closeCountdownSettingsModal();
       if (typeof closeSettingsModal === 'function') closeSettingsModal();
       if (typeof closeAdminStudentDetailModal === 'function') closeAdminStudentDetailModal();
@@ -2515,8 +2531,25 @@ window.toggleChecklistTopic = function(topicId, step) {
 };
 
 // ==========================================
-// 6. FLASHCARDS INTELIGENTES
+// 6. FLASHCARDS INTELIGENTES (TEXTO, DESENHO & FOTOS)
 // ==========================================
+
+// Variáveis de estado para criação com desenho e foto
+let currentDrawingTarget = 'front'; // 'front' ou 'back'
+let currentFrontImage = null;
+let currentBackImage = null;
+
+let drawingCanvas = null;
+let drawingCtx = null;
+let isDrawingActive = false;
+let drawingColor = '#0f172a';
+let drawingLineWidth = 4;
+let drawingTool = 'pen'; // 'pen' ou 'eraser'
+let drawingUndoStack = [];
+let lastDrawingX = 0;
+let lastDrawingY = 0;
+let isDrawingGridActive = false;
+
 function initFlashcards() {
   const catFilter = document.getElementById('flashcard-category-filter');
   if (catFilter) {
@@ -2562,29 +2595,74 @@ function renderCurrentFlashcard() {
   if (catBadge) catBadge.innerText = card.category;
   if (progressBadge) progressBadge.innerText = `Card ${index + 1} de ${cards.length}`;
 
+  // Renderizar FRENTE
   if (frontEl) {
-    frontEl.innerHTML = `
-      <div class="h-full flex flex-col justify-between p-8 text-center">
-        <div class="text-xs uppercase tracking-wider font-bold text-indigo-500">Pergunta / Conceito</div>
-        <div class="text-xl md:text-2xl font-semibold text-slate-800 leading-snug my-auto">
-          ${card.front}
+    let frontImgHtml = '';
+    if (card.frontImage) {
+      frontImgHtml = `
+        <div class="my-auto py-2">
+          <img src="${card.frontImage}" alt="Ilustração da Frente" 
+               class="max-h-36 sm:max-h-44 object-contain rounded-xl border border-slate-200 dark:border-slate-700 bg-white shadow-sm mx-auto hover:opacity-95 transition cursor-zoom-in"
+               onclick="event.stopPropagation(); openFlashcardImageModal('${card.frontImage}', 'Ilustração / Molécula da Frente');"
+               title="Clique para ampliar o desenho/foto">
         </div>
-        <div class="text-xs text-slate-400 flex items-center justify-center gap-1.5">
-          <i class="fa-solid fa-arrows-rotate"></i> Clique para revelar a resposta
+      `;
+    }
+
+    const frontTextHtml = card.front ? `
+      <div class="text-base sm:text-lg md:text-xl font-semibold text-slate-800 dark:text-slate-100 leading-snug my-auto">
+        ${card.front}
+      </div>
+    ` : '';
+
+    frontEl.innerHTML = `
+      <div class="h-full flex flex-col justify-between p-5 sm:p-7 text-center overflow-y-auto">
+        <div class="flex items-center justify-between text-xs uppercase tracking-wider font-bold text-indigo-500">
+          <span>Pergunta / Conceito</span>
+          ${card.isCustom ? `
+            <button onclick="event.stopPropagation(); deleteCustomFlashcard('${card.id}');" class="text-rose-400 hover:text-rose-600 transition p-1 text-xs" title="Excluir este flashcard criado por você">
+              <i class="fa-solid fa-trash-can mr-1"></i>Excluir
+            </button>
+          ` : ''}
+        </div>
+        ${frontImgHtml}
+        ${frontTextHtml}
+        <div class="text-[11px] text-slate-400 flex items-center justify-center gap-1.5 mt-2">
+          <i class="fa-solid fa-arrows-rotate"></i> Toque para revelar a resposta e macetes
         </div>
       </div>
     `;
   }
 
+  // Renderizar VERSO
   if (backEl) {
-    backEl.innerHTML = `
-      <div class="h-full flex flex-col justify-between p-8 text-center bg-indigo-900 text-white rounded-2xl shadow-lg">
-        <div class="text-xs uppercase tracking-wider font-bold text-indigo-300">Resposta & Macete</div>
-        <div class="text-base md:text-lg font-medium text-indigo-50 leading-relaxed my-auto whitespace-pre-line text-left bg-indigo-950/40 p-4 rounded-xl border border-indigo-700/50">
-          ${card.back}
+    let backImgHtml = '';
+    if (card.backImage) {
+      backImgHtml = `
+        <div class="my-auto py-2">
+          <img src="${card.backImage}" alt="Ilustração do Verso" 
+               class="max-h-36 sm:max-h-44 object-contain rounded-xl border border-indigo-700/60 bg-white shadow-sm mx-auto hover:opacity-95 transition cursor-zoom-in"
+               onclick="event.stopPropagation(); openFlashcardImageModal('${card.backImage}', 'Ilustração / Resolução do Verso');"
+               title="Clique para ampliar o desenho/foto">
         </div>
-        <div class="text-xs text-indigo-300 flex items-center justify-center gap-1.5">
-          <i class="fa-solid fa-arrows-rotate"></i> Clique para virar de volta
+      `;
+    }
+
+    const backTextHtml = card.back ? `
+      <div class="text-sm sm:text-base font-medium text-indigo-50 leading-relaxed my-auto whitespace-pre-line text-left bg-indigo-950/50 p-3.5 sm:p-4 rounded-xl border border-indigo-700/50 shadow-inner">
+        ${card.back}
+      </div>
+    ` : '';
+
+    backEl.innerHTML = `
+      <div class="h-full flex flex-col justify-between p-5 sm:p-7 text-center bg-indigo-900 text-white rounded-2xl shadow-lg overflow-y-auto">
+        <div class="text-xs uppercase tracking-wider font-bold text-indigo-300">
+          Resposta & Macete
+        </div>
+        ${backImgHtml}
+        ${backTextHtml}
+        <div class="text-[11px] text-indigo-300 flex items-center justify-center gap-1.5 mt-2">
+          <i class="fa-solid fa-arrows-rotate"></i> Toque para virar de volta
         </div>
       </div>
     `;
@@ -2648,23 +2726,373 @@ window.openAddFlashcardModal = function() {
 window.closeAddFlashcardModal = function() {
   const modal = document.getElementById('add-flashcard-modal');
   if (modal) modal.classList.add('hidden');
+  currentFrontImage = null;
+  currentBackImage = null;
+  const fPreview = document.getElementById('new-fc-front-preview-container');
+  const bPreview = document.getElementById('new-fc-back-preview-container');
+  if (fPreview) fPreview.classList.add('hidden');
+  if (bPreview) bPreview.classList.add('hidden');
 };
 
+// -------------------------------------------------------------
+// ENGINE DE DESENHO INTERATIVO (CANVAS DE MOLÉCULAS / FÓRMULAS)
+// -------------------------------------------------------------
+function initDrawingCanvas() {
+  if (drawingCanvas) return;
+  drawingCanvas = document.getElementById('drawing-canvas');
+  if (!drawingCanvas) return;
+  drawingCtx = drawingCanvas.getContext('2d', { willReadFrequently: true });
+
+  // Eventos de Mouse
+  drawingCanvas.addEventListener('mousedown', startDrawing);
+  drawingCanvas.addEventListener('mousemove', drawMove);
+  window.addEventListener('mouseup', stopDrawing);
+
+  // Eventos de Toque (Mobile / Tablet / Touch screen)
+  drawingCanvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    startDrawing(e);
+  }, { passive: false });
+
+  drawingCanvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    drawMove(e);
+  }, { passive: false });
+
+  window.addEventListener('touchend', stopDrawing);
+  window.addEventListener('touchcancel', stopDrawing);
+}
+
+function getCanvasCoords(e) {
+  if (!drawingCanvas) return { x: 0, y: 0 };
+  const rect = drawingCanvas.getBoundingClientRect();
+  const scaleX = drawingCanvas.width / rect.width;
+  const scaleY = drawingCanvas.height / rect.height;
+
+  let clientX = e.clientX;
+  let clientY = e.clientY;
+
+  if (e.touches && e.touches.length > 0) {
+    clientX = e.touches[0].clientX;
+    clientY = e.touches[0].clientY;
+  } else if (e.changedTouches && e.changedTouches.length > 0) {
+    clientX = e.changedTouches[0].clientX;
+    clientY = e.changedTouches[0].clientY;
+  }
+
+  return {
+    x: (clientX - rect.left) * scaleX,
+    y: (clientY - rect.top) * scaleY
+  };
+}
+
+function startDrawing(e) {
+  if (!drawingCanvas || !drawingCtx) return;
+  isDrawingActive = true;
+  saveDrawingUndoState();
+  const coords = getCanvasCoords(e);
+  lastDrawingX = coords.x;
+  lastDrawingY = coords.y;
+
+  // Permite desenhar um ponto com um clique único
+  drawingCtx.beginPath();
+  drawingCtx.arc(lastDrawingX, lastDrawingY, drawingLineWidth / 2, 0, Math.PI * 2);
+  drawingCtx.fillStyle = (drawingTool === 'eraser') ? '#ffffff' : drawingColor;
+  drawingCtx.fill();
+}
+
+function drawMove(e) {
+  if (!isDrawingActive || !drawingCanvas || !drawingCtx) return;
+  const coords = getCanvasCoords(e);
+
+  drawingCtx.beginPath();
+  drawingCtx.moveTo(lastDrawingX, lastDrawingY);
+  drawingCtx.lineTo(coords.x, coords.y);
+  drawingCtx.strokeStyle = (drawingTool === 'eraser') ? '#ffffff' : drawingColor;
+  drawingCtx.lineWidth = (drawingTool === 'eraser') ? Math.max(16, drawingLineWidth * 3.5) : drawingLineWidth;
+  drawingCtx.lineCap = 'round';
+  drawingCtx.lineJoin = 'round';
+  drawingCtx.stroke();
+
+  lastDrawingX = coords.x;
+  lastDrawingY = coords.y;
+}
+
+function stopDrawing() {
+  if (!isDrawingActive) return;
+  isDrawingActive = false;
+  if (drawingCtx) drawingCtx.beginPath();
+}
+
+function saveDrawingUndoState() {
+  if (!drawingCanvas) return;
+  if (drawingUndoStack.length >= 25) {
+    drawingUndoStack.shift();
+  }
+  drawingUndoStack.push(drawingCanvas.toDataURL('image/png'));
+}
+
+window.undoDrawing = function() {
+  if (!drawingUndoStack.length || !drawingCanvas || !drawingCtx) return;
+  const lastState = drawingUndoStack.pop();
+  const img = new Image();
+  img.onload = () => {
+    drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+    drawingCtx.fillStyle = '#ffffff';
+    drawingCtx.fillRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+    drawingCtx.drawImage(img, 0, 0);
+  };
+  img.src = lastState;
+};
+
+window.clearDrawingCanvas = function() {
+  if (!drawingCanvas || !drawingCtx) return;
+  saveDrawingUndoState();
+  drawingCtx.fillStyle = '#ffffff';
+  drawingCtx.fillRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+};
+
+window.setDrawingColor = function(color) {
+  drawingColor = color;
+  setDrawingTool('pen');
+  document.querySelectorAll('.drawing-color-btn').forEach(btn => {
+    if (btn.getAttribute('data-color') === color) {
+      btn.classList.add('ring-2', 'ring-indigo-500');
+    } else {
+      btn.classList.remove('ring-2', 'ring-indigo-500');
+    }
+  });
+};
+
+window.setDrawingLineWidth = function(width) {
+  drawingLineWidth = width;
+  document.querySelectorAll('.drawing-width-btn').forEach(btn => {
+    if (parseInt(btn.getAttribute('data-width'), 10) === width) {
+      btn.classList.add('bg-indigo-50', 'dark:bg-indigo-950', 'text-indigo-600', 'dark:text-indigo-400');
+      btn.classList.remove('text-slate-600', 'dark:text-slate-300');
+    } else {
+      btn.classList.remove('bg-indigo-50', 'dark:bg-indigo-950', 'text-indigo-600', 'dark:text-indigo-400');
+      btn.classList.add('text-slate-600', 'dark:text-slate-300');
+    }
+  });
+};
+
+window.setDrawingTool = function(tool) {
+  drawingTool = tool;
+  const penBtn = document.getElementById('drawing-tool-pen');
+  const eraserBtn = document.getElementById('drawing-tool-eraser');
+
+  if (tool === 'pen') {
+    if (penBtn) {
+      penBtn.className = 'px-2.5 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-bold shadow-sm transition flex items-center gap-1';
+    }
+    if (eraserBtn) {
+      eraserBtn.className = 'px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-1';
+    }
+  } else {
+    if (penBtn) {
+      penBtn.className = 'px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-1';
+    }
+    if (eraserBtn) {
+      eraserBtn.className = 'px-2.5 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-bold shadow-sm transition flex items-center gap-1';
+    }
+  }
+};
+
+window.toggleDrawingGrid = function() {
+  isDrawingGridActive = !isDrawingGridActive;
+  const overlay = document.getElementById('drawing-grid-overlay');
+  const btn = document.getElementById('drawing-grid-toggle');
+  if (overlay) {
+    if (isDrawingGridActive) {
+      overlay.classList.remove('hidden');
+    } else {
+      overlay.classList.add('hidden');
+    }
+  }
+  if (btn) {
+    if (isDrawingGridActive) {
+      btn.classList.add('bg-indigo-50', 'text-indigo-600', 'border-indigo-400');
+    } else {
+      btn.classList.remove('bg-indigo-50', 'text-indigo-600', 'border-indigo-400');
+    }
+  }
+};
+
+window.openDrawingModal = function(target) {
+  currentDrawingTarget = target || 'front';
+  const badge = document.getElementById('drawing-target-badge');
+  if (badge) {
+    badge.innerText = currentDrawingTarget === 'front' ? 'Frente (Pergunta)' : 'Verso (Resposta)';
+  }
+
+  const modal = document.getElementById('drawing-canvas-modal');
+  if (modal) modal.classList.remove('hidden');
+
+  initDrawingCanvas();
+
+  // Carrega desenho existente se houver, ou limpa canvas
+  const existingImage = (currentDrawingTarget === 'front') ? currentFrontImage : currentBackImage;
+  drawingUndoStack = [];
+
+  if (existingImage) {
+    const img = new Image();
+    img.onload = () => {
+      drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+      drawingCtx.fillStyle = '#ffffff';
+      drawingCtx.fillRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+      drawingCtx.drawImage(img, 0, 0, drawingCanvas.width, drawingCanvas.height);
+    };
+    img.src = existingImage;
+  } else {
+    drawingCtx.fillStyle = '#ffffff';
+    drawingCtx.fillRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+  }
+
+  setDrawingTool('pen');
+  setDrawingLineWidth(4);
+};
+
+window.closeDrawingModal = function() {
+  const modal = document.getElementById('drawing-canvas-modal');
+  if (modal) modal.classList.add('hidden');
+};
+
+window.applyDrawingToFlashcard = function() {
+  if (!drawingCanvas) return;
+  // Converte o canvas para JPEG de alta qualidade e peso otimizado (~30KB)
+  const dataUrl = drawingCanvas.toDataURL('image/jpeg', 0.85);
+
+  if (currentDrawingTarget === 'front') {
+    currentFrontImage = dataUrl;
+    updateFlashcardMediaPreview('front', dataUrl, 'Desenho');
+  } else {
+    currentBackImage = dataUrl;
+    updateFlashcardMediaPreview('back', dataUrl, 'Desenho');
+  }
+  closeDrawingModal();
+};
+
+// -------------------------------------------------------------
+// GESTÃO DE FOTOS & PREVIEWS DE MÍDIA
+// -------------------------------------------------------------
+function updateFlashcardMediaPreview(target, dataUrl, typeLabel) {
+  const container = document.getElementById(`new-fc-${target}-preview-container`);
+  const img = document.getElementById(`new-fc-${target}-preview-img`);
+  const badge = document.getElementById(`new-fc-${target}-preview-badge`);
+
+  if (container && img) {
+    img.src = dataUrl;
+    if (badge) badge.innerText = `${typeLabel || 'Mídia'} Anexada`;
+    container.classList.remove('hidden');
+  }
+}
+
+window.handleFlashcardPhotoUpload = function(event, target) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      // Compressão adaptativa para fotos de câmera (máx 800x800)
+      const maxDim = 800;
+      let width = img.width;
+      let height = img.height;
+      if (width > maxDim || height > maxDim) {
+        if (width > height) {
+          height = Math.round((height * maxDim) / width);
+          width = maxDim;
+        } else {
+          width = Math.round((width * maxDim) / height);
+          height = maxDim;
+        }
+      }
+
+      const offscreen = document.createElement('canvas');
+      offscreen.width = width;
+      offscreen.height = height;
+      const ctx = offscreen.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, width, height);
+      ctx.drawImage(img, 0, 0, width, height);
+
+      const compressedDataUrl = offscreen.toDataURL('image/jpeg', 0.8);
+      if (target === 'front') {
+        currentFrontImage = compressedDataUrl;
+        updateFlashcardMediaPreview('front', compressedDataUrl, 'Foto');
+      } else {
+        currentBackImage = compressedDataUrl;
+        updateFlashcardMediaPreview('back', compressedDataUrl, 'Foto');
+      }
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+  event.target.value = '';
+};
+
+window.triggerFlashcardPhoto = function(target) {
+  const input = document.getElementById(`fc-photo-input-${target}`);
+  if (input) input.click();
+};
+
+window.removeFlashcardMedia = function(target) {
+  if (target === 'front') {
+    currentFrontImage = null;
+    const container = document.getElementById('new-fc-front-preview-container');
+    if (container) container.classList.add('hidden');
+  } else {
+    currentBackImage = null;
+    const container = document.getElementById('new-fc-back-preview-container');
+    if (container) container.classList.add('hidden');
+  }
+};
+
+// -------------------------------------------------------------
+// VISUALIZADOR DE IMAGENS EM TELA CHEIA (LIGHTBOX / ZOOM)
+// -------------------------------------------------------------
+window.openFlashcardImageModal = function(src, caption) {
+  const modal = document.getElementById('flashcard-image-modal');
+  const img = document.getElementById('flashcard-image-modal-img');
+  const cap = document.getElementById('flashcard-image-modal-caption');
+
+  if (modal && img) {
+    img.src = src;
+    if (cap) cap.innerText = caption || 'Visualização do Flashcard';
+    modal.classList.remove('hidden');
+  }
+};
+
+window.closeFlashcardImageModal = function() {
+  const modal = document.getElementById('flashcard-image-modal');
+  if (modal) modal.classList.add('hidden');
+};
+
+// -------------------------------------------------------------
+// SALVAR & GERENCIAR FLASHCARDS
+// -------------------------------------------------------------
 window.saveNewFlashcard = function() {
   const cat = document.getElementById('new-fc-category').value;
   const front = document.getElementById('new-fc-front').value.trim();
   const back = document.getElementById('new-fc-back').value.trim();
 
-  if (!front || !back) {
-    alert("Por favor, preencha a pergunta e a resposta do flashcard.");
+  const hasFront = front || currentFrontImage;
+  const hasBack = back || currentBackImage;
+
+  if (!hasFront || !hasBack) {
+    alert("Por favor, adicione texto, foto ou desenho para a Frente e para o Verso do flashcard.");
     return;
   }
 
   const newCard = {
     id: `custom_${Date.now()}`,
     category: cat,
-    front: front,
-    back: back,
+    front: front || (currentFrontImage ? "Visualizar ilustração / molécula" : ""),
+    back: back || (currentBackImage ? "Visualizar resolução ilustrada" : ""),
+    frontImage: currentFrontImage || null,
+    backImage: currentBackImage || null,
     difficulty: "Médio",
     isCustom: true
   };
@@ -2679,9 +3107,30 @@ window.saveNewFlashcard = function() {
   // Limpar formulário
   document.getElementById('new-fc-front').value = '';
   document.getElementById('new-fc-back').value = '';
+  currentFrontImage = null;
+  currentBackImage = null;
 
+  // Seleciona e exibe imediatamente o novo card criado
+  AppState.flashcardDeck.currentIndex = getFilteredFlashcards().length - 1;
   renderCurrentFlashcard();
-  alert("Flashcard criado com sucesso!");
+
+  if (typeof showToast === 'function') {
+    showToast("Flashcard ilustrado criado com sucesso!");
+  } else {
+    alert("Flashcard criado com sucesso!");
+  }
+};
+
+window.deleteCustomFlashcard = function(cardId) {
+  if (!confirm("Deseja realmente excluir este flashcard criado por você?")) return;
+  AppState.flashcardDeck.cards = AppState.flashcardDeck.cards.filter(c => c.id !== cardId);
+  AppState.flashcardDeck.learnedIds = AppState.flashcardDeck.learnedIds.filter(id => id !== cardId);
+  if (AppState.flashcardDeck.currentIndex >= getFilteredFlashcards().length) {
+    AppState.flashcardDeck.currentIndex = Math.max(0, getFilteredFlashcards().length - 1);
+  }
+  saveToLocalStorage();
+  updateGlobalBadges();
+  renderCurrentFlashcard();
 };
 
 // ==========================================

@@ -1478,47 +1478,219 @@
         </p>
       </div>
 
-      <!-- Modal: Adicionar Novo Flashcard Personalizado -->
-      <div id="add-flashcard-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl animate-fadeIn">
-          <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
-            <h3 class="text-lg font-bold text-slate-900">Criar Novo Flashcard</h3>
-            <button onclick="closeAddFlashcardModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center text-xs">
+      <!-- Modal: Adicionar Novo Flashcard Personalizado (com Texto, Foto e Desenho) -->
+      <div id="add-flashcard-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 hidden">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl animate-fadeIn max-h-[92vh] overflow-y-auto border border-slate-200 dark:border-slate-800">
+          <div class="flex items-center justify-between pb-3.5 border-b border-slate-100 dark:border-slate-800 mb-4">
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white flex items-center justify-center text-sm shadow-sm">
+                <i class="fa-solid fa-layer-group"></i>
+              </div>
+              <div>
+                <h3 class="text-base font-bold text-slate-900 dark:text-slate-100">Criar Novo Flashcard</h3>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">Digite, desenhe ou tire fotos para ilustrar seu card</p>
+              </div>
+            </div>
+            <button onclick="closeAddFlashcardModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 flex items-center justify-center text-xs transition">
               <i class="fa-solid fa-xmark"></i>
             </button>
           </div>
 
+          <!-- Inputs ocultos para fotos / câmera (traseira em celulares/tablets) -->
+          <input type="file" id="fc-photo-input-front" accept="image/*" class="hidden" onchange="handleFlashcardPhotoUpload(event, 'front')">
+          <input type="file" id="fc-photo-input-back" accept="image/*" class="hidden" onchange="handleFlashcardPhotoUpload(event, 'back')">
+
           <div class="space-y-4 text-xs">
             <div>
-              <label class="block font-bold text-slate-700 mb-1">Disciplina / Categoria</label>
-              <select id="new-fc-category" class="w-full p-2.5 rounded-xl border border-slate-200 text-slate-800">
-                <option value="Física">Física</option>
-                <option value="Matemática">Matemática</option>
-                <option value="Química">Química</option>
-                <option value="Biologia">Biologia</option>
+              <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Disciplina / Categoria</label>
+              <select id="new-fc-category" class="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-medium">
+                <option value="Química">Química (Moléculas, Reações, Soluções)</option>
+                <option value="Física">Física (Fórmulas, Circuitos, Ondulatória)</option>
+                <option value="Matemática">Matemática (Geometria, Funções, Álgebra)</option>
+                <option value="Biologia">Biologia (Citologia, Fisiologia, Genética)</option>
                 <option value="História">História</option>
                 <option value="Geografia">Geografia</option>
-                <option value="Literatura">Literatura</option>
-                <option value="Filosofia">Filosofia</option>
+                <option value="Literatura">Literatura (FUVEST 2027)</option>
+                <option value="Filosofia">Filosofia & Sociologia</option>
               </select>
             </div>
 
-            <div>
-              <label class="block font-bold text-slate-700 mb-1">Frente (Pergunta, Fórmula ou Conceito)</label>
-              <textarea id="new-fc-front" rows="3" placeholder="Ex: Qual é a fórmula do Teorema de Pitágoras?" class="w-full p-3 rounded-xl border border-slate-200"></textarea>
+            <!-- FRENTE (PERGUNTA / CONCEITO) -->
+            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80">
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="block font-bold text-slate-800 dark:text-slate-200">
+                  <span class="text-indigo-600 dark:text-indigo-400 font-black mr-1">1.</span> Frente (Pergunta ou Conceito)
+                </label>
+                <span class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Texto, foto ou desenho</span>
+              </div>
+              <textarea id="new-fc-front" rows="2" placeholder="Digite a pergunta, fórmula ou conceito..." class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 text-xs focus:ring-2 focus:ring-indigo-500 transition"></textarea>
+
+              <!-- Ações Multimídia da Frente -->
+              <div class="flex flex-wrap items-center gap-2 mt-2">
+                <button type="button" onclick="triggerFlashcardPhoto('front')" class="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-[11px] font-bold hover:border-indigo-400 hover:text-indigo-600 transition flex items-center gap-1.5 shadow-sm">
+                  <i class="fa-solid fa-camera text-indigo-500"></i> Tirar / Enviar Foto
+                </button>
+                <button type="button" onclick="openDrawingModal('front')" class="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-[11px] font-bold hover:border-indigo-400 hover:text-indigo-600 transition flex items-center gap-1.5 shadow-sm">
+                  <i class="fa-solid fa-pen-nib text-indigo-500"></i> Desenhar Molécula / Gráfico
+                </button>
+              </div>
+
+              <!-- Preview da Frente -->
+              <div id="new-fc-front-preview-container" class="mt-2.5 hidden">
+                <div class="flex items-center gap-3 p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-sm">
+                  <img id="new-fc-front-preview-img" src="" alt="Frente" class="w-14 h-14 rounded-lg object-contain bg-slate-50 border border-slate-200 dark:border-slate-800 shrink-0 cursor-pointer hover:opacity-90 transition" onclick="openFlashcardImageModal(this.src, 'Prévia da Frente')" title="Clique para ampliar">
+                  <div class="flex-1 min-w-0">
+                    <span id="new-fc-front-preview-badge" class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">Desenho Anexado</span>
+                    <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate mt-0.5">Imagem pronta para o flashcard</p>
+                  </div>
+                  <button type="button" onclick="removeFlashcardMedia('front')" class="w-7 h-7 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 flex items-center justify-center transition" title="Remover imagem">
+                    <i class="fa-solid fa-trash-can text-xs"></i>
+                  </button>
+                </div>
+              </div>
             </div>
 
-            <div>
-              <label class="block font-bold text-slate-700 mb-1">Verso (Resposta ou Macete)</label>
-              <textarea id="new-fc-back" rows="3" placeholder="Ex: a² = b² + c² (o quadrado da hipotenusa...)" class="w-full p-3 rounded-xl border border-slate-200"></textarea>
+            <!-- VERSO (RESPOSTA / RESOLUÇÃO / MACETE) -->
+            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80">
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="block font-bold text-slate-800 dark:text-slate-200">
+                  <span class="text-indigo-600 dark:text-indigo-400 font-black mr-1">2.</span> Verso (Resposta ou Macete)
+                </label>
+                <span class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Texto, foto ou desenho</span>
+              </div>
+              <textarea id="new-fc-back" rows="2" placeholder="Digite a resposta, fórmula, explicação ou macete..." class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 text-xs focus:ring-2 focus:ring-indigo-500 transition"></textarea>
+
+              <!-- Ações Multimídia do Verso -->
+              <div class="flex flex-wrap items-center gap-2 mt-2">
+                <button type="button" onclick="triggerFlashcardPhoto('back')" class="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-[11px] font-bold hover:border-indigo-400 hover:text-indigo-600 transition flex items-center gap-1.5 shadow-sm">
+                  <i class="fa-solid fa-camera text-indigo-500"></i> Tirar / Enviar Foto
+                </button>
+                <button type="button" onclick="openDrawingModal('back')" class="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-[11px] font-bold hover:border-indigo-400 hover:text-indigo-600 transition flex items-center gap-1.5 shadow-sm">
+                  <i class="fa-solid fa-pen-nib text-indigo-500"></i> Desenhar Molécula / Gráfico
+                </button>
+              </div>
+
+              <!-- Preview do Verso -->
+              <div id="new-fc-back-preview-container" class="mt-2.5 hidden">
+                <div class="flex items-center gap-3 p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-sm">
+                  <img id="new-fc-back-preview-img" src="" alt="Verso" class="w-14 h-14 rounded-lg object-contain bg-slate-50 border border-slate-200 dark:border-slate-800 shrink-0 cursor-pointer hover:opacity-90 transition" onclick="openFlashcardImageModal(this.src, 'Prévia do Verso')" title="Clique para ampliar">
+                  <div class="flex-1 min-w-0">
+                    <span id="new-fc-back-preview-badge" class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">Desenho Anexado</span>
+                    <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate mt-0.5">Imagem pronta para o flashcard</p>
+                  </div>
+                  <button type="button" onclick="removeFlashcardMedia('back')" class="w-7 h-7 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 flex items-center justify-center transition" title="Remover imagem">
+                    <i class="fa-solid fa-trash-can text-xs"></i>
+                  </button>
+                </div>
+              </div>
             </div>
 
             <div class="pt-2">
-              <button onclick="saveNewFlashcard()" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-md transition">
-                Salvar Flashcard
+              <button onclick="saveNewFlashcard()" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-md transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-floppy-disk"></i> Salvar Flashcard Completo
               </button>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Modal: Desenhar para o Flashcard (Moléculas, Fórmulas, Gráficos) -->
+      <div id="drawing-canvas-modal" class="fixed inset-0 z-[85] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 hidden">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-2xl w-full p-4 sm:p-6 shadow-2xl border border-slate-200 dark:border-slate-800 animate-fadeIn flex flex-col max-h-[96vh]">
+          <!-- Cabeçalho -->
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-3">
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white flex items-center justify-center shadow-sm">
+                <i class="fa-solid fa-pen-nib text-sm"></i>
+              </div>
+              <div>
+                <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                  Desenhar no Flashcard
+                  <span id="drawing-target-badge" class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">Frente</span>
+                </h3>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">Ideal para moléculas de química, esquemas, fórmulas e geometria</p>
+              </div>
+            </div>
+            <button onclick="closeDrawingModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 flex items-center justify-center text-xs transition">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+
+          <!-- Barra de Ferramentas Superior (Cores, Espessura, Borracha, Undo) -->
+          <div class="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700 mb-3">
+            <!-- Paleta de Cores -->
+            <div class="flex items-center gap-1.5">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mr-1 hidden sm:inline">Cor:</span>
+              <button type="button" onclick="setDrawingColor('#0f172a')" class="w-6 h-6 rounded-full bg-slate-900 border-2 border-white shadow-sm ring-2 ring-indigo-500 drawing-color-btn transition hover:scale-110" data-color="#0f172a" title="Preto (Carbono / Texto)"></button>
+              <button type="button" onclick="setDrawingColor('#2563eb')" class="w-6 h-6 rounded-full bg-blue-600 border-2 border-white shadow-sm drawing-color-btn transition hover:scale-110" data-color="#2563eb" title="Azul (Nitrogênio)"></button>
+              <button type="button" onclick="setDrawingColor('#dc2626')" class="w-6 h-6 rounded-full bg-red-600 border-2 border-white shadow-sm drawing-color-btn transition hover:scale-110" data-color="#dc2626" title="Vermelho (Oxigênio / Destaque)"></button>
+              <button type="button" onclick="setDrawingColor('#16a34a')" class="w-6 h-6 rounded-full bg-emerald-600 border-2 border-white shadow-sm drawing-color-btn transition hover:scale-110" data-color="#16a34a" title="Verde (Cloro / Halogênios)"></button>
+              <button type="button" onclick="setDrawingColor('#9333ea')" class="w-6 h-6 rounded-full bg-purple-600 border-2 border-white shadow-sm drawing-color-btn transition hover:scale-110" data-color="#9333ea" title="Roxo"></button>
+              <label class="w-6 h-6 rounded-full border-2 border-slate-300 dark:border-slate-600 cursor-pointer overflow-hidden relative flex items-center justify-center bg-gradient-to-tr from-rose-500 via-amber-400 to-sky-500 shadow-sm transition hover:scale-110" title="Escolher Outra Cor">
+                <input type="color" id="drawing-custom-color" onchange="setDrawingColor(this.value)" class="opacity-0 absolute inset-0 cursor-pointer w-full h-full">
+              </label>
+            </div>
+
+            <!-- Espessura do Traço -->
+            <div class="flex items-center gap-1 bg-white dark:bg-slate-900 px-2 py-1 rounded-xl border border-slate-200 dark:border-slate-700">
+              <span class="text-[10px] font-bold uppercase text-slate-400 mr-1 hidden sm:inline">Traço:</span>
+              <button type="button" onclick="setDrawingLineWidth(2)" class="px-2 py-1 rounded-lg text-xs font-bold drawing-width-btn text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition" data-width="2">Fino</button>
+              <button type="button" onclick="setDrawingLineWidth(4)" class="px-2 py-1 rounded-lg text-xs font-bold drawing-width-btn bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400" data-width="4">Médio</button>
+              <button type="button" onclick="setDrawingLineWidth(7)" class="px-2 py-1 rounded-lg text-xs font-bold drawing-width-btn text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition" data-width="7">Grosso</button>
+            </div>
+
+            <!-- Ferramentas: Lápis, Borracha, Grade, Desfazer, Limpar -->
+            <div class="flex items-center gap-1.5">
+              <button type="button" id="drawing-tool-pen" onclick="setDrawingTool('pen')" class="px-2.5 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-bold shadow-sm transition flex items-center gap-1" title="Caneta / Lápis">
+                <i class="fa-solid fa-pen"></i> <span class="hidden sm:inline">Lápis</span>
+              </button>
+              <button type="button" id="drawing-tool-eraser" onclick="setDrawingTool('eraser')" class="px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-1" title="Borracha">
+                <i class="fa-solid fa-eraser"></i> <span class="hidden sm:inline">Borracha</span>
+              </button>
+              <button type="button" id="drawing-grid-toggle" onclick="toggleDrawingGrid()" class="px-2 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Alternar Grade de Apoio (ajuda a desenhar ligações e anéis aromáticos)">
+                <i class="fa-solid fa-border-all"></i>
+              </button>
+              <button type="button" onclick="undoDrawing()" class="px-2 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Desfazer último traço">
+                <i class="fa-solid fa-rotate-left"></i>
+              </button>
+              <button type="button" onclick="clearDrawingCanvas()" class="px-2 py-1.5 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 text-xs font-semibold hover:bg-rose-100 dark:hover:bg-rose-900/60 transition" title="Limpar tela inteira">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Área do Canvas de Desenho -->
+          <div class="relative flex-1 min-h-[260px] sm:min-h-[340px] rounded-2xl overflow-hidden border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white shadow-inner flex items-center justify-center">
+            <canvas 
+              id="drawing-canvas" 
+              width="800" 
+              height="500" 
+              class="w-full h-full max-h-[52vh] object-contain cursor-crosshair bg-white"
+              style="touch-action: none;"
+            ></canvas>
+            <div id="drawing-grid-overlay" class="absolute inset-0 pointer-events-none opacity-40 hidden" style="background-image: radial-gradient(#94a3b8 1.2px, transparent 1.2px); background-size: 20px 20px;"></div>
+          </div>
+
+          <!-- Rodapé: Confirmar / Cancelar -->
+          <div class="flex items-center justify-between gap-3 pt-3.5 border-t border-slate-100 dark:border-slate-800 mt-3">
+            <button type="button" onclick="closeDrawingModal()" class="px-4 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold transition">
+              Cancelar
+            </button>
+            <button type="button" onclick="applyDrawingToFlashcard()" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md transition flex items-center gap-1.5">
+              <i class="fa-solid fa-check"></i> Concluir e Anexar ao Card
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal: Visualizador de Imagem / Desenho do Flashcard (Zoom / Lightbox) -->
+      <div id="flashcard-image-modal" class="fixed inset-0 z-[95] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 hidden" onclick="closeFlashcardImageModal()">
+        <div class="relative max-w-4xl max-h-[90vh] flex flex-col items-center" onclick="event.stopPropagation()">
+          <button onclick="closeFlashcardImageModal()" class="absolute -top-10 right-0 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition" title="Fechar ampliação">
+            <i class="fa-solid fa-xmark text-sm"></i>
+          </button>
+          <img id="flashcard-image-modal-img" src="" alt="Imagem do Flashcard" class="max-w-full max-h-[80vh] rounded-2xl object-contain bg-white shadow-2xl border border-white/20">
+          <p id="flashcard-image-modal-caption" class="text-xs text-white/90 mt-2.5 text-center font-medium"></p>
         </div>
       </div>
     </section>
@@ -2445,9 +2617,9 @@
   <script src="js/data/books.js"></script>
   <script src="js/data/redacao.js"></script>
   <script src="js/data/checklist.js"></script>
-  <script src="js/data/flashcards.js"></script>
-  <script src="js/supabaseClient.js?v=3.4"></script>
-  <script src="js/admin.js?v=3.4"></script>
-  <script src="js/app.js?v=3.4"></script>
+  <script src="js/data/flashcards.js?v=3.5"></script>
+  <script src="js/supabaseClient.js?v=3.5"></script>
+  <script src="js/admin.js?v=3.5"></script>
+  <script src="js/app.js?v=3.5"></script>
 </body>
 </html>

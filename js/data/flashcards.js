@@ -58,6 +58,14 @@ const initialFlashcards = [
 
   // QUÍMICA
   {
+    id: "fc_8_benzene",
+    category: "Química",
+    front: "Estrutura do Benzeno (C₆H₆): Qual é a geometria molecular, a hibridização dos carbonos e como funciona a ressonância do anel aromático?",
+    frontImage: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 220' width='320' height='220'><rect width='100%' height='100%' fill='%23ffffff' rx='16'/><polygon points='160,35 225,75 225,145 160,185 95,145 95,75' fill='none' stroke='%230f172a' stroke-width='4' stroke-linejoin='round'/><circle cx='160' cy='110' r='38' fill='none' stroke='%232563eb' stroke-width='3' stroke-dasharray='7,4'/><text x='160' y='26' font-family='sans-serif' font-size='13' font-weight='bold' fill='%230f172a' text-anchor='middle'>CH</text><text x='245' y='78' font-family='sans-serif' font-size='13' font-weight='bold' fill='%230f172a' text-anchor='start'>CH</text><text x='245' y='152' font-family='sans-serif' font-size='13' font-weight='bold' fill='%230f172a' text-anchor='start'>CH</text><text x='160' y='205' font-family='sans-serif' font-size='13' font-weight='bold' fill='%230f172a' text-anchor='middle'>CH</text><text x='75' y='152' font-family='sans-serif' font-size='13' font-weight='bold' fill='%230f172a' text-anchor='end'>CH</text><text x='75' y='78' font-family='sans-serif' font-size='13' font-weight='bold' fill='%230f172a' text-anchor='end'>CH</text><text x='160' y='114' font-family='sans-serif' font-size='11' font-weight='bold' fill='%232563eb' text-anchor='middle'>Nuvem π (Ressonância)</text></svg>",
+    back: "• Fórmula Molecular: C₆H₆ (hidrocarboneto aromático plano)\n• Hibridização: sp² em todos os 6 carbonos (geometria trigonal plana, ângulos de 120°)\n• Ligações: 6 ligações σ (sigma) C-C, 6 ligações σ C-H e 3 ligações π deslocalizadas\n• Ressonância: Os elétrons π formam uma nuvem deslocalizada sobre todo o anel aromático, conferindo estabilidade excepcional (energia de ressonância).",
+    difficulty: "Médio"
+  },
+  {
     id: "fc_8",
     category: "Química",
     front: "Como identificar as principais funções oxigenadas: Álcool, Enol, Fenol, Aldeído, Cetona e Éster?",
