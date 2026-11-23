@@ -4785,12 +4785,23 @@ window.saveSettingsProfile = function() {
 
   if (typeof getLocalStudentAccounts === 'function' && typeof saveLocalStudentAccounts === 'function') {
     const accounts = getLocalStudentAccounts();
-    const idx = accounts.findIndex(a => a.email === current.email);
+    const idx = accounts.findIndex(a => (a.email || '').toLowerCase() === (current.email || '').toLowerCase());
     if (idx !== -1) {
       accounts[idx].displayName = current.displayName;
       accounts[idx].targetCourse = current.targetCourse;
       saveLocalStudentAccounts(accounts);
     }
+  }
+
+  // Sincroniza com Supabase se disponível
+  if (typeof SupabaseManager !== 'undefined' && SupabaseManager.isConfigured && SupabaseManager.client && current.id) {
+    SupabaseManager.client.from('profiles').upsert({
+      id: current.id,
+      email: current.email,
+      display_name: current.displayName,
+      target_course: current.targetCourse,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'id' }).catch(() => {});
   }
 
   if (typeof updateAuthUI === 'function') updateAuthUI();

@@ -2077,7 +2077,7 @@
                   <label id="auth-password-label" class="block font-bold text-slate-700 dark:text-slate-300">
                     <i class="fa-solid fa-lock mr-1 text-indigo-500"></i> Senha
                   </label>
-                  <button type="button" id="auth-forgot-password-link" onclick="toggleAuthMode('reset')" class="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline hidden">Esqueceu a senha?</button>
+                  <button type="button" id="auth-forgot-password-link" onclick="toggleAuthMode('reset', document.getElementById('auth-email')?.value)" class="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline hidden">Esqueceu a senha?</button>
                 </div>
                 <div class="relative">
                   <input type="password" id="auth-password" required minlength="6" placeholder="Mínimo de 6 caracteres" class="w-full pl-3.5 pr-10 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
@@ -2142,6 +2142,9 @@
               <div class="flex items-center gap-3">
                 <button onclick="handleEditProfilePrompt()" class="text-[11px] text-indigo-600 dark:text-indigo-400 font-bold hover:underline flex items-center gap-1">
                   <i class="fa-solid fa-user-pen"></i> Editar Perfil
+                </button>
+                <button onclick="handleChangePasswordPrompt()" class="text-[11px] text-amber-600 dark:text-amber-400 font-bold hover:underline flex items-center gap-1">
+                  <i class="fa-solid fa-key"></i> Alterar Senha
                 </button>
                 <button onclick="handleCreateAnotherAccount()" class="text-[11px] text-slate-500 hover:text-indigo-600 dark:text-slate-400 font-bold hover:underline flex items-center gap-1">
                   <i class="fa-solid fa-user-plus"></i> Nova Conta

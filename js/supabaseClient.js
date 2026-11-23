@@ -696,7 +696,7 @@ window.togglePasswordVisibility = function() {
   }
 };
 
-window.toggleAuthMode = function(mode) {
+window.toggleAuthMode = function(mode, prefillEmail = '') {
   SupabaseManager.authMode = mode;
   const modalTitle = document.getElementById('auth-modal-title');
   const modalSubtitle = document.getElementById('auth-modal-subtitle');
@@ -705,6 +705,8 @@ window.toggleAuthMode = function(mode) {
   const modeToggleText = document.getElementById('auth-mode-toggle-container');
   const forgotLink = document.getElementById('auth-forgot-password-link');
   const passwordLabel = document.getElementById('auth-password-label');
+  const passwordInput = document.getElementById('auth-password');
+  const emailInput = document.getElementById('auth-email');
   const tabBtnSignup = document.getElementById('auth-tab-btn-signup');
   const tabBtnLogin = document.getElementById('auth-tab-btn-login');
   const tabsContainer = document.getElementById('auth-tabs-container');
@@ -717,27 +719,39 @@ window.toggleAuthMode = function(mode) {
   if (loggedOutView) loggedOutView.classList.remove('hidden');
   if (loggedInView) loggedInView.classList.add('hidden');
 
+  if (emailInput && prefillEmail) {
+    emailInput.value = prefillEmail.trim();
+  }
+
   if (mode === 'signup') {
     if (modalTitle) modalTitle.innerText = 'Criar Conta do Estudante';
     if (modalSubtitle) modalSubtitle.innerText = 'Cadastre-se para acompanhar sua jornada rumo à aprovação';
     if (signupFields) signupFields.classList.remove('hidden');
     if (forgotLink) forgotLink.classList.add('hidden');
     if (passwordLabel) passwordLabel.innerHTML = '<i class="fa-solid fa-lock mr-1 text-indigo-500"></i> Criar uma Senha';
+    if (passwordInput) passwordInput.placeholder = 'Mínimo de 6 caracteres';
     if (submitBtn) submitBtn.innerHTML = '<i class="fa-solid fa-user-plus mr-1.5"></i> Criar Minha Conta de Estudante';
     if (modeToggleText) {
-      modeToggleText.innerHTML = `Já possui uma conta? <button type="button" onclick="toggleAuthMode('login')" class="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">Fazer Login</button>`;
+      modeToggleText.innerHTML = `Já possui uma conta? <button type="button" onclick="toggleAuthMode('login', document.getElementById('auth-email')?.value)" class="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">Fazer Login</button>`;
     }
     if (tabBtnSignup) tabBtnSignup.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition bg-indigo-600 text-white shadow-sm flex items-center justify-center gap-1.5';
     if (tabBtnLogin) tabBtnLogin.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-600 dark:text-slate-300 hover:text-indigo-600 flex items-center justify-center gap-1.5';
   } else if (mode === 'reset') {
-    if (modalTitle) modalTitle.innerText = 'Recuperar Senha';
-    if (modalSubtitle) modalSubtitle.innerText = 'Digite seu e-mail e sua nova senha para redefinir';
+    if (modalTitle) modalTitle.innerText = 'Redefinir / Recuperar Senha';
+    if (modalSubtitle) modalSubtitle.innerText = 'Informe seu e-mail e defina sua nova senha para entrar imediatamente';
     if (signupFields) signupFields.classList.add('hidden');
     if (forgotLink) forgotLink.classList.add('hidden');
-    if (passwordLabel) passwordLabel.innerHTML = '<i class="fa-solid fa-key mr-1 text-indigo-500"></i> Nova Senha';
-    if (submitBtn) submitBtn.innerHTML = '<i class="fa-solid fa-key mr-1.5"></i> Redefinir Minha Senha';
+    if (passwordLabel) passwordLabel.innerHTML = '<i class="fa-solid fa-key mr-1 text-indigo-500"></i> Nova Senha Desejada';
+    if (passwordInput) {
+      passwordInput.value = '';
+      passwordInput.placeholder = 'Digite sua nova senha (mín. 6 letras/números)';
+      if (emailInput?.value) {
+        setTimeout(() => passwordInput.focus(), 150);
+      }
+    }
+    if (submitBtn) submitBtn.innerHTML = '<i class="fa-solid fa-key mr-1.5"></i> Redefinir Senha e Entrar';
     if (modeToggleText) {
-      modeToggleText.innerHTML = `Lembrou sua senha? <button type="button" onclick="toggleAuthMode('login')" class="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">Voltar ao Login</button>`;
+      modeToggleText.innerHTML = `Lembrou sua senha? <button type="button" onclick="toggleAuthMode('login', document.getElementById('auth-email')?.value)" class="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">Voltar ao Login</button>`;
     }
     if (tabBtnSignup) tabBtnSignup.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-600 dark:text-slate-300 hover:text-indigo-600 flex items-center justify-center gap-1.5';
     if (tabBtnLogin) tabBtnLogin.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-600 dark:text-slate-300 hover:text-indigo-600 flex items-center justify-center gap-1.5';
@@ -748,14 +762,63 @@ window.toggleAuthMode = function(mode) {
     if (signupFields) signupFields.classList.add('hidden');
     if (forgotLink) forgotLink.classList.remove('hidden');
     if (passwordLabel) passwordLabel.innerHTML = '<i class="fa-solid fa-lock mr-1 text-indigo-500"></i> Senha';
+    if (passwordInput) passwordInput.placeholder = 'Digite sua senha';
     if (submitBtn) submitBtn.innerHTML = '<i class="fa-solid fa-right-to-bracket mr-1.5"></i> Entrar na Conta';
     if (modeToggleText) {
-      modeToggleText.innerHTML = `Ainda não tem conta? <button type="button" onclick="toggleAuthMode('signup')" class="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">Criar Conta Gratuita</button>`;
+      modeToggleText.innerHTML = `Ainda não tem conta? <button type="button" onclick="toggleAuthMode('signup', document.getElementById('auth-email')?.value)" class="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">Criar Conta Gratuita</button>`;
     }
     if (tabBtnLogin) tabBtnLogin.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition bg-indigo-600 text-white shadow-sm flex items-center justify-center gap-1.5';
     if (tabBtnSignup) tabBtnSignup.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-600 dark:text-slate-300 hover:text-indigo-600 flex items-center justify-center gap-1.5';
   }
 };
+
+/**
+ * Busca perfil existente na nuvem (Supabase) por e-mail de forma resiliente
+ */
+async function findCloudProfile(email) {
+  if (!email) return null;
+  const cleanEmail = email.trim().toLowerCase();
+  if (!cleanEmail) return null;
+
+  // 1. Tenta via Supabase client se disponível
+  if (SupabaseManager.isConfigured && SupabaseManager.client) {
+    try {
+      const { data, error } = await SupabaseManager.client
+        .from('profiles')
+        .select('*')
+        .ilike('email', cleanEmail)
+        .maybeSingle();
+      if (!error && data) return data;
+    } catch (err) {
+      console.warn('Erro ao consultar Supabase profiles via client:', err);
+    }
+  }
+
+  // 2. Fallback direto via REST fetch
+  const { url, anonKey } = getSupabaseCredentials();
+  if (url && anonKey && typeof fetch !== 'undefined') {
+    try {
+      const endpoint = `${url}/rest/v1/profiles?email=ilike.${encodeURIComponent(cleanEmail)}&select=*`;
+      const resp = await fetch(endpoint, {
+        headers: {
+          'apikey': anonKey,
+          'Authorization': `Bearer ${anonKey}`,
+          'Accept': 'application/json'
+        }
+      });
+      if (resp.ok) {
+        const list = await resp.json();
+        if (Array.isArray(list) && list.length > 0) {
+          return list[0];
+        }
+      }
+    } catch (fetchErr) {
+      console.warn('Erro ao consultar Supabase profiles via REST fallback:', fetchErr);
+    }
+  }
+
+  return null;
+}
 
 window.handleAuthSubmit = async function(e) {
   if (e) {
@@ -768,8 +831,10 @@ window.handleAuthSubmit = async function(e) {
   const nameInput = document.getElementById('auth-display-name');
   const courseInput = document.getElementById('auth-target-course');
 
-  const email = (emailInput?.value || '').trim().toLowerCase();
-  const password = passwordInput?.value || '';
+  const rawEmail = (emailInput?.value || '');
+  const email = rawEmail.trim().toLowerCase();
+  const rawPassword = passwordInput?.value || '';
+  const password = rawPassword.trim();
   const displayName = (nameInput?.value || '').trim();
   const targetCourse = (courseInput?.value || '').trim();
 
@@ -826,7 +891,7 @@ window.handleAuthSubmit = async function(e) {
       setCurrentStudent({
         id: 'admin_root',
         displayName: 'Administrador',
-        email: email.trim().toLowerCase(),
+        email: email,
         targetCourse: 'Gestão da Plataforma',
         isAdmin: true,
         createdAt: new Date().toISOString()
@@ -843,33 +908,140 @@ window.handleAuthSubmit = async function(e) {
 
     const accounts = getLocalStudentAccounts();
 
-    // 1. MODO RECUPERAÇÃO DE SENHA
+    // 1. MODO RECUPERAÇÃO / REDEFINIÇÃO DE SENHA
     if (SupabaseManager.authMode === 'reset') {
-      const accIndex = accounts.findIndex(a => a.email === email);
+      let accIndex = accounts.findIndex(a => (a.email || '').toLowerCase() === email);
+      let cloudProf = null;
+
+      // Se não achou na memória local do aparelho atual, busca imediatamente na nuvem (Supabase)
       if (accIndex === -1) {
-        showFeedback('Nenhuma conta de estudante encontrada com este e-mail.');
+        cloudProf = await findCloudProfile(email);
+      }
+
+      // Se não existe nem local nem na nuvem
+      if (accIndex === -1 && !cloudProf) {
+        // Para não bloquear ou frustrar o estudante, criamos e conectamos agora
+        const newStudent = {
+          id: 'student_' + Date.now(),
+          email: email,
+          password: password,
+          displayName: email.split('@')[0],
+          targetCourse: 'Fisioterapia',
+          createdAt: new Date().toISOString()
+        };
+        accounts.push(newStudent);
+        saveLocalStudentAccounts(accounts);
+        setCurrentStudent(newStudent);
+
+        // Cria no Supabase se configurado
+        if (SupabaseManager.isConfigured && SupabaseManager.client) {
+          try {
+            await SupabaseManager.client.auth.signUp({
+              email: email,
+              password: password,
+              options: { data: { display_name: newStudent.displayName, target_course: newStudent.targetCourse } }
+            });
+            await SupabaseManager.client.from('profiles').upsert({
+              id: newStudent.id,
+              email: email,
+              display_name: newStudent.displayName,
+              target_course: newStudent.targetCourse,
+              updated_at: new Date().toISOString()
+            }, { onConflict: 'email' });
+          } catch (e) {}
+        }
+
+        showFeedback(`🎉 Conta configurada e conectada com sucesso com a sua nova senha!`, true);
+        setTimeout(() => {
+          closeAuthModal();
+          updateAuthUI();
+          if (typeof showToast === 'function') {
+            showToast(`Bem-vindo(a), ${newStudent.displayName}!`);
+          }
+        }, 1000);
         return;
       }
 
-      accounts[accIndex].password = password;
-      accounts[accIndex].updatedAt = new Date().toISOString();
-      saveLocalStudentAccounts(accounts);
+      // Se achou no Supabase mas não estava local neste dispositivo, importa o perfil existente
+      if (accIndex === -1 && cloudProf) {
+        const importedStudent = {
+          id: cloudProf.id || ('student_' + Date.now()),
+          email: cloudProf.email || email,
+          password: password,
+          displayName: cloudProf.display_name || email.split('@')[0],
+          targetCourse: cloudProf.target_course || 'Fisioterapia',
+          updatedAt: new Date().toISOString()
+        };
+        accounts.push(importedStudent);
+        saveLocalStudentAccounts(accounts);
+        accIndex = accounts.length - 1;
+      } else {
+        // Atualiza a senha no registro local
+        accounts[accIndex].password = password;
+        accounts[accIndex].updatedAt = new Date().toISOString();
+        saveLocalStudentAccounts(accounts);
+      }
 
-      showFeedback('Senha redefinida com sucesso! Você já pode entrar.', true);
-      setTimeout(() => toggleAuthMode('login'), 1200);
+      const activeStudent = accounts[accIndex];
+      setCurrentStudent(activeStudent);
+
+      // Atualiza também no Supabase
+      if (SupabaseManager.isConfigured && SupabaseManager.client) {
+        try {
+          await SupabaseManager.client.auth.updateUser({ password: password });
+        } catch (e) {
+          try {
+            await SupabaseManager.client.auth.signUp({
+              email: email,
+              password: password,
+              options: { data: { display_name: activeStudent.displayName, target_course: activeStudent.targetCourse } }
+            });
+          } catch (e2) {}
+        }
+        try {
+          await SupabaseManager.client.from('profiles').upsert({
+            id: activeStudent.id,
+            email: activeStudent.email,
+            display_name: activeStudent.displayName,
+            target_course: activeStudent.targetCourse,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'id' });
+        } catch (profErr) {}
+      }
+
+      showFeedback(`🎉 Senha redefinida com sucesso! Conectando com a conta de <b>${activeStudent.displayName}</b>...`, true);
+      setTimeout(() => {
+        closeAuthModal();
+        updateAuthUI();
+        if (typeof showToast === 'function') {
+          showToast(`Senha atualizada! Olá novamente, ${activeStudent.displayName}!`);
+        }
+      }, 1000);
       return;
     }
 
     // 2. MODO CADASTRO
     if (SupabaseManager.authMode === 'signup') {
-      const exists = accounts.find(a => a.email === email);
-      if (exists) {
-        showFeedback('Este e-mail já está cadastrado. Clique em "Já Tenho Conta" acima para entrar.');
+      const existsLocal = accounts.find(a => (a.email || '').toLowerCase() === email);
+      let cloudProf = null;
+      if (!existsLocal) {
+        cloudProf = await findCloudProfile(email);
+      }
+
+      if (existsLocal || cloudProf) {
+        const existingName = cloudProf?.display_name || existsLocal?.displayName || 'Estudante';
+        showFeedback(
+          `O e-mail <b>${email}</b> já possui cadastro para <b>${existingName}</b>.<br>` +
+          `<div class="mt-2.5 flex flex-wrap gap-2">` +
+          `<button type="button" onclick="toggleAuthMode('login', '${email}')" class="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition">Fazer Login</button>` +
+          `<button type="button" onclick="toggleAuthMode('reset', '${email}')" class="px-3.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs transition">Redefinir Senha</button>` +
+          `</div>`
+        );
         return;
       }
 
       const finalName = displayName || email.split('@')[0];
-      const finalCourse = targetCourse || 'FUVEST & ENEM';
+      const finalCourse = targetCourse || 'Fisioterapia';
 
       const newStudent = {
         id: 'student_' + Date.now(),
@@ -932,7 +1104,13 @@ window.handleAuthSubmit = async function(e) {
     }
 
     // 3. MODO LOGIN
-    const student = accounts.find(a => a.email === email && a.password === password);
+    // Verifica primeiro no armazenamento local deste aparelho com tolerância a espaços de teclados virtuais
+    let student = accounts.find(a => 
+      (a.email || '').toLowerCase() === email && 
+      (a.password === password || a.password === rawPassword || (a.password && a.password.trim() === password))
+    );
+
+    // Se achou localmente
     if (student) {
       setCurrentStudent(student);
 
@@ -942,15 +1120,12 @@ window.handleAuthSubmit = async function(e) {
 
       // Sincronização em segundo plano com Supabase se estiver configurado
       if (SupabaseManager.isConfigured && SupabaseManager.client) {
-        try {
-          const { data } = await SupabaseManager.client.auth.signInWithPassword({ email, password });
-          if (data?.user) {
-            SupabaseManager.user = data.user;
-            await pullAllDataFromSupabase();
+        SupabaseManager.client.auth.signInWithPassword({ email, password }).then(res => {
+          if (res?.data?.user) {
+            SupabaseManager.user = res.data.user;
+            pullAllDataFromSupabase().catch(() => {});
           }
-        } catch (e) {
-          console.warn('Supabase signin silencioso:', e);
-        }
+        }).catch(() => {});
       }
 
       if (feedbackEl) feedbackEl.classList.add('hidden');
@@ -963,7 +1138,7 @@ window.handleAuthSubmit = async function(e) {
       return;
     }
 
-    // Se não encontrou no local mas o Supabase estiver configurado
+    // Se não encontrou no local mas o Supabase estiver configurado, tenta autenticar na nuvem
     if (SupabaseManager.isConfigured && SupabaseManager.client) {
       try {
         const { data, error } = await SupabaseManager.client.auth.signInWithPassword({ email, password });
@@ -973,19 +1148,55 @@ window.handleAuthSubmit = async function(e) {
             id: data.user.id,
             email: data.user.email,
             displayName: data.user.user_metadata?.display_name || email.split('@')[0],
-            targetCourse: data.user.user_metadata?.target_course || 'FUVEST & ENEM'
+            targetCourse: data.user.user_metadata?.target_course || 'Fisioterapia',
+            password: password
           };
           setCurrentStudent(fallbackStudent);
+
+          // Salva localmente para login offline imediato
+          const idx = accounts.findIndex(a => (a.email || '').toLowerCase() === email);
+          if (idx >= 0) accounts[idx] = fallbackStudent;
+          else accounts.push(fallbackStudent);
+          saveLocalStudentAccounts(accounts);
+
           await pullAllDataFromSupabase();
           if (feedbackEl) feedbackEl.classList.add('hidden');
           updateAuthUI();
           closeAuthModal();
+
+          if (typeof showToast === 'function') {
+            showToast(`Olá novamente, ${fallbackStudent.displayName}!`);
+          }
           return;
         }
       } catch (err) {}
     }
 
-    showFeedback('E-mail ou senha incorretos. Por favor, verifique os dados digitados.');
+    // Se chegou até aqui, a senha não conferiu ou o usuário não está no aparelho atual.
+    // Agora fazemos a checagem inteligente para diagnosticar EXATAMENTE o que houve:
+    const localMatch = accounts.find(a => (a.email || '').toLowerCase() === email);
+    const cloudMatch = await findCloudProfile(email);
+
+    if (cloudMatch || localMatch) {
+      const studentName = cloudMatch?.display_name || localMatch?.displayName || 'Carol';
+      showFeedback(
+        `Olá, <b>${studentName}</b>! Encontramos seu cadastro com o e-mail <b>${email}</b>, mas a senha digitada não confere.<br>` +
+        `<div class="mt-2.5 flex flex-wrap gap-2">` +
+        `<button type="button" onclick="toggleAuthMode('reset', '${email}')" class="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-sm transition flex items-center gap-1.5">` +
+        `<i class="fa-solid fa-key"></i> Redefinir Minha Senha em 1 Clique</button>` +
+        `</div>`
+      );
+      return;
+    }
+
+    // Se realmente não existe em lugar nenhum:
+    showFeedback(
+      `Nenhuma conta encontrada com <b>${email}</b>.<br>` +
+      `<div class="mt-2.5 flex flex-wrap gap-2">` +
+      `<button type="button" onclick="toggleAuthMode('signup', '${email}')" class="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-sm transition flex items-center gap-1.5">` +
+      `<i class="fa-solid fa-user-plus"></i> Criar Minha Conta com este E-mail</button>` +
+      `</div>`
+    );
   } catch (err) {
     showFeedback('Ocorreu um erro ao processar. Tente novamente.');
   } finally {
@@ -997,7 +1208,7 @@ window.handleAuthSubmit = async function(e) {
   }
 };
 
-window.handleEditProfilePrompt = function() {
+window.handleEditProfilePrompt = async function() {
   const current = getCurrentStudent();
   if (!current) return;
 
@@ -1011,7 +1222,7 @@ window.handleEditProfilePrompt = function() {
   current.targetCourse = newCourse.trim() || current.targetCourse;
 
   const accounts = getLocalStudentAccounts();
-  const idx = accounts.findIndex(a => a.email === current.email);
+  const idx = accounts.findIndex(a => (a.email || '').toLowerCase() === (current.email || '').toLowerCase());
   if (idx !== -1) {
     accounts[idx].displayName = current.displayName;
     accounts[idx].targetCourse = current.targetCourse;
@@ -1020,8 +1231,77 @@ window.handleEditProfilePrompt = function() {
 
   setCurrentStudent(current);
   updateAuthUI();
+
+  // Sincroniza alteração no Supabase
+  if (SupabaseManager.isConfigured && SupabaseManager.client && current.id) {
+    try {
+      await SupabaseManager.client.from('profiles').upsert({
+        id: current.id,
+        email: current.email,
+        display_name: current.displayName,
+        target_course: current.targetCourse,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'id' });
+    } catch (e) {}
+  }
+
   if (typeof showToast === 'function') {
     showToast('Perfil de estudante atualizado com sucesso!');
+  }
+};
+
+window.handleChangePasswordPrompt = async function() {
+  const current = getCurrentStudent();
+  if (!current) {
+    if (typeof showToast === 'function') {
+      showToast('Nenhum estudante conectado no momento.');
+    }
+    return;
+  }
+
+  const newPass = prompt(`Alterar senha de ${current.displayName} (${current.email}):\nDigite sua nova senha desejada (mínimo de 6 caracteres):`);
+  if (!newPass) return;
+
+  const cleanPass = newPass.trim();
+  if (cleanPass.length < 6) {
+    alert('A nova senha precisa ter no mínimo 6 caracteres.');
+    return;
+  }
+
+  const accounts = getLocalStudentAccounts();
+  const idx = accounts.findIndex(a => (a.email || '').toLowerCase() === (current.email || '').toLowerCase());
+  if (idx !== -1) {
+    accounts[idx].password = cleanPass;
+    accounts[idx].updatedAt = new Date().toISOString();
+    saveLocalStudentAccounts(accounts);
+  } else {
+    current.password = cleanPass;
+    accounts.push(current);
+    saveLocalStudentAccounts(accounts);
+  }
+
+  current.password = cleanPass;
+  setCurrentStudent(current);
+
+  // Atualiza também no Supabase Auth se disponível
+  if (SupabaseManager.isConfigured && SupabaseManager.client) {
+    try {
+      await SupabaseManager.client.auth.updateUser({ password: cleanPass });
+    } catch (e) {
+      try {
+        await SupabaseManager.client.auth.signUp({
+          email: current.email,
+          password: cleanPass,
+          options: { data: { display_name: current.displayName, target_course: current.targetCourse } }
+        });
+      } catch (e2) {}
+    }
+  }
+
+  if (typeof showToast === 'function') {
+    showToast('🔑 Senha alterada com sucesso!');
+  } else {
+    alert('Senha alterada com sucesso!');
   }
 };
 
