@@ -308,6 +308,13 @@ function initModalsDismissal() {
     });
   }
 
+  const essayPhotoModal = document.getElementById('essay-photo-transcribe-modal');
+  if (essayPhotoModal) {
+    essayPhotoModal.addEventListener('click', (e) => {
+      if (e.target === essayPhotoModal && typeof closeEssayPhotoModal === 'function') closeEssayPhotoModal();
+    });
+  }
+
   // Atalho da tecla ESC para fechar qualquer modal ou menu lateral ativo
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' || e.key === 'Esc') {
@@ -317,6 +324,7 @@ function initModalsDismissal() {
       if (typeof closeAddFlashcardModal === 'function') closeAddFlashcardModal();
       if (typeof closeDrawingModal === 'function') closeDrawingModal();
       if (typeof closeFlashcardImageModal === 'function') closeFlashcardImageModal();
+      if (typeof closeEssayPhotoModal === 'function') closeEssayPhotoModal();
       if (typeof closeCountdownSettingsModal === 'function') closeCountdownSettingsModal();
       if (typeof closeSettingsModal === 'function') closeSettingsModal();
       if (typeof closeAdminStudentDetailModal === 'function') closeAdminStudentDetailModal();
@@ -2700,6 +2708,9 @@ function estimateLinesFromImageData(imgData, height) {
 
 window.handleEssaySheetPhoto = async function(event) {
   const file = event?.target?.files?.[0];
+  if (event?.target) {
+    try { event.target.value = ''; } catch (e) {}
+  }
   if (!file) return;
 
   if (!file.type.startsWith('image/')) {
@@ -2747,7 +2758,11 @@ window.openEssayPhotoModal = function(imgSrc, defaultLines = 28, initialText = '
     onTranscribedTextareaInput();
   }
 
-  if (modal) modal.classList.remove('hidden');
+  if (modal) {
+    modal.classList.remove('hidden');
+    modal.scrollTop = 0;
+  }
+  document.body.style.overflow = 'hidden';
 };
 
 window.closeEssayPhotoModal = function() {
@@ -2755,6 +2770,7 @@ window.closeEssayPhotoModal = function() {
   const loader = document.getElementById('essay-photo-ocr-loader');
   if (modal) modal.classList.add('hidden');
   if (loader) loader.classList.add('hidden');
+  document.body.style.overflow = '';
 };
 
 window.adjustEssayPhotoLines = function(delta) {
@@ -2986,6 +3002,7 @@ window.applyTranscribedEssayToLab = function() {
   if (labTextarea) labTextarea.value = text;
   updateEssayCounters();
   closeEssayPhotoModal();
+  document.body.style.overflow = '';
 
   if (labTextarea) {
     labTextarea.scrollIntoView({ behavior: 'smooth', block: 'center' });

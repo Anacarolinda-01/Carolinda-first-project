@@ -1038,13 +1038,6 @@
           <div id="books-checklist-container" class="space-y-3"></div>
         </div>
       </div>
-
-      <!-- Modal de Detalhamento da Obra Literária -->
-      <div id="book-detail-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-        <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-4xl w-full p-6 md:p-8 shadow-2xl overflow-hidden animate-fadeIn border border-slate-200 dark:border-slate-800" id="book-modal-content">
-          <!-- Conteúdo gerado dinamicamente via JS -->
-        </div>
-      </div>
     </section>
 
 
@@ -1441,187 +1434,6 @@
           <!-- Conteúdo gerado dinamicamente via JS -->
         </div>
       </div>
-
-      <!-- Modal: Tirar Foto da Folha e Transcrever Redação com Preservação de Linhas -->
-      <div id="essay-photo-transcribe-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 hidden">
-        <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-4xl w-full p-5 sm:p-7 shadow-2xl border border-slate-200 dark:border-slate-800 animate-fadeIn max-h-[92vh] flex flex-col">
-          <!-- Cabeçalho -->
-          <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-4 shrink-0">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-950/70 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-lg shadow-sm border border-indigo-100 dark:border-indigo-900">
-                <i class="fa-solid fa-camera"></i>
-              </div>
-              <div>
-                <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                  <span>Transcrever Redação da Folha Manuscrita</span>
-                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">OCR + IA</span>
-                </h3>
-                <p class="text-xs text-slate-500 dark:text-slate-400">Preserva a quantidade real de linhas da folha física para evitar distorções na tela digital.</p>
-              </div>
-            </div>
-            <button type="button" onclick="closeEssayPhotoModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 flex items-center justify-center transition cursor-pointer" title="Fechar janela">
-              <i class="fa-solid fa-xmark text-sm"></i>
-            </button>
-          </div>
-
-          <!-- Conteúdo com Scroll -->
-          <div class="overflow-y-auto pr-1 space-y-4 flex-1">
-            <!-- Alerta Educativo sobre Quebra de Linhas Digital vs Folha Física -->
-            <div class="p-3.5 rounded-2xl bg-indigo-50/80 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 text-xs text-indigo-950 dark:text-indigo-200 flex items-start gap-2.5">
-              <i class="fa-solid fa-circle-info text-indigo-600 dark:text-indigo-400 text-sm mt-0.5 shrink-0"></i>
-              <div class="leading-relaxed">
-                <strong>Por que guardamos a quantidade de linhas da folha?</strong>
-                Em folhas oficiais de vestibular cabem de 75 a 85 caracteres por linha (25 a 30 linhas). Quando o texto é transcrito para celular ou computador, as linhas digitais se quebram com menor largura (podendo aparentar 38 ou 45 linhas). <strong>O BrilhaVest registra suas linhas manuscritas oficiais para que o corretor de IA avalie sua extensão com total fidelidade e sem punições indevidas!</strong>
-              </div>
-            </div>
-
-            <!-- Grade: Coluna da Foto & Coluna da Transcrição e Linhas -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <!-- Coluna 1: Imagem da Folha -->
-              <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
-                <div>
-                  <div class="flex items-center justify-between mb-2.5">
-                    <span class="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                      <i class="fa-solid fa-image text-indigo-500"></i> Foto da sua Folha:
-                    </span>
-                    <button type="button" onclick="document.getElementById('essay-sheet-photo-input').click()" class="text-[11px] font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 flex items-center gap-1 cursor-pointer">
-                      <i class="fa-solid fa-arrow-up-from-bracket"></i> Trocar Foto
-                    </button>
-                  </div>
-
-                  <div class="relative w-full h-56 sm:h-64 rounded-xl overflow-hidden bg-slate-200 dark:bg-slate-800 flex items-center justify-center border border-slate-300 dark:border-slate-700 group">
-                    <img id="essay-photo-modal-preview" src="" alt="Prévia da folha" class="w-full h-full object-contain">
-                    
-                    <!-- Loader de OCR Sobreposto -->
-                    <div id="essay-photo-ocr-loader" class="absolute inset-0 bg-slate-900/85 backdrop-blur-sm flex flex-col items-center justify-center p-4 text-white text-center hidden">
-                      <div class="w-10 h-10 border-4 border-indigo-400 border-t-transparent rounded-full animate-spin mb-3"></div>
-                      <span id="essay-ocr-status-text" class="text-xs font-bold mb-2">Transcrevendo caligrafia com IA...</span>
-                      <div class="w-48 bg-slate-700 h-2 rounded-full overflow-hidden mb-3">
-                        <div id="essay-ocr-progress-bar" class="bg-indigo-500 h-2 rounded-full transition-all duration-300" style="width: 15%"></div>
-                      </div>
-                      <button type="button" onclick="cancelEssayOCR()" class="px-3 py-1 rounded-lg bg-white/20 hover:bg-white/30 text-white text-[11px] font-semibold transition cursor-pointer">
-                        Pular e digitar no campo
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500 dark:text-slate-400">
-                  <span>💡 Dica: fotos nítidas e bem iluminadas garantem melhor leitura.</span>
-                  <button type="button" onclick="transcribeWithGeminiVision()" class="font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 cursor-pointer">
-                    <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i> Transcrever com Gemini Vision
-                  </button>
-                </div>
-              </div>
-
-              <!-- Coluna 2: Linhas Manuscritas + Texto Transcrito -->
-              <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
-                <div>
-                  <!-- Controle de Linhas Manuscritas (Stepper 1 a 30) -->
-                  <div class="mb-3.5 p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
-                    <label class="block text-xs font-bold text-slate-800 dark:text-slate-100 mb-1.5 flex items-center justify-between">
-                      <span class="flex items-center gap-1.5">
-                        <i class="fa-solid fa-list-ol text-indigo-500"></i> Linhas escritas na folha física:
-                      </span>
-                      <span id="essay-photo-lines-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300">
-                        28 linhas (Ideal)
-                      </span>
-                    </label>
-
-                    <div class="flex items-center gap-2">
-                      <button 
-                        type="button" 
-                        onclick="adjustEssayPhotoLines(-1)" 
-                        class="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold text-sm transition flex items-center justify-center cursor-pointer"
-                        title="Diminuir linhas"
-                      >
-                        <i class="fa-solid fa-minus"></i>
-                      </button>
-
-                      <div class="flex-1 relative">
-                        <input 
-                          type="number" 
-                          id="essay-photo-lines-stepper" 
-                          min="1" 
-                          max="30" 
-                          value="28" 
-                          oninput="onEssayPhotoLinesChange(this.value)"
-                          class="w-full text-center font-mono font-bold text-base py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        >
-                      </div>
-
-                      <button 
-                        type="button" 
-                        onclick="adjustEssayPhotoLines(1)" 
-                        class="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold text-sm transition flex items-center justify-center cursor-pointer"
-                        title="Aumentar linhas"
-                      >
-                        <i class="fa-solid fa-plus"></i>
-                      </button>
-                    </div>
-
-                    <p class="text-[10px] text-slate-400 mt-1.5">
-                      Ajuste para coincidir exatamente com a última linha preenchida na sua folha oficial (1 a 30).
-                    </p>
-                  </div>
-
-                  <!-- Textarea de Revisão da Transcrição -->
-                  <div>
-                    <label for="essay-photo-transcribed-textarea" class="block text-xs font-bold text-slate-800 dark:text-slate-100 mb-1 flex items-center justify-between">
-                      <span class="flex items-center gap-1.5">
-                        <i class="fa-solid fa-pen-to-square text-indigo-500"></i> Texto Transcrito (Editável):
-                      </span>
-                      <span id="essay-photo-transcribed-words" class="text-[10px] font-mono text-slate-400">0 palavras</span>
-                    </label>
-                    <textarea 
-                      id="essay-photo-transcribed-textarea" 
-                      rows="8" 
-                      oninput="onTranscribedTextareaInput()"
-                      placeholder="O texto transcrito da foto aparecerá aqui... Você poderá corrigir eventuais palavras antes de enviar ao laboratório." 
-                      class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs text-slate-800 dark:text-slate-100 leading-relaxed focus:outline-none focus:ring-2 focus:ring-indigo-500 font-sans"
-                    ></textarea>
-                  </div>
-                </div>
-
-                <div class="mt-2 text-[10px] text-slate-400">
-                  Você pode editar livremente qualquer palavra que o OCR possa ter confundido.
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Rodapé do Modal -->
-          <div class="pt-4 border-t border-slate-100 dark:border-slate-800 mt-3 flex flex-wrap items-center justify-between gap-3 shrink-0">
-            <button 
-              type="button" 
-              onclick="loadSampleHandwrittenSheet()" 
-              class="px-3 py-2 rounded-xl border border-dashed border-indigo-300 dark:border-indigo-700 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
-              title="Testar agora com uma folha manuscrita de demonstração pronta"
-            >
-              <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i>
-              Testar com Folha de Demonstração
-            </button>
-
-            <div class="flex items-center gap-2">
-              <button 
-                type="button" 
-                onclick="closeEssayPhotoModal()" 
-                class="px-4 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition cursor-pointer"
-              >
-                Cancelar
-              </button>
-              <button 
-                type="button" 
-                onclick="applyTranscribedEssayToLab()" 
-                class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-200 dark:shadow-none transition flex items-center gap-2 cursor-pointer"
-              >
-                <i class="fa-solid fa-check"></i>
-                Inserir no Laboratório de Redação
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
     </section>
 
 
@@ -1743,223 +1555,421 @@
           Dica: clique no cartão para virar e conferir a resolução ou o macete.
         </p>
       </div>
+    </section>
 
-      <!-- Modal: Adicionar Novo Flashcard Personalizado (com Texto, Foto e Desenho) -->
-      <div id="add-flashcard-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 hidden">
-        <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl animate-fadeIn max-h-[92vh] overflow-y-auto border border-slate-200 dark:border-slate-800">
-          <div class="flex items-center justify-between pb-3.5 border-b border-slate-100 dark:border-slate-800 mb-4">
-            <div class="flex items-center gap-2.5">
-              <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white flex items-center justify-center text-sm shadow-sm">
-                <i class="fa-solid fa-layer-group"></i>
-              </div>
-              <div>
-                <h3 class="text-base font-bold text-slate-900 dark:text-slate-100">Criar Novo Flashcard</h3>
-                <p class="text-[11px] text-slate-500 dark:text-slate-400">Digite, desenhe ou tire fotos para ilustrar seu card</p>
-              </div>
+    <!-- ======================================================== -->
+    <!-- MODAL: ADICIONAR NOVO FLASHCARD (TEXTO, FOTO E DESENHO)  -->
+    <!-- ======================================================== -->
+    <div id="add-flashcard-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 hidden">
+      <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl animate-fadeIn max-h-[92vh] overflow-y-auto border border-slate-200 dark:border-slate-800">
+        <div class="flex items-center justify-between pb-3.5 border-b border-slate-100 dark:border-slate-800 mb-4">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white flex items-center justify-center text-sm shadow-sm">
+              <i class="fa-solid fa-layer-group"></i>
             </div>
-            <button onclick="closeAddFlashcardModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 flex items-center justify-center text-xs transition">
-              <i class="fa-solid fa-xmark"></i>
-            </button>
-          </div>
-
-          <!-- Inputs ocultos para fotos / câmera (traseira em celulares/tablets) -->
-          <input type="file" id="fc-photo-input-front" accept="image/*" class="hidden" onchange="handleFlashcardPhotoUpload(event, 'front')">
-          <input type="file" id="fc-photo-input-back" accept="image/*" class="hidden" onchange="handleFlashcardPhotoUpload(event, 'back')">
-
-          <div class="space-y-4 text-xs">
             <div>
-              <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Disciplina / Categoria</label>
-              <select id="new-fc-category" class="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-medium">
-                <option value="Química">Química (Moléculas, Reações, Soluções)</option>
-                <option value="Física">Física (Fórmulas, Circuitos, Ondulatória)</option>
-                <option value="Matemática">Matemática (Geometria, Funções, Álgebra)</option>
-                <option value="Biologia">Biologia (Citologia, Fisiologia, Genética)</option>
-                <option value="História">História</option>
-                <option value="Geografia">Geografia</option>
-                <option value="Literatura">Literatura (FUVEST 2027)</option>
-                <option value="Filosofia">Filosofia & Sociologia</option>
-              </select>
-            </div>
-
-            <!-- FRENTE (PERGUNTA / CONCEITO) -->
-            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80">
-              <div class="flex items-center justify-between mb-1.5">
-                <label class="block font-bold text-slate-800 dark:text-slate-200">
-                  <span class="text-indigo-600 dark:text-indigo-400 font-black mr-1">1.</span> Frente (Pergunta ou Conceito)
-                </label>
-                <span class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Texto, foto ou desenho</span>
-              </div>
-              <textarea id="new-fc-front" rows="2" placeholder="Digite a pergunta, fórmula ou conceito..." class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 text-xs focus:ring-2 focus:ring-indigo-500 transition"></textarea>
-
-              <!-- Ações Multimídia da Frente -->
-              <div class="flex flex-wrap items-center gap-2 mt-2">
-                <button type="button" onclick="triggerFlashcardPhoto('front')" class="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-[11px] font-bold hover:border-indigo-400 hover:text-indigo-600 transition flex items-center gap-1.5 shadow-sm">
-                  <i class="fa-solid fa-camera text-indigo-500"></i> Tirar / Enviar Foto
-                </button>
-                <button type="button" onclick="openDrawingModal('front')" class="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-[11px] font-bold hover:border-indigo-400 hover:text-indigo-600 transition flex items-center gap-1.5 shadow-sm">
-                  <i class="fa-solid fa-pen-nib text-indigo-500"></i> Desenhar
-                </button>
-              </div>
-
-              <!-- Preview da Frente -->
-              <div id="new-fc-front-preview-container" class="mt-2.5 hidden">
-                <div class="flex items-center gap-3 p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-sm">
-                  <img id="new-fc-front-preview-img" src="" alt="Frente" class="w-14 h-14 rounded-lg object-contain bg-slate-50 border border-slate-200 dark:border-slate-800 shrink-0 cursor-pointer hover:opacity-90 transition" onclick="openFlashcardImageModal(this.src, 'Prévia da Frente')" title="Clique para ampliar">
-                  <div class="flex-1 min-w-0">
-                    <span id="new-fc-front-preview-badge" class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">Desenho Anexado</span>
-                    <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate mt-0.5">Imagem pronta para o flashcard</p>
-                  </div>
-                  <button type="button" onclick="removeFlashcardMedia('front')" class="w-7 h-7 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 flex items-center justify-center transition" title="Remover imagem">
-                    <i class="fa-solid fa-trash-can text-xs"></i>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- VERSO (RESPOSTA / RESOLUÇÃO / MACETE) -->
-            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80">
-              <div class="flex items-center justify-between mb-1.5">
-                <label class="block font-bold text-slate-800 dark:text-slate-200">
-                  <span class="text-indigo-600 dark:text-indigo-400 font-black mr-1">2.</span> Verso (Resposta ou Macete)
-                </label>
-                <span class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Texto, foto ou desenho</span>
-              </div>
-              <textarea id="new-fc-back" rows="2" placeholder="Digite a resposta, fórmula, explicação ou macete..." class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 text-xs focus:ring-2 focus:ring-indigo-500 transition"></textarea>
-
-              <!-- Ações Multimídia do Verso -->
-              <div class="flex flex-wrap items-center gap-2 mt-2">
-                <button type="button" onclick="triggerFlashcardPhoto('back')" class="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-[11px] font-bold hover:border-indigo-400 hover:text-indigo-600 transition flex items-center gap-1.5 shadow-sm">
-                  <i class="fa-solid fa-camera text-indigo-500"></i> Tirar / Enviar Foto
-                </button>
-                <button type="button" onclick="openDrawingModal('back')" class="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-[11px] font-bold hover:border-indigo-400 hover:text-indigo-600 transition flex items-center gap-1.5 shadow-sm">
-                  <i class="fa-solid fa-pen-nib text-indigo-500"></i> Desenhar
-                </button>
-              </div>
-
-              <!-- Preview do Verso -->
-              <div id="new-fc-back-preview-container" class="mt-2.5 hidden">
-                <div class="flex items-center gap-3 p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-sm">
-                  <img id="new-fc-back-preview-img" src="" alt="Verso" class="w-14 h-14 rounded-lg object-contain bg-slate-50 border border-slate-200 dark:border-slate-800 shrink-0 cursor-pointer hover:opacity-90 transition" onclick="openFlashcardImageModal(this.src, 'Prévia do Verso')" title="Clique para ampliar">
-                  <div class="flex-1 min-w-0">
-                    <span id="new-fc-back-preview-badge" class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">Desenho Anexado</span>
-                    <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate mt-0.5">Imagem pronta para o flashcard</p>
-                  </div>
-                  <button type="button" onclick="removeFlashcardMedia('back')" class="w-7 h-7 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 flex items-center justify-center transition" title="Remover imagem">
-                    <i class="fa-solid fa-trash-can text-xs"></i>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div class="pt-2">
-              <button onclick="saveNewFlashcard()" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-md transition flex items-center justify-center gap-2">
-                <i class="fa-solid fa-floppy-disk"></i> Salvar Flashcard Completo
-              </button>
+              <h3 class="text-base font-bold text-slate-900 dark:text-slate-100">Criar Novo Flashcard</h3>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400">Digite, desenhe ou tire fotos para ilustrar seu card</p>
             </div>
           </div>
+          <button onclick="closeAddFlashcardModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 flex items-center justify-center text-xs transition">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
         </div>
-      </div>
 
-      <!-- Modal: Desenhar para o Flashcard (Moléculas, Fórmulas, Gráficos) -->
-      <div id="drawing-canvas-modal" class="fixed inset-0 z-[85] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 hidden">
-        <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-2xl w-full p-4 sm:p-6 shadow-2xl border border-slate-200 dark:border-slate-800 animate-fadeIn flex flex-col max-h-[96vh]">
-          <!-- Cabeçalho -->
-          <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-3">
-            <div class="flex items-center gap-2.5">
-              <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white flex items-center justify-center shadow-sm">
-                <i class="fa-solid fa-pen-nib text-sm"></i>
-              </div>
-              <div>
-                <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                  Desenhar no Flashcard
-                  <span id="drawing-target-badge" class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">Frente</span>
-                </h3>
-                <p class="text-[11px] text-slate-500 dark:text-slate-400">Ideal para moléculas de química, esquemas, fórmulas e geometria</p>
-              </div>
-            </div>
-            <button onclick="closeDrawingModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 flex items-center justify-center text-xs transition">
-              <i class="fa-solid fa-xmark"></i>
-            </button>
+        <!-- Inputs ocultos para fotos / câmera (traseira em celulares/tablets) -->
+        <input type="file" id="fc-photo-input-front" accept="image/*" class="hidden" onchange="handleFlashcardPhotoUpload(event, 'front')">
+        <input type="file" id="fc-photo-input-back" accept="image/*" class="hidden" onchange="handleFlashcardPhotoUpload(event, 'back')">
+
+        <div class="space-y-4 text-xs">
+          <div>
+            <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Disciplina / Categoria</label>
+            <select id="new-fc-category" class="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-medium">
+              <option value="Química">Química (Moléculas, Reações, Soluções)</option>
+              <option value="Física">Física (Fórmulas, Circuitos, Ondulatória)</option>
+              <option value="Matemática">Matemática (Geometria, Funções, Álgebra)</option>
+              <option value="Biologia">Biologia (Citologia, Fisiologia, Genética)</option>
+              <option value="História">História</option>
+              <option value="Geografia">Geografia</option>
+              <option value="Literatura">Literatura (FUVEST 2027)</option>
+              <option value="Filosofia">Filosofia & Sociologia</option>
+            </select>
           </div>
 
-          <!-- Barra de Ferramentas Superior (Cores, Espessura, Borracha, Undo) -->
-          <div class="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700 mb-3">
-            <!-- Paleta de Cores -->
-            <div class="flex items-center gap-1.5">
-              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mr-1 hidden sm:inline">Cor:</span>
-              <button type="button" onclick="setDrawingColor('#0f172a')" class="w-6 h-6 rounded-full bg-slate-900 border-2 border-white shadow-sm ring-2 ring-indigo-500 drawing-color-btn transition hover:scale-110" data-color="#0f172a" title="Preto (Carbono / Texto)"></button>
-              <button type="button" onclick="setDrawingColor('#2563eb')" class="w-6 h-6 rounded-full bg-blue-600 border-2 border-white shadow-sm drawing-color-btn transition hover:scale-110" data-color="#2563eb" title="Azul (Nitrogênio)"></button>
-              <button type="button" onclick="setDrawingColor('#dc2626')" class="w-6 h-6 rounded-full bg-red-600 border-2 border-white shadow-sm drawing-color-btn transition hover:scale-110" data-color="#dc2626" title="Vermelho (Oxigênio / Destaque)"></button>
-              <button type="button" onclick="setDrawingColor('#16a34a')" class="w-6 h-6 rounded-full bg-emerald-600 border-2 border-white shadow-sm drawing-color-btn transition hover:scale-110" data-color="#16a34a" title="Verde (Cloro / Halogênios)"></button>
-              <button type="button" onclick="setDrawingColor('#9333ea')" class="w-6 h-6 rounded-full bg-purple-600 border-2 border-white shadow-sm drawing-color-btn transition hover:scale-110" data-color="#9333ea" title="Roxo"></button>
-              <label class="w-6 h-6 rounded-full border-2 border-slate-300 dark:border-slate-600 cursor-pointer overflow-hidden relative flex items-center justify-center bg-gradient-to-tr from-rose-500 via-amber-400 to-sky-500 shadow-sm transition hover:scale-110" title="Escolher Outra Cor">
-                <input type="color" id="drawing-custom-color" onchange="setDrawingColor(this.value)" class="opacity-0 absolute inset-0 cursor-pointer w-full h-full">
+          <!-- FRENTE (PERGUNTA / CONCEITO) -->
+          <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80">
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="block font-bold text-slate-800 dark:text-slate-200">
+                <span class="text-indigo-600 dark:text-indigo-400 font-black mr-1">1.</span> Frente (Pergunta ou Conceito)
               </label>
+              <span class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Texto, foto ou desenho</span>
+            </div>
+            <textarea id="new-fc-front" rows="2" placeholder="Digite a pergunta, fórmula ou conceito..." class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 text-xs focus:ring-2 focus:ring-indigo-500 transition"></textarea>
+
+            <!-- Ações Multimídia da Frente -->
+            <div class="flex flex-wrap items-center gap-2 mt-2">
+              <button type="button" onclick="triggerFlashcardPhoto('front')" class="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-[11px] font-bold hover:border-indigo-400 hover:text-indigo-600 transition flex items-center gap-1.5 shadow-sm">
+                <i class="fa-solid fa-camera text-indigo-500"></i> Tirar / Enviar Foto
+              </button>
+              <button type="button" onclick="openDrawingModal('front')" class="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-[11px] font-bold hover:border-indigo-400 hover:text-indigo-600 transition flex items-center gap-1.5 shadow-sm">
+                <i class="fa-solid fa-pen-nib text-indigo-500"></i> Desenhar
+              </button>
             </div>
 
-            <!-- Espessura do Traço -->
-            <div class="flex items-center gap-1 bg-white dark:bg-slate-900 px-2 py-1 rounded-xl border border-slate-200 dark:border-slate-700">
-              <span class="text-[10px] font-bold uppercase text-slate-400 mr-1 hidden sm:inline">Traço:</span>
-              <button type="button" onclick="setDrawingLineWidth(2)" class="px-2 py-1 rounded-lg text-xs font-bold drawing-width-btn text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition" data-width="2">Fino</button>
-              <button type="button" onclick="setDrawingLineWidth(4)" class="px-2 py-1 rounded-lg text-xs font-bold drawing-width-btn bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400" data-width="4">Médio</button>
-              <button type="button" onclick="setDrawingLineWidth(7)" class="px-2 py-1 rounded-lg text-xs font-bold drawing-width-btn text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition" data-width="7">Grosso</button>
-            </div>
-
-            <!-- Ferramentas: Lápis, Borracha, Grade, Desfazer, Limpar -->
-            <div class="flex items-center gap-1.5">
-              <button type="button" id="drawing-tool-pen" onclick="setDrawingTool('pen')" class="px-2.5 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-bold shadow-sm transition flex items-center gap-1" title="Caneta / Lápis">
-                <i class="fa-solid fa-pen"></i> <span class="hidden sm:inline">Lápis</span>
-              </button>
-              <button type="button" id="drawing-tool-eraser" onclick="setDrawingTool('eraser')" class="px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-1" title="Borracha">
-                <i class="fa-solid fa-eraser"></i> <span class="hidden sm:inline">Borracha</span>
-              </button>
-              <button type="button" id="drawing-grid-toggle" onclick="toggleDrawingGrid()" class="px-2 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Alternar Grade de Apoio (ajuda a desenhar ligações e anéis aromáticos)">
-                <i class="fa-solid fa-border-all"></i>
-              </button>
-              <button type="button" onclick="undoDrawing()" class="px-2 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Desfazer último traço">
-                <i class="fa-solid fa-rotate-left"></i>
-              </button>
-              <button type="button" onclick="clearDrawingCanvas()" class="px-2 py-1.5 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 text-xs font-semibold hover:bg-rose-100 dark:hover:bg-rose-900/60 transition" title="Limpar tela inteira">
-                <i class="fa-solid fa-trash"></i>
-              </button>
+            <!-- Preview da Frente -->
+            <div id="new-fc-front-preview-container" class="mt-2.5 hidden">
+              <div class="flex items-center gap-3 p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-sm">
+                <img id="new-fc-front-preview-img" src="" alt="Frente" class="w-14 h-14 rounded-lg object-contain bg-slate-50 border border-slate-200 dark:border-slate-800 shrink-0 cursor-pointer hover:opacity-90 transition" onclick="openFlashcardImageModal(this.src, 'Prévia da Frente')" title="Clique para ampliar">
+                <div class="flex-1 min-w-0">
+                  <span id="new-fc-front-preview-badge" class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">Desenho Anexado</span>
+                  <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate mt-0.5">Imagem pronta para o flashcard</p>
+                </div>
+                <button type="button" onclick="removeFlashcardMedia('front')" class="w-7 h-7 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 flex items-center justify-center transition" title="Remover imagem">
+                  <i class="fa-solid fa-trash-can text-xs"></i>
+                </button>
+              </div>
             </div>
           </div>
 
-          <!-- Área do Canvas de Desenho -->
-          <div class="relative flex-1 min-h-[260px] sm:min-h-[340px] rounded-2xl overflow-hidden border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white shadow-inner flex items-center justify-center">
-            <canvas 
-              id="drawing-canvas" 
-              width="800" 
-              height="500" 
-              class="w-full h-full max-h-[52vh] object-contain cursor-crosshair bg-white"
-              style="touch-action: none;"
-            ></canvas>
-            <div id="drawing-grid-overlay" class="absolute inset-0 pointer-events-none opacity-40 hidden" style="background-image: radial-gradient(#94a3b8 1.2px, transparent 1.2px); background-size: 20px 20px;"></div>
+          <!-- VERSO (RESPOSTA / RESOLUÇÃO / MACETE) -->
+          <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80">
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="block font-bold text-slate-800 dark:text-slate-200">
+                <span class="text-indigo-600 dark:text-indigo-400 font-black mr-1">2.</span> Verso (Resposta ou Macete)
+              </label>
+              <span class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Texto, foto ou desenho</span>
+            </div>
+            <textarea id="new-fc-back" rows="2" placeholder="Digite a resposta, fórmula, explicação ou macete..." class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 text-xs focus:ring-2 focus:ring-indigo-500 transition"></textarea>
+
+            <!-- Ações Multimídia do Verso -->
+            <div class="flex flex-wrap items-center gap-2 mt-2">
+              <button type="button" onclick="triggerFlashcardPhoto('back')" class="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-[11px] font-bold hover:border-indigo-400 hover:text-indigo-600 transition flex items-center gap-1.5 shadow-sm">
+                <i class="fa-solid fa-camera text-indigo-500"></i> Tirar / Enviar Foto
+              </button>
+              <button type="button" onclick="openDrawingModal('back')" class="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-[11px] font-bold hover:border-indigo-400 hover:text-indigo-600 transition flex items-center gap-1.5 shadow-sm">
+                <i class="fa-solid fa-pen-nib text-indigo-500"></i> Desenhar
+              </button>
+            </div>
+
+            <!-- Preview do Verso -->
+            <div id="new-fc-back-preview-container" class="mt-2.5 hidden">
+              <div class="flex items-center gap-3 p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-sm">
+                <img id="new-fc-back-preview-img" src="" alt="Verso" class="w-14 h-14 rounded-lg object-contain bg-slate-50 border border-slate-200 dark:border-slate-800 shrink-0 cursor-pointer hover:opacity-90 transition" onclick="openFlashcardImageModal(this.src, 'Prévia do Verso')" title="Clique para ampliar">
+                <div class="flex-1 min-w-0">
+                  <span id="new-fc-back-preview-badge" class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">Desenho Anexado</span>
+                  <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate mt-0.5">Imagem pronta para o flashcard</p>
+                </div>
+                <button type="button" onclick="removeFlashcardMedia('back')" class="w-7 h-7 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 flex items-center justify-center transition" title="Remover imagem">
+                  <i class="fa-solid fa-trash-can text-xs"></i>
+                </button>
+              </div>
+            </div>
           </div>
 
-          <!-- Rodapé: Confirmar / Cancelar -->
-          <div class="flex items-center justify-between gap-3 pt-3.5 border-t border-slate-100 dark:border-slate-800 mt-3">
-            <button type="button" onclick="closeDrawingModal()" class="px-4 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold transition">
-              Cancelar
-            </button>
-            <button type="button" onclick="applyDrawingToFlashcard()" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md transition flex items-center gap-1.5">
-              <i class="fa-solid fa-check"></i> Concluir e Anexar ao Card
+          <div class="pt-2">
+            <button onclick="saveNewFlashcard()" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-md transition flex items-center justify-center gap-2">
+              <i class="fa-solid fa-floppy-disk"></i> Salvar Flashcard Completo
             </button>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Modal: Visualizador de Imagem / Desenho do Flashcard (Zoom / Lightbox) -->
-      <div id="flashcard-image-modal" class="fixed inset-0 z-[95] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 hidden" onclick="closeFlashcardImageModal()">
-        <div class="relative max-w-4xl max-h-[90vh] flex flex-col items-center" onclick="event.stopPropagation()">
-          <button onclick="closeFlashcardImageModal()" class="absolute -top-10 right-0 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition" title="Fechar ampliação">
+    <!-- ======================================================== -->
+    <!-- MODAL: DESENHAR NO FLASHCARD (MOLÉCULAS, GRÁFICOS)      -->
+    <!-- ======================================================== -->
+    <div id="drawing-canvas-modal" class="fixed inset-0 z-[85] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 hidden">
+      <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-2xl w-full p-4 sm:p-6 shadow-2xl border border-slate-200 dark:border-slate-800 animate-fadeIn flex flex-col max-h-[96vh]">
+        <!-- Cabeçalho -->
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white flex items-center justify-center shadow-sm">
+              <i class="fa-solid fa-pen-nib text-sm"></i>
+            </div>
+            <div>
+              <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                Desenhar no Flashcard
+                <span id="drawing-target-badge" class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">Frente</span>
+              </h3>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400">Ideal para moléculas de química, esquemas, fórmulas e geometria</p>
+            </div>
+          </div>
+          <button onclick="closeDrawingModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 flex items-center justify-center text-xs transition">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <!-- Barra de Ferramentas Superior (Cores, Espessura, Borracha, Undo) -->
+        <div class="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700 mb-3">
+          <!-- Paleta de Cores -->
+          <div class="flex items-center gap-1.5">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mr-1 hidden sm:inline">Cor:</span>
+            <button type="button" onclick="setDrawingColor('#0f172a')" class="w-6 h-6 rounded-full bg-slate-900 border-2 border-white shadow-sm ring-2 ring-indigo-500 drawing-color-btn transition hover:scale-110" data-color="#0f172a" title="Preto (Carbono / Texto)"></button>
+            <button type="button" onclick="setDrawingColor('#2563eb')" class="w-6 h-6 rounded-full bg-blue-600 border-2 border-white shadow-sm drawing-color-btn transition hover:scale-110" data-color="#2563eb" title="Azul (Nitrogênio)"></button>
+            <button type="button" onclick="setDrawingColor('#dc2626')" class="w-6 h-6 rounded-full bg-red-600 border-2 border-white shadow-sm drawing-color-btn transition hover:scale-110" data-color="#dc2626" title="Vermelho (Oxigênio / Destaque)"></button>
+            <button type="button" onclick="setDrawingColor('#16a34a')" class="w-6 h-6 rounded-full bg-emerald-600 border-2 border-white shadow-sm drawing-color-btn transition hover:scale-110" data-color="#16a34a" title="Verde (Cloro / Halogênios)"></button>
+            <button type="button" onclick="setDrawingColor('#9333ea')" class="w-6 h-6 rounded-full bg-purple-600 border-2 border-white shadow-sm drawing-color-btn transition hover:scale-110" data-color="#9333ea" title="Roxo"></button>
+            <label class="w-6 h-6 rounded-full border-2 border-slate-300 dark:border-slate-600 cursor-pointer overflow-hidden relative flex items-center justify-center bg-gradient-to-tr from-rose-500 via-amber-400 to-sky-500 shadow-sm transition hover:scale-110" title="Escolher Outra Cor">
+              <input type="color" id="drawing-custom-color" onchange="setDrawingColor(this.value)" class="opacity-0 absolute inset-0 cursor-pointer w-full h-full">
+            </label>
+          </div>
+
+          <!-- Espessura do Traço -->
+          <div class="flex items-center gap-1 bg-white dark:bg-slate-900 px-2 py-1 rounded-xl border border-slate-200 dark:border-slate-700">
+            <span class="text-[10px] font-bold uppercase text-slate-400 mr-1 hidden sm:inline">Traço:</span>
+            <button type="button" onclick="setDrawingLineWidth(2)" class="px-2 py-1 rounded-lg text-xs font-bold drawing-width-btn text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition" data-width="2">Fino</button>
+            <button type="button" onclick="setDrawingLineWidth(4)" class="px-2 py-1 rounded-lg text-xs font-bold drawing-width-btn bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400" data-width="4">Médio</button>
+            <button type="button" onclick="setDrawingLineWidth(7)" class="px-2 py-1 rounded-lg text-xs font-bold drawing-width-btn text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition" data-width="7">Grosso</button>
+          </div>
+
+          <!-- Ferramentas: Lápis, Borracha, Grade, Desfazer, Limpar -->
+          <div class="flex items-center gap-1.5">
+            <button type="button" id="drawing-tool-pen" onclick="setDrawingTool('pen')" class="px-2.5 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-bold shadow-sm transition flex items-center gap-1" title="Caneta / Lápis">
+              <i class="fa-solid fa-pen"></i> <span class="hidden sm:inline">Lápis</span>
+            </button>
+            <button type="button" id="drawing-tool-eraser" onclick="setDrawingTool('eraser')" class="px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-1" title="Borracha">
+              <i class="fa-solid fa-eraser"></i> <span class="hidden sm:inline">Borracha</span>
+            </button>
+            <button type="button" id="drawing-grid-toggle" onclick="toggleDrawingGrid()" class="px-2 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Alternar Grade de Apoio (ajuda a desenhar ligações e anéis aromáticos)">
+              <i class="fa-solid fa-border-all"></i>
+            </button>
+            <button type="button" onclick="undoDrawing()" class="px-2 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Desfazer último traço">
+              <i class="fa-solid fa-rotate-left"></i>
+            </button>
+            <button type="button" onclick="clearDrawingCanvas()" class="px-2 py-1.5 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 text-xs font-semibold hover:bg-rose-100 dark:hover:bg-rose-900/60 transition" title="Limpar tela inteira">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Área do Canvas de Desenho -->
+        <div class="relative flex-1 min-h-[260px] sm:min-h-[340px] rounded-2xl overflow-hidden border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white shadow-inner flex items-center justify-center">
+          <canvas 
+            id="drawing-canvas" 
+            width="800" 
+            height="500" 
+            class="w-full h-full max-h-[52vh] object-contain cursor-crosshair bg-white"
+            style="touch-action: none;"
+          ></canvas>
+          <div id="drawing-grid-overlay" class="absolute inset-0 pointer-events-none opacity-40 hidden" style="background-image: radial-gradient(#94a3b8 1.2px, transparent 1.2px); background-size: 20px 20px;"></div>
+        </div>
+
+        <!-- Rodapé: Confirmar / Cancelar -->
+        <div class="flex items-center justify-between gap-3 pt-3.5 border-t border-slate-100 dark:border-slate-800 mt-3">
+          <button type="button" onclick="closeDrawingModal()" class="px-4 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold transition">
+            Cancelar
+          </button>
+          <button type="button" onclick="applyDrawingToFlashcard()" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md transition flex items-center gap-1.5">
+            <i class="fa-solid fa-check"></i> Concluir e Anexar ao Card
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- MODAL: VISUALIZADOR DE IMAGEM / DESENHO (LIGHTBOX)      -->
+    <!-- ======================================================== -->
+    <div id="flashcard-image-modal" class="fixed inset-0 z-[95] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 hidden" onclick="closeFlashcardImageModal()">
+      <div class="relative max-w-4xl max-h-[90vh] flex flex-col items-center" onclick="event.stopPropagation()">
+        <button onclick="closeFlashcardImageModal()" class="absolute -top-10 right-0 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition" title="Fechar ampliação">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+        <img id="flashcard-image-modal-img" src="" alt="Imagem do Flashcard" class="max-w-full max-h-[80vh] rounded-2xl object-contain bg-white shadow-2xl border border-white/20">
+        <p id="flashcard-image-modal-caption" class="text-xs text-white/90 mt-2.5 text-center font-medium"></p>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- MODAL: TRANSCREVER REDAÇÃO DA FOLHA MANUSCRITA          -->
+    <!-- ======================================================== -->
+    <div id="essay-photo-transcribe-modal" onclick="if(event.target === this) closeEssayPhotoModal()" class="fixed inset-0 z-[85] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 overflow-y-auto hidden">
+      <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-4xl w-full p-4 sm:p-7 shadow-2xl border border-slate-200 dark:border-slate-800 animate-fadeIn max-h-[92vh] flex flex-col my-auto">
+        <!-- Cabeçalho -->
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-4 shrink-0">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-950/70 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-lg shadow-sm border border-indigo-100 dark:border-indigo-900">
+              <i class="fa-solid fa-camera"></i>
+            </div>
+            <div>
+              <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <span>Transcrever Redação da Folha Manuscrita</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">OCR + IA</span>
+              </h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Preserva a quantidade real de linhas da folha física para evitar distorções na tela digital.</p>
+            </div>
+          </div>
+          <button type="button" onclick="closeEssayPhotoModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 flex items-center justify-center transition cursor-pointer" title="Fechar janela">
             <i class="fa-solid fa-xmark text-sm"></i>
           </button>
-          <img id="flashcard-image-modal-img" src="" alt="Imagem do Flashcard" class="max-w-full max-h-[80vh] rounded-2xl object-contain bg-white shadow-2xl border border-white/20">
-          <p id="flashcard-image-modal-caption" class="text-xs text-white/90 mt-2.5 text-center font-medium"></p>
+        </div>
+
+        <!-- Conteúdo com Scroll -->
+        <div class="overflow-y-auto pr-1 space-y-4 flex-1">
+          <!-- Alerta Educativo sobre Quebra de Linhas Digital vs Folha Física -->
+          <div class="p-3.5 rounded-2xl bg-indigo-50/80 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 text-xs text-indigo-950 dark:text-indigo-200 flex items-start gap-2.5">
+            <i class="fa-solid fa-circle-info text-indigo-600 dark:text-indigo-400 text-sm mt-0.5 shrink-0"></i>
+            <div class="leading-relaxed">
+              <strong>Por que guardamos a quantidade de linhas da folha?</strong>
+              Em folhas oficiais de vestibular cabem de 75 a 85 caracteres por linha (25 a 30 linhas). Quando o texto é transcrito para celular ou computador, as linhas digitais se quebram com menor largura (podendo aparentar 38 ou 45 linhas). <strong>O BrilhaVest registra suas linhas manuscritas oficiais para que o corretor de IA avalie sua extensão com total fidelidade e sem punições indevidas!</strong>
+            </div>
+          </div>
+
+          <!-- Grade: Coluna da Foto & Coluna da Transcrição e Linhas -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Coluna 1: Imagem da Folha -->
+            <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between mb-2.5">
+                  <span class="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                    <i class="fa-solid fa-image text-indigo-500"></i> Foto da sua Folha:
+                  </span>
+                  <button type="button" onclick="document.getElementById('essay-sheet-photo-input').click()" class="text-[11px] font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 flex items-center gap-1 cursor-pointer">
+                    <i class="fa-solid fa-arrow-up-from-bracket"></i> Trocar Foto
+                  </button>
+                </div>
+
+                <div class="relative w-full h-56 sm:h-64 rounded-xl overflow-hidden bg-slate-200 dark:bg-slate-800 flex items-center justify-center border border-slate-300 dark:border-slate-700 group">
+                  <img id="essay-photo-modal-preview" src="" alt="Prévia da folha" class="w-full h-full object-contain">
+                  
+                  <!-- Loader de OCR Sobreposto -->
+                  <div id="essay-photo-ocr-loader" class="absolute inset-0 bg-slate-900/85 backdrop-blur-sm flex flex-col items-center justify-center p-4 text-white text-center hidden">
+                    <div class="w-10 h-10 border-4 border-indigo-400 border-t-transparent rounded-full animate-spin mb-3"></div>
+                    <span id="essay-ocr-status-text" class="text-xs font-bold mb-2">Transcrevendo caligrafia com IA...</span>
+                    <div class="w-48 bg-slate-700 h-2 rounded-full overflow-hidden mb-3">
+                      <div id="essay-ocr-progress-bar" class="bg-indigo-500 h-2 rounded-full transition-all duration-300" style="width: 15%"></div>
+                    </div>
+                    <button type="button" onclick="cancelEssayOCR()" class="px-3 py-1 rounded-lg bg-white/20 hover:bg-white/30 text-white text-[11px] font-semibold transition cursor-pointer">
+                      Pular e digitar no campo
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500 dark:text-slate-400">
+                <span>💡 Dica: fotos nítidas e bem iluminadas garantem melhor leitura.</span>
+                <button type="button" onclick="transcribeWithGeminiVision()" class="font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 cursor-pointer">
+                  <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i> Transcrever com Gemini Vision
+                </button>
+              </div>
+            </div>
+
+            <!-- Coluna 2: Linhas Manuscritas + Texto Transcrito -->
+            <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+              <div>
+                <!-- Controle de Linhas Manuscritas (Stepper 1 a 30) -->
+                <div class="mb-3.5 p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
+                  <label class="block text-xs font-bold text-slate-800 dark:text-slate-100 mb-1.5 flex items-center justify-between">
+                    <span class="flex items-center gap-1.5">
+                      <i class="fa-solid fa-list-ol text-indigo-500"></i> Linhas escritas na folha física:
+                    </span>
+                    <span id="essay-photo-lines-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300">
+                      28 linhas (Ideal)
+                    </span>
+                  </label>
+
+                  <div class="flex items-center gap-2">
+                    <button 
+                      type="button" 
+                      onclick="adjustEssayPhotoLines(-1)" 
+                      class="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold text-sm transition flex items-center justify-center cursor-pointer"
+                      title="Diminuir linhas"
+                    >
+                      <i class="fa-solid fa-minus"></i>
+                    </button>
+
+                    <div class="flex-1 relative">
+                      <input 
+                        type="number" 
+                        id="essay-photo-lines-stepper" 
+                        min="1" 
+                        max="30" 
+                        value="28" 
+                        oninput="onEssayPhotoLinesChange(this.value)"
+                        class="w-full text-center font-mono font-bold text-base py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      >
+                    </div>
+
+                    <button 
+                      type="button" 
+                      onclick="adjustEssayPhotoLines(1)" 
+                      class="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold text-sm transition flex items-center justify-center cursor-pointer"
+                      title="Aumentar linhas"
+                    >
+                      <i class="fa-solid fa-plus"></i>
+                    </button>
+                  </div>
+
+                  <p class="text-[10px] text-slate-400 mt-1.5">
+                    Ajuste para coincidir exatamente com a última linha preenchida na sua folha oficial (1 a 30).
+                  </p>
+                </div>
+
+                <!-- Textarea de Revisão da Transcrição -->
+                <div>
+                  <label for="essay-photo-transcribed-textarea" class="block text-xs font-bold text-slate-800 dark:text-slate-100 mb-1 flex items-center justify-between">
+                    <span class="flex items-center gap-1.5">
+                      <i class="fa-solid fa-pen-to-square text-indigo-500"></i> Texto Transcrito (Editável):
+                    </span>
+                    <span id="essay-photo-transcribed-words" class="text-[10px] font-mono text-slate-400">0 palavras</span>
+                  </label>
+                  <textarea 
+                    id="essay-photo-transcribed-textarea" 
+                    rows="8" 
+                    oninput="onTranscribedTextareaInput()"
+                    placeholder="O texto transcrito da foto aparecerá aqui... Você poderá corrigir eventuais palavras antes de enviar ao laboratório." 
+                    class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs text-slate-800 dark:text-slate-100 leading-relaxed focus:outline-none focus:ring-2 focus:ring-indigo-500 font-sans"
+                  ></textarea>
+                </div>
+              </div>
+
+              <div class="mt-2 text-[10px] text-slate-400">
+                Você pode editar livremente qualquer palavra que o OCR possa ter confundido.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rodapé do Modal -->
+        <div class="pt-4 border-t border-slate-100 dark:border-slate-800 mt-3 flex flex-wrap items-center justify-between gap-3 shrink-0">
+          <button 
+            type="button" 
+            onclick="loadSampleHandwrittenSheet()" 
+            class="px-3 py-2 rounded-xl border border-dashed border-indigo-300 dark:border-indigo-700 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+            title="Testar agora com uma folha manuscrita de demonstração pronta"
+          >
+            <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i>
+            Testar com Folha de Demonstração
+          </button>
+
+          <div class="flex items-center gap-2">
+            <button 
+              type="button" 
+              onclick="closeEssayPhotoModal()" 
+              class="px-4 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition cursor-pointer"
+            >
+              Cancelar
+            </button>
+            <button 
+              type="button" 
+              onclick="applyTranscribedEssayToLab()" 
+              class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-200 dark:shadow-none transition flex items-center gap-2 cursor-pointer"
+            >
+              <i class="fa-solid fa-check"></i>
+              Inserir no Laboratório de Redação
+            </button>
+          </div>
         </div>
       </div>
-    </section>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- MODAL: DETALHAMENTO DA OBRA LITERÁRIA                    -->
+    <!-- ======================================================== -->
+    <div id="book-detail-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+      <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-4xl w-full p-6 md:p-8 shadow-2xl overflow-hidden animate-fadeIn border border-slate-200 dark:border-slate-800" id="book-modal-content">
+        <!-- Conteúdo gerado dinamicamente via JS -->
+      </div>
+    </div>
 
     <!-- ======================================================== -->
     <!-- MODAL: CONTA DO ESTUDANTE                                -->
