@@ -1,9 +1,9 @@
 /**
  * Service Worker do BrilhaVest - PWA Offline, Cache & Notificações Push / Diárias
- * Versão: 4.4.0
+ * Versão: 4.5.0
  */
 
-const CACHE_NAME = 'brilhavest-cache-v4.4';
+const CACHE_NAME = 'brilhavest-cache-v4.5';
 
 const ASSETS_TO_CACHE = [
   './',
@@ -15,6 +15,7 @@ const ASSETS_TO_CACHE = [
   './icons/icon-maskable-512.png',
   './icons/apple-touch-icon.png',
   './js/app.js',
+  './js/essayAiAgent.js',
   './js/supabaseClient.js',
   './js/admin.js',
   './js/data/questions_matematica.js',

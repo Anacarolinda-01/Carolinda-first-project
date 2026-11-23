@@ -2207,6 +2207,365 @@ window.openCurrentEnemProposalFromLab = function() {
   }
 };
 
+// ==========================================
+// AGENTE DE IA CORRETOR DE REDAÇÃO (ENEM & FUVEST)
+// ==========================================
+let lastAICorrectionResult = null;
+
+window.requestAICorrection = async function() {
+  const text = (document.getElementById('essay-textarea')?.value || '').trim();
+  const topic = (document.getElementById('essay-topic')?.value || '').trim();
+  const title = (document.getElementById('essay-title')?.value || '').trim();
+  const type = document.getElementById('essay-type-select')?.value || 'ENEM';
+
+  if (!text || text.length < 50) {
+    alert("Por favor, escreva o texto da sua redação no laboratório antes de solicitar a correção da IA.\n\n(Dica: você também pode clicar em 'Carregar Exemplo Nota 1000' para testar a IA imediatamente).");
+    return;
+  }
+
+  const loadingContainer = document.getElementById('essay-ai-loading-container');
+  const resultContainer = document.getElementById('essay-ai-result-container');
+  const loadingStep = document.getElementById('essay-ai-loading-step');
+
+  if (resultContainer) resultContainer.classList.add('hidden');
+  if (loadingContainer) {
+    loadingContainer.classList.remove('hidden');
+    loadingContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  // Animação de progresso da IA
+  if (loadingStep) loadingStep.innerText = "1/3 Analisando estrutura dos períodos, parágrafos e norma culta...";
+  await new Promise(r => setTimeout(r, 400));
+  if (loadingStep) loadingStep.innerText = "2/3 Mapeando repertórios socioculturais e operadores argumentativos...";
+  await new Promise(r => setTimeout(r, 450));
+  if (loadingStep) loadingStep.innerText = "3/3 Avaliando projeto de texto, proposta de intervenção e coesão...";
+  await new Promise(r => setTimeout(r, 450));
+
+  if (typeof EssayAIAgent === 'undefined') {
+    alert("Módulo do Agente IA não carregado. Recarregue a página.");
+    if (loadingContainer) loadingContainer.classList.add('hidden');
+    return;
+  }
+
+  const result = EssayAIAgent.evaluate(text, topic, title, type);
+  lastAICorrectionResult = result;
+
+  if (loadingContainer) loadingContainer.classList.add('hidden');
+
+  if (result.error || result.isDisqualified) {
+    renderDisqualifiedResult(result);
+    return;
+  }
+
+  renderAICorrectionResult(result);
+};
+
+function renderAICorrectionResult(res) {
+  const container = document.getElementById('essay-ai-result-container');
+  if (!container) return;
+
+  const isEnem = res.examType === 'ENEM';
+  const scorePercent = isEnem ? Math.round((res.totalScore / 1000) * 100) : Math.round((res.totalScore / 50) * 100);
+
+  let badgeBg = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
+  if (scorePercent < 65) badgeBg = 'bg-rose-500/20 text-rose-300 border-rose-500/40';
+  else if (scorePercent < 80) badgeBg = 'bg-amber-500/20 text-amber-300 border-amber-500/40';
+
+  let compHtml = '';
+  res.competencies.forEach(c => {
+    const cPercent = Math.round((c.score / c.max) * 100);
+    let barColor = 'bg-emerald-500';
+    if (cPercent < 60) barColor = 'bg-rose-500';
+    else if (cPercent < 80) barColor = 'bg-amber-500';
+
+    let extraDetails = '';
+    // Badges de repertórios se for C2
+    if (c.detectedRepertoires && c.detectedRepertoires.length > 0) {
+      extraDetails += `
+        <div class="mt-2.5 flex flex-wrap items-center gap-1.5">
+          <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Repertórios Detectados:</span>
+          ${c.detectedRepertoires.map(r => `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800"><i class="fa-solid fa-graduation-cap text-[9px] mr-1"></i>${r}</span>`).join('')}
+        </div>
+      `;
+    }
+
+    // Badges de conectivos se for C4
+    if (c.interConnectors && c.interConnectors.length > 0) {
+      extraDetails += `
+        <div class="mt-2.5 flex flex-wrap items-center gap-1.5">
+          <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Conectivos Interparágrafos:</span>
+          ${c.interConnectors.map(con => `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-teal-100 dark:bg-teal-950/80 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800"><i class="fa-solid fa-link text-[9px] mr-1"></i>"${con}"</span>`).join('')}
+        </div>
+      `;
+    }
+
+    // Checklist de C5
+    if (c.elementsChecklist) {
+      const e = c.elementsChecklist;
+      const itemEl = (ok, label) => `
+        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold ${ok ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 line-through'}">
+          <i class="fa-solid ${ok ? 'fa-check text-emerald-600' : 'fa-xmark text-slate-400'}"></i> ${label}
+        </span>
+      `;
+      extraDetails += `
+        <div class="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-800">
+          <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase block mb-1.5">Checklist dos 5 Elementos da Intervenção:</span>
+          <div class="flex flex-wrap gap-1.5">
+            ${itemEl(e.agente, '1. Agente')}
+            ${itemEl(e.acao, '2. Ação')}
+            ${itemEl(e.meio, '3. Meio/Modo')}
+            ${itemEl(e.efeito, '4. Efeito')}
+            ${itemEl(e.detalhamento, '5. Detalhamento')}
+            ${itemEl(c.humanRightsOk, 'Direitos Humanos')}
+          </div>
+        </div>
+      `;
+    }
+
+    // Dicas específicas
+    let tipsHtml = '';
+    if (c.tips && c.tips.length > 0) {
+      tipsHtml = `
+        <ul class="mt-2 space-y-1 text-[11px] text-slate-600 dark:text-slate-300 list-disc list-inside">
+          ${c.tips.map(t => `<li>${t}</li>`).join('')}
+        </ul>
+      `;
+    }
+
+    compHtml += `
+      <div class="p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+          <h5 class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+            ${c.name}
+          </h5>
+          <span class="px-2.5 py-1 rounded-xl text-xs font-black bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm">
+            ${c.score} / ${c.max} pts
+          </span>
+        </div>
+
+        <div class="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden mb-2.5">
+          <div class="${barColor} h-2 rounded-full transition-all duration-700" style="width: ${cPercent}%"></div>
+        </div>
+
+        <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">${c.comment}</p>
+        ${extraDetails}
+        ${tipsHtml}
+      </div>
+    `;
+  });
+
+  const strengthsList = res.strengths.map(s => `<li class="flex items-start gap-2"><i class="fa-solid fa-circle-check text-emerald-500 mt-0.5 text-xs shrink-0"></i><span>${s}</span></li>`).join('');
+  const improvementsList = res.improvements.map(i => `<li class="flex items-start gap-2"><i class="fa-solid fa-circle-exclamation text-amber-500 mt-0.5 text-xs shrink-0"></i><span>${i}</span></li>`).join('');
+
+  container.innerHTML = `
+    <!-- Topo do Parecer com Nota Total -->
+    <div class="p-6 md:p-8 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-4 text-center md:text-left">
+        <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex flex-col items-center justify-center shadow-2xl shrink-0 border border-white/20">
+          <span class="text-2xl sm:text-3xl font-black text-white leading-none">${res.totalScore}</span>
+          <span class="text-[10px] uppercase font-bold text-indigo-200 mt-1">/ ${res.maxScore}</span>
+        </div>
+        <div>
+          <div class="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-1.5">
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-white/10 text-indigo-300 border border-white/10">${res.examType}</span>
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border ${badgeBg}">${res.tierLabel}</span>
+          </div>
+          <h4 class="text-lg sm:text-xl font-extrabold text-white">Parecer da Banca IA BrilhaVest</h4>
+          <p class="text-xs text-slate-300 mt-0.5">Avaliação sintética com base nas matrizes de referência oficiais</p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center justify-center gap-2 text-xs">
+        <span class="px-3 py-1.5 rounded-xl bg-white/10 border border-white/10 font-mono font-bold text-indigo-200">${res.wordsCount} palavras</span>
+        <span class="px-3 py-1.5 rounded-xl bg-white/10 border border-white/10 font-mono font-bold text-indigo-200">${res.linesCount} linhas</span>
+        <span class="px-3 py-1.5 rounded-xl bg-white/10 border border-white/10 font-mono font-bold text-indigo-200">${res.paragraphsCount} parágrafos</span>
+      </div>
+    </div>
+
+    <!-- Corpo com Detalhamento das Competências -->
+    <div class="p-6 md:p-8 space-y-6">
+      <!-- Pontos Fortes e Oportunidades -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="p-4 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/60">
+          <h5 class="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+            <i class="fa-solid fa-thumbs-up"></i> Pontos Fortes do Seu Texto
+          </h5>
+          <ul class="space-y-2 text-xs text-emerald-900 dark:text-emerald-200">
+            ${strengthsList}
+          </ul>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/60">
+          <h5 class="text-xs font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+            <i class="fa-solid fa-bullseye"></i> Oportunidades para a Nota 1000
+          </h5>
+          <ul class="space-y-2 text-xs text-amber-900 dark:text-amber-200">
+            ${improvementsList}
+          </ul>
+        </div>
+      </div>
+
+      <!-- Competências Detalhadas -->
+      <div>
+        <h5 class="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
+          <i class="fa-solid fa-list-check text-indigo-500"></i> Desempenho por Competência / Quesito Oficial
+        </h5>
+        <div class="space-y-3">
+          ${compHtml}
+        </div>
+      </div>
+
+      <!-- Barra de Ações Inferior -->
+      <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+        <button 
+          onclick="copyAICorrectionReport()" 
+          class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer"
+        >
+          <i class="fa-regular fa-copy text-indigo-500"></i> Copiar Parecer Completo
+        </button>
+
+        <button 
+          onclick="requestAICorrection()" 
+          class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer"
+        >
+          <i class="fa-solid fa-rotate-right"></i> Reavaliar Redação
+        </button>
+      </div>
+    </div>
+  `;
+
+  container.classList.remove('hidden');
+  container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function renderDisqualifiedResult(res) {
+  const container = document.getElementById('essay-ai-result-container');
+  if (!container) return;
+
+  container.innerHTML = `
+    <div class="p-6 sm:p-8 bg-rose-50 dark:bg-rose-950/40 border-2 border-rose-200 dark:border-rose-900 rounded-3xl text-center">
+      <div class="w-16 h-16 rounded-2xl bg-rose-500 text-white flex items-center justify-center text-2xl mx-auto mb-3 shadow-lg shadow-rose-200 dark:shadow-none">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <h4 class="text-lg font-bold text-rose-900 dark:text-rose-200">Redação Insuficiente para Avaliação</h4>
+      <p class="text-xs text-rose-700 dark:text-rose-300 max-w-md mx-auto mt-1 leading-relaxed">
+        ${res.reason || "Escreva uma redação mais completa para que o Agente IA possa avaliar seus argumentos e repertórios."}
+      </p>
+      <div class="flex items-center justify-center gap-3 mt-4 text-xs font-mono font-bold text-rose-600 dark:text-rose-400">
+        <span>${res.wordsCount || 0} palavras</span>
+        <span>•</span>
+        <span>${res.linesCount || 0} / 30 linhas</span>
+      </div>
+      <div class="mt-5">
+        <button onclick="loadSampleNota1000()" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-sm transition cursor-pointer">
+          Carregar Exemplo Nota 1000 para Testar
+        </button>
+      </div>
+    </div>
+  `;
+
+  container.classList.remove('hidden');
+  container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+window.loadSampleNota1000 = function() {
+  const typeSelect = document.getElementById('essay-type-select');
+  const type = typeSelect?.value || 'ENEM';
+  const isFuvest = type.includes('FUVEST');
+
+  if (typeof EssayAIAgent === 'undefined') {
+    alert("Carregando recursos da IA, aguarde um instante...");
+    return;
+  }
+
+  const sample = isFuvest ? EssayAIAgent.samples.fuvest : EssayAIAgent.samples.enem;
+
+  const topicInput = document.getElementById('essay-topic');
+  const titleInput = document.getElementById('essay-title');
+  const textarea = document.getElementById('essay-textarea');
+
+  if (topicInput) topicInput.value = sample.topic;
+  if (titleInput) titleInput.value = sample.title;
+  if (textarea) textarea.value = sample.text;
+
+  AppState.essayDraft.topic = sample.topic;
+  AppState.essayDraft.title = sample.title;
+  AppState.essayDraft.text = sample.text;
+  AppState.essayDraft.type = sample.type;
+
+  saveToLocalStorage();
+  updateEssayCounters();
+  if (typeof updateEnemProposalLabBanner === 'function') {
+    updateEnemProposalLabBanner(sample.topic);
+  }
+
+  // Oculta resultado anterior para nova análise
+  const resultContainer = document.getElementById('essay-ai-result-container');
+  if (resultContainer) resultContainer.classList.add('hidden');
+
+  if (typeof showToast === 'function') {
+    showToast(`Redação Modelo Nota 1000 (${sample.type}) carregada! Clique em 'Corrigir Redação com IA'.`);
+  } else {
+    alert(`Redação Modelo Nota 1000 (${sample.type}) carregada no Laboratório!\n\nAgora clique no botão roxo "Corrigir Redação com IA" para conferir a análise completa!`);
+  }
+};
+
+window.clearEssayTextarea = function() {
+  const textarea = document.getElementById('essay-textarea');
+  if (!textarea || !textarea.value.trim()) return;
+
+  if (!confirm("Deseja realmente limpar o texto da sua redação?")) return;
+
+  textarea.value = '';
+  AppState.essayDraft.text = '';
+  saveToLocalStorage();
+  updateEssayCounters();
+
+  const resultContainer = document.getElementById('essay-ai-result-container');
+  if (resultContainer) resultContainer.classList.add('hidden');
+
+  if (typeof showToast === 'function') {
+    showToast("Texto da redação limpo com sucesso.");
+  }
+};
+
+window.copyAICorrectionReport = function() {
+  if (!lastAICorrectionResult) return;
+  const res = lastAICorrectionResult;
+
+  let report = `=== PARECER DO AGENTE IA CORRETOR - BRILHAVEST ===\n`;
+  report += `Banca: ${res.examType}\n`;
+  report += `Nota Total: ${res.totalScore} / ${res.maxScore} (${res.tierLabel})\n`;
+  report += `Extensão: ${res.wordsCount} palavras • ${res.linesCount} linhas • ${res.paragraphsCount} parágrafos\n\n`;
+
+  report += `--- PONTUAÇÃO POR COMPETÊNCIA ---\n`;
+  res.competencies.forEach(c => {
+    report += `• ${c.name}: ${c.score}/${c.max} pts\n  ${c.comment}\n`;
+  });
+
+  report += `\n--- PONTOS FORTES ---\n`;
+  res.strengths.forEach(s => {
+    report += `+ ${s}\n`;
+  });
+
+  report += `\n--- OPORTUNIDADES DE MELHORIA ---\n`;
+  res.improvements.forEach(i => {
+    report += `- ${i}\n`;
+  });
+
+  report += `\nAcesse o BrilhaVest para praticar mais redações rumo à nota máxima!`;
+
+  navigator.clipboard.writeText(report).then(() => {
+    if (typeof showToast === 'function') {
+      showToast("Parecer copiado para a área de transferência!");
+    } else {
+      alert("Parecer copiado com sucesso!");
+    }
+  }).catch(() => {
+    alert("Falha ao copiar automaticamente. Selecione o texto e copie manualmente.");
+  });
+};
+
 window.openEnemProposalModal = function(year) {
   const proposal = redacaoData.enemProposals?.[year];
   if (!proposal) return;
