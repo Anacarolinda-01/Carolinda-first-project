@@ -1348,10 +1348,20 @@
         </div>
 
         <div class="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs">
-          <div class="flex items-center gap-4">
+          <div class="flex flex-wrap items-center gap-3">
             <span id="essay-word-count" class="font-mono font-bold text-slate-700 dark:text-slate-300">0 palavras</span>
             <span class="text-slate-300 dark:text-slate-600">•</span>
             <span id="essay-line-count" class="font-mono font-bold text-indigo-600 dark:text-indigo-400">0 / 30 linhas</span>
+            
+            <!-- Badge Dinâmico de Linhas da Folha Manuscrita -->
+            <div id="essay-handwritten-badge-container" class="hidden">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-emerald-100 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-[11px] font-bold shadow-xs">
+                <i class="fa-solid fa-file-pen text-emerald-600"></i>
+                <span id="essay-handwritten-badge-text">28 linhas na folha oficial</span>
+                <button type="button" onclick="promptEditHandwrittenLines()" class="underline text-[10px] text-emerald-700 dark:text-emerald-400 hover:text-emerald-950 ml-1 cursor-pointer" title="Ajustar número de linhas da folha">Editar</button>
+                <button type="button" onclick="clearHandwrittenLines()" class="text-slate-400 hover:text-rose-500 ml-0.5 text-xs cursor-pointer" title="Remover contagem manual da folha"><i class="fa-solid fa-xmark"></i></button>
+              </span>
+            </div>
           </div>
 
           <div id="essay-line-status" class="font-medium text-slate-500 dark:text-slate-400">
@@ -1371,6 +1381,25 @@
               <i class="fa-solid fa-wand-magic-sparkles text-amber-300 group-hover:rotate-12 transition"></i>
               <span>Corrigir Redação com IA</span>
             </button>
+
+            <button 
+              type="button" 
+              id="btn-essay-photo-transcribe"
+              onclick="triggerEssaySheetPhoto()" 
+              class="px-4 py-2.5 rounded-xl border border-indigo-200 dark:border-indigo-800 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900 text-indigo-700 dark:text-indigo-300 font-bold text-xs transition flex items-center gap-2 shadow-sm cursor-pointer"
+              title="Tirar foto da folha física manuscrita ou anexar imagem para transcrever com IA"
+            >
+              <i class="fa-solid fa-camera text-indigo-600 dark:text-indigo-400"></i>
+              <span>Tirar Foto da Folha / Transcrever</span>
+            </button>
+            <input 
+              type="file" 
+              id="essay-sheet-photo-input" 
+              accept="image/*" 
+              capture="environment" 
+              class="hidden" 
+              onchange="handleEssaySheetPhoto(event)"
+            >
 
             <button 
               type="button" 
@@ -1410,6 +1439,181 @@
         <!-- Painel de Parecer e Resultado do Agente de IA -->
         <div id="essay-ai-result-container" class="hidden mt-6 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl overflow-hidden animate-fadeIn">
           <!-- Conteúdo gerado dinamicamente via JS -->
+        </div>
+      </div>
+
+      <!-- Modal: Tirar Foto da Folha e Transcrever Redação com Preservação de Linhas -->
+      <div id="essay-photo-transcribe-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 hidden">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-4xl w-full p-5 sm:p-7 shadow-2xl border border-slate-200 dark:border-slate-800 animate-fadeIn max-h-[92vh] flex flex-col">
+          <!-- Cabeçalho -->
+          <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-4 shrink-0">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-950/70 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-lg shadow-sm border border-indigo-100 dark:border-indigo-900">
+                <i class="fa-solid fa-camera"></i>
+              </div>
+              <div>
+                <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                  <span>Transcrever Redação da Folha Manuscrita</span>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">OCR + IA</span>
+                </h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Preserva a quantidade real de linhas da folha física para evitar distorções na tela digital.</p>
+              </div>
+            </div>
+            <button type="button" onclick="closeEssayPhotoModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 flex items-center justify-center transition cursor-pointer" title="Fechar janela">
+              <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+          </div>
+
+          <!-- Conteúdo com Scroll -->
+          <div class="overflow-y-auto pr-1 space-y-4 flex-1">
+            <!-- Alerta Educativo sobre Quebra de Linhas Digital vs Folha Física -->
+            <div class="p-3.5 rounded-2xl bg-indigo-50/80 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 text-xs text-indigo-950 dark:text-indigo-200 flex items-start gap-2.5">
+              <i class="fa-solid fa-circle-info text-indigo-600 dark:text-indigo-400 text-sm mt-0.5 shrink-0"></i>
+              <div class="leading-relaxed">
+                <strong>Por que guardamos a quantidade de linhas da folha?</strong>
+                Em folhas oficiais de vestibular cabem de 75 a 85 caracteres por linha (25 a 30 linhas). Quando o texto é transcrito para celular ou computador, as linhas digitais se quebram com menor largura (podendo aparentar 38 ou 45 linhas). <strong>O BrilhaVest registra suas linhas manuscritas oficiais para que o corretor de IA avalie sua extensão com total fidelidade e sem punições indevidas!</strong>
+              </div>
+            </div>
+
+            <!-- Grade: Coluna da Foto & Coluna da Transcrição e Linhas -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- Coluna 1: Imagem da Folha -->
+              <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+                <div>
+                  <div class="flex items-center justify-between mb-2.5">
+                    <span class="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                      <i class="fa-solid fa-image text-indigo-500"></i> Foto da sua Folha:
+                    </span>
+                    <button type="button" onclick="document.getElementById('essay-sheet-photo-input').click()" class="text-[11px] font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 flex items-center gap-1 cursor-pointer">
+                      <i class="fa-solid fa-arrow-up-from-bracket"></i> Trocar Foto
+                    </button>
+                  </div>
+
+                  <div class="relative w-full h-56 sm:h-64 rounded-xl overflow-hidden bg-slate-200 dark:bg-slate-800 flex items-center justify-center border border-slate-300 dark:border-slate-700 group">
+                    <img id="essay-photo-modal-preview" src="" alt="Prévia da folha" class="w-full h-full object-contain">
+                    
+                    <!-- Loader de OCR Sobreposto -->
+                    <div id="essay-photo-ocr-loader" class="absolute inset-0 bg-slate-900/85 backdrop-blur-sm flex flex-col items-center justify-center p-4 text-white text-center hidden">
+                      <div class="w-10 h-10 border-4 border-indigo-400 border-t-transparent rounded-full animate-spin mb-3"></div>
+                      <span id="essay-ocr-status-text" class="text-xs font-bold mb-2">Transcrevendo caligrafia com IA...</span>
+                      <div class="w-48 bg-slate-700 h-2 rounded-full overflow-hidden">
+                        <div id="essay-ocr-progress-bar" class="bg-indigo-500 h-2 rounded-full transition-all duration-300" style="width: 15%"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                  <span>💡 Dica: fotos nítidas e bem iluminadas garantem melhor transcrição.</span>
+                </div>
+              </div>
+
+              <!-- Coluna 2: Linhas Manuscritas + Texto Transcrito -->
+              <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+                <div>
+                  <!-- Controle de Linhas Manuscritas (Stepper 1 a 30) -->
+                  <div class="mb-3.5 p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
+                    <label class="block text-xs font-bold text-slate-800 dark:text-slate-100 mb-1.5 flex items-center justify-between">
+                      <span class="flex items-center gap-1.5">
+                        <i class="fa-solid fa-list-ol text-indigo-500"></i> Linhas escritas na folha física:
+                      </span>
+                      <span id="essay-photo-lines-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300">
+                        28 linhas (Ideal)
+                      </span>
+                    </label>
+
+                    <div class="flex items-center gap-2">
+                      <button 
+                        type="button" 
+                        onclick="adjustEssayPhotoLines(-1)" 
+                        class="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold text-sm transition flex items-center justify-center cursor-pointer"
+                        title="Diminuir linhas"
+                      >
+                        <i class="fa-solid fa-minus"></i>
+                      </button>
+
+                      <div class="flex-1 relative">
+                        <input 
+                          type="number" 
+                          id="essay-photo-lines-stepper" 
+                          min="1" 
+                          max="30" 
+                          value="28" 
+                          oninput="onEssayPhotoLinesChange(this.value)"
+                          class="w-full text-center font-mono font-bold text-base py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        >
+                      </div>
+
+                      <button 
+                        type="button" 
+                        onclick="adjustEssayPhotoLines(1)" 
+                        class="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold text-sm transition flex items-center justify-center cursor-pointer"
+                        title="Aumentar linhas"
+                      >
+                        <i class="fa-solid fa-plus"></i>
+                      </button>
+                    </div>
+
+                    <p class="text-[10px] text-slate-400 mt-1.5">
+                      Ajuste para coincidir exatamente com a última linha preenchida na sua folha oficial (1 a 30).
+                    </p>
+                  </div>
+
+                  <!-- Textarea de Revisão da Transcrição -->
+                  <div>
+                    <label for="essay-photo-transcribed-textarea" class="block text-xs font-bold text-slate-800 dark:text-slate-100 mb-1 flex items-center justify-between">
+                      <span class="flex items-center gap-1.5">
+                        <i class="fa-solid fa-pen-to-square text-indigo-500"></i> Texto Transcrito (Editável):
+                      </span>
+                      <span id="essay-photo-transcribed-words" class="text-[10px] font-mono text-slate-400">0 palavras</span>
+                    </label>
+                    <textarea 
+                      id="essay-photo-transcribed-textarea" 
+                      rows="8" 
+                      oninput="onTranscribedTextareaInput()"
+                      placeholder="O texto transcrito da foto aparecerá aqui... Você poderá corrigir eventuais palavras antes de enviar ao laboratório." 
+                      class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs text-slate-800 dark:text-slate-100 leading-relaxed focus:outline-none focus:ring-2 focus:ring-indigo-500 font-sans"
+                    ></textarea>
+                  </div>
+                </div>
+
+                <div class="mt-2 text-[10px] text-slate-400">
+                  Você pode editar livremente qualquer palavra que o OCR possa ter confundido.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Rodapé do Modal -->
+          <div class="pt-4 border-t border-slate-100 dark:border-slate-800 mt-3 flex flex-wrap items-center justify-between gap-3 shrink-0">
+            <button 
+              type="button" 
+              onclick="loadSampleHandwrittenSheet()" 
+              class="px-3 py-2 rounded-xl border border-dashed border-indigo-300 dark:border-indigo-700 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+              title="Testar agora com uma folha manuscrita de demonstração pronta"
+            >
+              <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i>
+              Testar com Folha de Demonstração
+            </button>
+
+            <div class="flex items-center gap-2">
+              <button 
+                type="button" 
+                onclick="closeEssayPhotoModal()" 
+                class="px-4 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button 
+                type="button" 
+                onclick="applyTranscribedEssayToLab()" 
+                class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-200 dark:shadow-none transition flex items-center gap-2 cursor-pointer"
+              >
+                <i class="fa-solid fa-check"></i>
+                Inserir no Laboratório de Redação
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -2664,6 +2868,9 @@
   <!-- SDK Oficial do Supabase v2 -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+  <!-- Biblioteca OCR Client-Side Tesseract.js -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
   <!-- Scripts de Dados Modulares, Persistência Supabase, Painel Admin e Aplicação -->
   <script src="js/data/questions_matematica.js"></script>
   <script src="js/data/questions_natureza.js"></script>
@@ -2673,10 +2880,10 @@
   <script src="js/data/books.js"></script>
   <script src="js/data/redacao.js"></script>
   <script src="js/data/checklist.js"></script>
-  <script src="js/data/flashcards.js?v=3.8"></script>
-  <script src="js/essayAiAgent.js?v=3.8"></script>
-  <script src="js/supabaseClient.js?v=3.8"></script>
-  <script src="js/admin.js?v=3.8"></script>
-  <script src="js/app.js?v=3.8"></script>
+  <script src="js/data/flashcards.js?v=3.9"></script>
+  <script src="js/essayAiAgent.js?v=3.9"></script>
+  <script src="js/supabaseClient.js?v=3.9"></script>
+  <script src="js/admin.js?v=3.9"></script>
+  <script src="js/app.js?v=3.9"></script>
 </body>
 </html>

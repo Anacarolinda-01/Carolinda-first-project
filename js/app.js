@@ -48,7 +48,8 @@ const AppState = {
     topic: '',
     title: '',
     text: '',
-    type: 'ENEM'
+    type: 'ENEM',
+    handwrittenLines: null
   }
 };
 
@@ -86,7 +87,10 @@ function loadFromLocalStorage() {
           topic: data.essayDraft.topic || '',
           title: data.essayDraft.title || '',
           text: data.essayDraft.text || '',
-          type: data.essayDraft.type || 'ENEM'
+          type: data.essayDraft.type || 'ENEM',
+          handwrittenLines: (data.essayDraft.handwrittenLines !== null && data.essayDraft.handwrittenLines !== undefined && Number(data.essayDraft.handwrittenLines) > 0)
+            ? Number(data.essayDraft.handwrittenLines)
+            : null
         };
       }
       if (data.flashcardStats) {
@@ -1884,28 +1888,52 @@ function updateEssayCounters() {
   const words = text.trim() ? text.trim().split(/\s+/).length : 0;
   
   const explicitLines = text.split('\n');
-  let lineCount = 0;
+  let estimatedLines = 0;
   explicitLines.forEach(l => {
-    lineCount += Math.max(1, Math.ceil(l.length / 75));
+    estimatedLines += Math.max(1, Math.ceil(l.length / 75));
   });
-  if (text.trim() === '') lineCount = 0;
+  if (text.trim() === '') estimatedLines = 0;
+
+  const hasHandwritten = (AppState.essayDraft.handwrittenLines !== null && AppState.essayDraft.handwrittenLines !== undefined && Number(AppState.essayDraft.handwrittenLines) > 0);
+  const effectiveLines = hasHandwritten ? Number(AppState.essayDraft.handwrittenLines) : estimatedLines;
 
   const elWords = document.getElementById('essay-word-count');
   const elLines = document.getElementById('essay-line-count');
   const elStatus = document.getElementById('essay-line-status');
+  const badgeContainer = document.getElementById('essay-handwritten-badge-container');
+  const badgeText = document.getElementById('essay-handwritten-badge-text');
 
   if (elWords) elWords.innerText = `${words} palavras`;
-  if (elLines) elLines.innerText = `${lineCount} / 30 linhas`;
+  if (elLines) {
+    elLines.innerText = hasHandwritten 
+      ? `${effectiveLines} / 30 linhas (folha)` 
+      : `${effectiveLines} / 30 linhas`;
+  }
+
+  // Atualiza ou oculta badge de folha física
+  if (badgeContainer && badgeText) {
+    if (hasHandwritten) {
+      badgeText.innerText = `${effectiveLines} linhas na folha oficial`;
+      badgeContainer.classList.remove('hidden');
+    } else {
+      badgeContainer.classList.add('hidden');
+    }
+  }
 
   if (elStatus) {
-    if (lineCount < 7) {
-      elStatus.innerText = "Insuficiente (< 7 linhas desclassifica no ENEM)";
+    if (text.trim() === '') {
+      elStatus.innerText = "Aguardando texto...";
+      elStatus.className = "font-medium text-slate-500 dark:text-slate-400";
+    } else if (effectiveLines < 7) {
+      elStatus.innerText = "Insuficiente (< 7 linhas desclassifica no vestibular)";
       elStatus.className = "text-xs font-semibold text-rose-600";
-    } else if (lineCount <= 20) {
+    } else if (effectiveLines <= 20) {
       elStatus.innerText = "Em desenvolvimento (busque entre 25 e 30 linhas)";
       elStatus.className = "text-xs font-medium text-amber-600";
-    } else if (lineCount <= 30) {
-      elStatus.innerText = "Extensão ideal para vestibular (25 a 30 linhas)";
+    } else if (effectiveLines <= 30) {
+      elStatus.innerText = hasHandwritten 
+        ? "Extensão ideal da folha oficial (25 a 30 linhas)" 
+        : "Extensão ideal para vestibular (25 a 30 linhas)";
       elStatus.className = "text-xs font-semibold text-emerald-600";
     } else {
       elStatus.innerText = "Ultrapassou o limite máximo de 30 linhas!";
@@ -2247,7 +2275,7 @@ window.requestAICorrection = async function() {
     return;
   }
 
-  const result = EssayAIAgent.evaluate(text, topic, title, type);
+  const result = EssayAIAgent.evaluate(text, topic, title, type, AppState.essayDraft.handwrittenLines);
   lastAICorrectionResult = result;
 
   if (loadingContainer) loadingContainer.classList.add('hidden');
@@ -2377,7 +2405,7 @@ function renderAICorrectionResult(res) {
 
       <div class="flex flex-wrap items-center justify-center gap-2 text-xs">
         <span class="px-3 py-1.5 rounded-xl bg-white/10 border border-white/10 font-mono font-bold text-indigo-200">${res.wordsCount} palavras</span>
-        <span class="px-3 py-1.5 rounded-xl bg-white/10 border border-white/10 font-mono font-bold text-indigo-200">${res.linesCount} linhas</span>
+        <span class="px-3 py-1.5 rounded-xl bg-white/10 border border-white/10 font-mono font-bold text-indigo-200">${res.linesCount} linhas ${res.isHandwritten ? '(folha oficial)' : ''}</span>
         <span class="px-3 py-1.5 rounded-xl bg-white/10 border border-white/10 font-mono font-bold text-indigo-200">${res.paragraphsCount} parágrafos</span>
       </div>
     </div>
@@ -2492,6 +2520,7 @@ window.loadSampleNota1000 = function() {
   AppState.essayDraft.title = sample.title;
   AppState.essayDraft.text = sample.text;
   AppState.essayDraft.type = sample.type;
+  AppState.essayDraft.handwrittenLines = sample.handwrittenLines || 28;
 
   saveToLocalStorage();
   updateEssayCounters();
@@ -2518,6 +2547,7 @@ window.clearEssayTextarea = function() {
 
   textarea.value = '';
   AppState.essayDraft.text = '';
+  AppState.essayDraft.handwrittenLines = null;
   saveToLocalStorage();
   updateEssayCounters();
 
@@ -2564,6 +2594,340 @@ window.copyAICorrectionReport = function() {
   }).catch(() => {
     alert("Falha ao copiar automaticamente. Selecione o texto e copie manualmente.");
   });
+};
+
+// ==========================================
+// TRANSCRIÇÃO DE FOTO DE REDAÇÃO & PRESERVAÇÃO DE LINHAS (OCR)
+// ==========================================
+
+window.triggerEssaySheetPhoto = function() {
+  const input = document.getElementById('essay-sheet-photo-input');
+  if (input) {
+    input.value = '';
+    input.click();
+  }
+};
+
+window.handleEssaySheetPhoto = function(event) {
+  const file = event?.target?.files?.[0];
+  if (!file) return;
+
+  if (!file.type.startsWith('image/')) {
+    alert("Por favor, selecione um arquivo de imagem válido (JPG, PNG, HEIC, WebP).");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const dataUrl = e.target.result;
+    openEssayPhotoModal(dataUrl, 28, '');
+    runEssayOCR(dataUrl);
+  };
+  reader.readAsDataURL(file);
+};
+
+window.openEssayPhotoModal = function(imgSrc, defaultLines = 28, initialText = '') {
+  const modal = document.getElementById('essay-photo-transcribe-modal');
+  const imgPreview = document.getElementById('essay-photo-modal-preview');
+  const stepper = document.getElementById('essay-photo-lines-stepper');
+  const textarea = document.getElementById('essay-photo-transcribed-textarea');
+
+  if (imgPreview) imgPreview.src = imgSrc || '';
+  if (stepper) {
+    stepper.value = defaultLines;
+    updateEssayPhotoLinesBadge(defaultLines);
+  }
+  if (textarea) {
+    textarea.value = initialText || '';
+    onTranscribedTextareaInput();
+  }
+
+  if (modal) modal.classList.remove('hidden');
+};
+
+window.closeEssayPhotoModal = function() {
+  const modal = document.getElementById('essay-photo-transcribe-modal');
+  const loader = document.getElementById('essay-photo-ocr-loader');
+  if (modal) modal.classList.add('hidden');
+  if (loader) loader.classList.add('hidden');
+};
+
+window.adjustEssayPhotoLines = function(delta) {
+  const stepper = document.getElementById('essay-photo-lines-stepper');
+  if (!stepper) return;
+  let val = (parseInt(stepper.value, 10) || 28) + delta;
+  val = Math.max(1, Math.min(30, val));
+  stepper.value = val;
+  updateEssayPhotoLinesBadge(val);
+};
+
+window.onEssayPhotoLinesChange = function(val) {
+  let num = parseInt(val, 10);
+  if (isNaN(num)) num = 28;
+  num = Math.max(1, Math.min(30, num));
+  updateEssayPhotoLinesBadge(num);
+};
+
+function updateEssayPhotoLinesBadge(lines) {
+  const badge = document.getElementById('essay-photo-lines-badge');
+  if (!badge) return;
+
+  if (lines < 7) {
+    badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300";
+    badge.innerText = `${lines} linhas (Insuficiente < 7)`;
+  } else if (lines <= 20) {
+    badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300";
+    badge.innerText = `${lines} linhas (Em desenvolvimento)`;
+  } else if (lines <= 30) {
+    badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300";
+    badge.innerText = `${lines} linhas (Extensão Ideal)`;
+  } else {
+    badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300";
+    badge.innerText = `${lines} linhas (Excedeu 30 linhas)`;
+  }
+}
+
+window.onTranscribedTextareaInput = function() {
+  const textarea = document.getElementById('essay-photo-transcribed-textarea');
+  const countEl = document.getElementById('essay-photo-transcribed-words');
+  if (!textarea || !countEl) return;
+  const words = textarea.value.trim() ? textarea.value.trim().split(/\s+/).length : 0;
+  countEl.innerText = `${words} palavras`;
+};
+
+window.runEssayOCR = async function(imageSource) {
+  const loader = document.getElementById('essay-photo-ocr-loader');
+  const statusText = document.getElementById('essay-ocr-status-text');
+  const progressBar = document.getElementById('essay-ocr-progress-bar');
+  const textarea = document.getElementById('essay-photo-transcribed-textarea');
+
+  if (loader) loader.classList.remove('hidden');
+  if (statusText) statusText.innerText = "Inicializando motor de IA e OCR...";
+  if (progressBar) progressBar.style.width = '20%';
+
+  try {
+    if (typeof Tesseract !== 'undefined') {
+      if (statusText) statusText.innerText = "Processando caligrafia da folha de redação...";
+      if (progressBar) progressBar.style.width = '45%';
+
+      const worker = await Tesseract.createWorker('por', 1, {
+        logger: m => {
+          if (m.status === 'recognizing text') {
+            const p = Math.round((m.progress || 0) * 100);
+            if (progressBar) progressBar.style.width = `${Math.max(45, Math.min(95, p))}%`;
+            if (statusText) statusText.innerText = `Reconhecendo caligrafia... ${p}%`;
+          }
+        }
+      });
+
+      const ret = await worker.recognize(imageSource);
+      await worker.terminate();
+
+      if (progressBar) progressBar.style.width = '100%';
+      if (statusText) statusText.innerText = "Transcrição concluída!";
+
+      let extracted = (ret?.data?.text || '').trim();
+      extracted = extracted.replace(/\r\n/g, '\n').replace(/\n{3,}/g, '\n\n');
+
+      if (extracted.length > 20) {
+        if (textarea) textarea.value = extracted;
+        onTranscribedTextareaInput();
+      }
+    } else {
+      if (statusText) statusText.innerText = "Pronto! Você pode revisar ou digitar o texto no campo ao lado.";
+    }
+  } catch (err) {
+    console.warn("Aviso na transcrição OCR automática:", err);
+    if (statusText) statusText.innerText = "Você pode revisar ou colar o texto diretamente no campo ao lado.";
+  } finally {
+    setTimeout(() => {
+      if (loader) loader.classList.add('hidden');
+    }, 450);
+  }
+};
+
+window.applyTranscribedEssayToLab = function() {
+  const textarea = document.getElementById('essay-photo-transcribed-textarea');
+  const stepper = document.getElementById('essay-photo-lines-stepper');
+  const labTextarea = document.getElementById('essay-textarea');
+
+  const text = (textarea?.value || '').trim();
+  const lines = parseInt(stepper?.value, 10) || 28;
+
+  if (!text) {
+    alert("O campo de texto está vazio. Por favor, aguarde a transcrição ou digite o texto da sua redação antes de transferir para o laboratório.");
+    return;
+  }
+
+  // Atualiza AppState com a contagem manuscrita oficial
+  AppState.essayDraft.text = text;
+  AppState.essayDraft.handwrittenLines = lines;
+  saveToLocalStorage();
+
+  if (labTextarea) labTextarea.value = text;
+  updateEssayCounters();
+  closeEssayPhotoModal();
+
+  if (labTextarea) {
+    labTextarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  if (typeof showToast === 'function') {
+    showToast(`Redação transferida! ${lines} linhas da folha oficial registradas.`);
+  } else {
+    alert(`Redação transferida para o Laboratório!\n\n📋 Contagem oficial: ${lines} linhas na folha manuscrita registradas para cálculo sem divergências.\n\nAgora clique em "Corrigir Redação com IA"!`);
+  }
+};
+
+window.loadSampleHandwrittenSheet = function() {
+  const sample = EssayAIAgent?.samples?.enem;
+  if (!sample) return;
+
+  const sampleImage = generateHandwrittenSheetImage();
+  const sampleLines = sample.handwrittenLines || 28;
+  const sampleText = sample.text;
+
+  const imgPreview = document.getElementById('essay-photo-modal-preview');
+  const stepper = document.getElementById('essay-photo-lines-stepper');
+  const textarea = document.getElementById('essay-photo-transcribed-textarea');
+
+  if (imgPreview) imgPreview.src = sampleImage;
+  if (stepper) {
+    stepper.value = sampleLines;
+    updateEssayPhotoLinesBadge(sampleLines);
+  }
+  if (textarea) {
+    textarea.value = sampleText;
+    onTranscribedTextareaInput();
+  }
+
+  if (typeof showToast === 'function') {
+    showToast("Folha de demonstração manuscrita (28 linhas) carregada para teste!");
+  }
+};
+
+function generateHandwrittenSheetImage() {
+  try {
+    const canvas = document.createElement('canvas');
+    canvas.width = 800;
+    canvas.height = 1100;
+    const ctx = canvas.getContext('2d');
+
+    // Fundo papel sutil
+    ctx.fillStyle = '#fbf9f4';
+    ctx.fillRect(0, 0, 800, 1100);
+
+    // Margem esquerda vermelha sutil
+    ctx.strokeStyle = '#fca5a5';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(85, 0);
+    ctx.lineTo(85, 1100);
+    ctx.stroke();
+
+    // Linhas pautadas azuis
+    ctx.strokeStyle = '#bfdbfe';
+    ctx.lineWidth = 1;
+    const startY = 90;
+    const lineHeight = 33;
+
+    for (let i = 1; i <= 30; i++) {
+      const y = startY + (i * lineHeight);
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(800, y);
+      ctx.stroke();
+
+      // Numeração das linhas no padrão ENEM/FUVEST
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '10px monospace';
+      ctx.textAlign = 'right';
+      ctx.fillText(String(i).padStart(2, '0'), 75, y - 8);
+    }
+
+    // Título no topo
+    ctx.fillStyle = '#1e3a8a';
+    ctx.font = 'bold 15px Georgia, serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('FOLHA OFICIAL DE REDAÇÃO - VESTIBULAR', 400, 48);
+
+    // Linhas escritas manuscritas simuladas (linhas 1 a 28 preenchidas)
+    ctx.fillStyle = '#1e293b';
+    ctx.font = 'italic 12px "Caveat", "Segoe Script", cursive, Georgia, serif';
+    ctx.textAlign = 'left';
+
+    const sampleLinesSnippets = [
+      "No conto \"A Nova Califórnia\", de Lima Barreto, retrata-se a ambição desenfreada que",
+      "desestrutura a harmonia coletiva em prol do lucro individual. Fora da ficção, essa",
+      "lógica predatória materializa-se nos desafios para a valorização de comunidades e povos",
+      "tradicionais no Brasil contemporâneo. Nesse cenário, constata-se a persistência de",
+      "um duplo entrave: de um lado, a inoperância estatal na demarcação de terras ancestrais;",
+      "de outro, o preconceito sociocultural enraizado que deslegitima a sabedoria desses grupos.",
+      "Desse modo, torna-se imperioso analisar tais mazelas para construir caminhos de equidade.",
+      "",
+      "Em primeira análise, cabe destacar a omissão estatal como vetor crucial do problema.",
+      "Segundo o filósofo Thomas Hobbes, em sua obra \"Leviatã\", cabe ao Estado garantir o bem-estar",
+      "e a segurança de todos os cidadãos mediante o pacto social. No entanto, no contexto brasileiro,",
+      "essa prerrogativa é negligenciada, uma vez que a morosidade nos processos de titulação fundiária",
+      "expõe indígenas, quilombolas e ribeirinhos à violência de invasores ilegais. Por conseguinte,",
+      "a ausência de fiscalização efetiva perpetua um ciclo de vulnerabilidade histórica que fere os",
+      "preceitos do artigo 215 da Carta Magna de 1988, exigindo ações concretas do poder público.",
+      "",
+      "Ademais, a invisibilização cultural atua como forte barreira simbólica. De acordo com",
+      "a filósofa Hannah Arendt, o enfraquecimento do espaço público ocorre quando vozes plurais",
+      "são silenciadas pela indiferença hegemônica. Sob essa ótica, grande parte da sociedade nacional",
+      "reproduz estereótipos eurocêntricos que reduzem os povos originários a figuras do passado,",
+      "ignorando sua contribuição basilar para a conservação da biodiversidade e patrimônio imaterial.",
+      "Assim, a falta de reconhecimento perpetua um apagamento sistemático que compromete a cidadania.",
+      "",
+      "Portanto, medidas urgentes são necessárias para reverter esse panorama degradante. Cabe ao",
+      "Ministério dos Povos Indígenas, em articulação com o Meio Ambiente, fortalecer a proteção dos",
+      "territórios tradicionais, mediante operações contínuas de saturação contra invasões e alocação",
+      "orçamentária prioritária, a fim de garantir a dignidade plena àqueles que preservam nossa identidade."
+    ];
+
+    let lineIdx = 1;
+    sampleLinesSnippets.forEach((snippet) => {
+      if (lineIdx <= 28) {
+        const y = startY + (lineIdx * lineHeight);
+        if (snippet) {
+          ctx.fillText(snippet, 100, y - 9);
+        }
+        lineIdx++;
+      }
+    });
+
+    return canvas.toDataURL('image/jpeg', 0.92);
+  } catch (e) {
+    return '';
+  }
+}
+
+window.promptEditHandwrittenLines = function() {
+  const current = AppState.essayDraft.handwrittenLines || 28;
+  const input = prompt("Quantas linhas foram preenchidas na sua folha oficial de redação? (1 a 30):", current);
+  if (input === null) return;
+  const num = parseInt(input, 10);
+  if (isNaN(num) || num < 1 || num > 45) {
+    alert("Por favor, digite um número válido entre 1 e 30 linhas.");
+    return;
+  }
+  AppState.essayDraft.handwrittenLines = num;
+  saveToLocalStorage();
+  updateEssayCounters();
+  if (typeof showToast === 'function') {
+    showToast(`Folha oficial configurada com ${num} linhas manuscritas.`);
+  }
+};
+
+window.clearHandwrittenLines = function() {
+  if (!confirm("Deseja desativar a contagem manual da folha e retornar à estimativa digital automática?")) return;
+  AppState.essayDraft.handwrittenLines = null;
+  saveToLocalStorage();
+  updateEssayCounters();
+  if (typeof showToast === 'function') {
+    showToast("Contagem manual removida. Modo digital automático ativado.");
+  }
 };
 
 window.openEnemProposalModal = function(year) {
