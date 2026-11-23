@@ -2616,11 +2616,17 @@ window.triggerEssaySheetPhoto = function() {
   }
 };
 
+window.currentOcrWorker = null;
+
 window.cancelEssayOCR = function() {
+  if (window.currentOcrWorker) {
+    try { window.currentOcrWorker.terminate(); } catch (e) {}
+    window.currentOcrWorker = null;
+  }
   const loader = document.getElementById('essay-photo-ocr-loader');
   if (loader) loader.classList.add('hidden');
   if (typeof showToast === 'function') {
-    showToast("Transcrição pausada. Você pode digitar ou colar o texto diretamente.");
+    showToast("Transcrição pausada. Você pode digitar ou usar o ditado por voz.");
   }
 };
 
@@ -2656,12 +2662,37 @@ function preprocessEssayPhoto(file, maxDim = 1200) {
         }
 
         const optimizedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
-        resolve({ dataUrl: optimizedDataUrl, width, height, canvas, detectedLines });
+
+        // Versão com realce de contraste específico para maximizar a leitura OCR de caligrafia
+        let ocrDataUrl = optimizedDataUrl;
+        try {
+          const ocrCanvas = document.createElement('canvas');
+          ocrCanvas.width = width;
+          ocrCanvas.height = height;
+          const ocrCtx = ocrCanvas.getContext('2d');
+          ocrCtx.drawImage(canvas, 0, 0);
+          const ocrImgData = ocrCtx.getImageData(0, 0, width, height);
+          const d = ocrImgData.data;
+          for (let i = 0; i < d.length; i += 4) {
+            const lum = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+            // Clareia papel de fundo e acentua a tinta da caneta
+            const contrast = lum > 145 ? Math.min(255, lum * 1.25) : Math.max(0, lum * 0.7);
+            d[i] = contrast;
+            d[i + 1] = contrast;
+            d[i + 2] = contrast;
+          }
+          ocrCtx.putImageData(ocrImgData, 0, 0);
+          ocrDataUrl = ocrCanvas.toDataURL('image/jpeg', 0.9);
+        } catch (err) {
+          ocrDataUrl = optimizedDataUrl;
+        }
+
+        resolve({ dataUrl: optimizedDataUrl, ocrDataUrl, width, height, canvas, detectedLines });
       };
-      img.onerror = () => resolve({ dataUrl: e.target.result, width: 800, height: 1100, canvas: null, detectedLines: 28 });
+      img.onerror = () => resolve({ dataUrl: e.target.result, ocrDataUrl: e.target.result, width: 800, height: 1100, canvas: null, detectedLines: 28 });
       img.src = e.target.result;
     };
-    reader.onerror = () => resolve({ dataUrl: '', width: 800, height: 1100, canvas: null, detectedLines: 28 });
+    reader.onerror = () => resolve({ dataUrl: '', ocrDataUrl: '', width: 800, height: 1100, canvas: null, detectedLines: 28 });
     reader.readAsDataURL(file);
   });
 }
@@ -2771,6 +2802,15 @@ window.closeEssayPhotoModal = function() {
   if (modal) modal.classList.add('hidden');
   if (loader) loader.classList.add('hidden');
   document.body.style.overflow = '';
+
+  if (window.currentOcrWorker) {
+    try { window.currentOcrWorker.terminate(); } catch (e) {}
+    window.currentOcrWorker = null;
+  }
+  if (window.isEssayDictating && window.essaySpeechRecognition) {
+    try { window.essaySpeechRecognition.stop(); } catch (e) {}
+    window.isEssayDictating = false;
+  }
 };
 
 window.adjustEssayPhotoLines = function(delta) {
@@ -2830,12 +2870,13 @@ window.runEssayOCR = async function(dataUrl, processedInfo) {
   }
 
   let recognizedText = '';
+  const ocrInput = processedInfo?.ocrDataUrl || dataUrl;
 
-  // 1. Tenta TextDetector nativo do navegador se disponível (ultra-rápido, <150ms, sem download)
+  // 1. Tenta TextDetector nativo do navegador se disponível (Chrome nativo, <150ms)
   if ('TextDetector' in window && processedInfo?.canvas) {
     try {
       if (statusText) statusText.innerText = "Lendo texto com motor nativo...";
-      if (progressBar) progressBar.style.width = '55%';
+      if (progressBar) progressBar.style.width = '45%';
       const detector = new window.TextDetector();
       const detected = await detector.detect(processedInfo.canvas);
       if (detected && detected.length > 0) {
@@ -2846,58 +2887,267 @@ window.runEssayOCR = async function(dataUrl, processedInfo) {
     }
   }
 
-  // 2. Se não obteve texto pelo TextDetector nativo, tenta Tesseract com timeout rigoroso de 4s
+  // 2. Se não obteve pelo motor nativo, executa Tesseract com modelo rápido em português (4.0.0_fast ~980KB)
   if (!recognizedText && typeof Tesseract !== 'undefined') {
     try {
-      if (statusText) statusText.innerText = "Transcrevendo com motor OCR...";
-      if (progressBar) progressBar.style.width = '70%';
+      if (statusText) statusText.innerText = "Iniciando motor OCR em português...";
+      if (progressBar) progressBar.style.width = '20%';
 
       const tesseractPromise = (async () => {
-        const worker = await Tesseract.createWorker(['por', 'eng'], 1, {
-          langPath: 'https://cdn.jsdelivr.net/gh/naptha/tessdata@gh-pages/4.0.0',
+        const worker = await Tesseract.createWorker('por', 1, {
+          langPath: 'https://tessdata.projectnaptha.com/4.0.0_fast',
           logger: m => {
-            if (m.status === 'recognizing text') {
+            if (m.status === 'loading language traineddata') {
               const p = Math.round((m.progress || 0) * 100);
-              if (progressBar) progressBar.style.width = `${Math.max(50, Math.min(95, p))}%`;
+              if (statusText) statusText.innerText = `Baixando modelo em português... ${p}%`;
+              if (progressBar) progressBar.style.width = `${Math.min(45, p * 0.45)}%`;
+            } else if (m.status === 'recognizing text') {
+              const p = Math.round((m.progress || 0) * 100);
+              if (statusText) statusText.innerText = `Lendo e transcrevendo linhas... ${p}%`;
+              if (progressBar) progressBar.style.width = `${45 + Math.min(50, p * 0.5)}%`;
+            } else if (m.status) {
+              if (statusText) statusText.innerText = "Processando contraste e caligrafia...";
             }
           }
         });
-        const ret = await worker.recognize(dataUrl);
-        await worker.terminate();
+
+        window.currentOcrWorker = worker;
+        const ret = await worker.recognize(ocrInput);
+        try { await worker.terminate(); } catch (e) {}
+        window.currentOcrWorker = null;
         return ret?.data?.text || '';
       })();
 
+      // Timeout seguro de 25s (tempo realista para baixar 980KB e processar sem travar)
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('timeout')), 3800)
+        setTimeout(() => reject(new Error('timeout')), 25000)
       );
 
       recognizedText = await Promise.race([tesseractPromise, timeoutPromise]);
     } catch (err) {
-      console.warn("OCR automático completou ou atingiu timeout seguro sem travar a interface.");
+      console.warn("OCR completou ou atingiu limite:", err);
+      if (window.currentOcrWorker) {
+        try { await window.currentOcrWorker.terminate(); } catch (e) {}
+        window.currentOcrWorker = null;
+      }
     }
   }
 
-  // 3. Finalização garantida: o loader SEMPRE fecha e o usuário nunca fica travado
+  // 3. Finalização garantida: o loader fecha e o usuário tem controle
   if (progressBar) progressBar.style.width = '100%';
   if (statusText) statusText.innerText = "Concluído!";
 
-  if (recognizedText && recognizedText.trim().length > 15) {
-    let cleanText = recognizedText.trim().replace(/\r\n/g, '\n').replace(/\n{3,}/g, '\n\n');
+  setTimeout(() => {
+    if (loader) loader.classList.add('hidden');
+  }, 300);
+
+  if (recognizedText && recognizedText.trim().length > 10) {
+    let cleanText = recognizedText.trim()
+      .replace(/\r\n/g, '\n')
+      .replace(/\n{3,}/g, '\n\n')
+      .replace(/\|/g, 'I');
+
     if (textarea) textarea.value = cleanText;
     onTranscribedTextareaInput();
     if (typeof showToast === 'function') {
-      showToast("Texto transcrito! Revise e confirme as linhas da folha.");
+      showToast("Texto transcrito com sucesso! Revise eventuais palavras.");
     }
   } else {
-    // Foto carregada e linhas preservadas: pronto para digitar ou colar
+    // Foto carregada e linhas preservadas: pronto para digitar ou ditar
     if (typeof showToast === 'function') {
-      showToast(`Foto recebida! ${suggestedLines} linhas oficiais registradas. Revise ou digite o texto ao lado.`);
+      showToast(`Foto recebida! ${suggestedLines} linhas oficiais registradas. Use o Ditado por Voz 🎙️ ou digite o texto.`);
     }
   }
+};
 
-  setTimeout(() => {
-    if (loader) loader.classList.add('hidden');
-  }, 350);
+window.runManualOcrRetry = function() {
+  const imgPreview = document.getElementById('essay-photo-modal-preview');
+  if (!imgPreview || !imgPreview.src) {
+    alert("Por favor, tire ou selecione uma foto primeiro.");
+    return;
+  }
+  const loader = document.getElementById('essay-photo-ocr-loader');
+  const statusText = document.getElementById('essay-ocr-status-text');
+  const progressBar = document.getElementById('essay-ocr-progress-bar');
+  if (loader) loader.classList.remove('hidden');
+  if (statusText) statusText.innerText = "Reiniciando leitura da caligrafia...";
+  if (progressBar) progressBar.style.width = '15%';
+
+  const currentLines = parseInt(document.getElementById('essay-photo-lines-stepper')?.value, 10) || 28;
+  runEssayOCR(imgPreview.src, { ocrDataUrl: imgPreview.src, detectedLines: currentLines });
+};
+
+// -----------------------------------------------------------------------------
+// DITADO POR VOZ (SPEECH-TO-TEXT EM PORTUGUÊS)
+// -----------------------------------------------------------------------------
+window.essaySpeechRecognition = null;
+window.isEssayDictating = false;
+
+window.toggleVoiceDictation = function() {
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRec) {
+    alert("O reconhecimento de voz pelo microfone está disponível no Google Chrome, Microsoft Edge ou Safari no celular.\n\nVocê também pode digitar ou colar o texto diretamente no campo.");
+    return;
+  }
+
+  const btn = document.getElementById('btn-voice-dictation');
+  const textarea = document.getElementById('essay-photo-transcribed-textarea');
+
+  if (window.isEssayDictating && window.essaySpeechRecognition) {
+    try { window.essaySpeechRecognition.stop(); } catch (e) {}
+    window.isEssayDictating = false;
+    resetDictationBtn();
+    return;
+  }
+
+  try {
+    window.essaySpeechRecognition = new SpeechRec();
+    window.essaySpeechRecognition.lang = 'pt-BR';
+    window.essaySpeechRecognition.continuous = true;
+    window.essaySpeechRecognition.interimResults = true;
+
+    let baseText = (textarea?.value || '').trim();
+    if (baseText) baseText += '\n';
+
+    window.essaySpeechRecognition.onstart = () => {
+      window.isEssayDictating = true;
+      if (btn) {
+        btn.className = "px-2.5 py-1 rounded-lg bg-rose-600 text-white text-[11px] font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs animate-pulse";
+        btn.innerHTML = '<i class="fa-solid fa-microphone-lines"></i> <span>Ouvindo... (Clique para Concluir)</span>';
+      }
+      if (typeof showToast === 'function') {
+        showToast("🎙️ Ditado ativo! Leia o texto da sua redação em voz alta.");
+      }
+    };
+
+    window.essaySpeechRecognition.onresult = (event) => {
+      let finalTranscript = '';
+      let interimTranscript = '';
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript + ' ';
+        } else {
+          interimTranscript += event.results[i][0].transcript;
+        }
+      }
+      if (textarea) {
+        textarea.value = (baseText + finalTranscript + (interimTranscript ? interimTranscript : '')).trim();
+        onTranscribedTextareaInput();
+      }
+      if (finalTranscript) {
+        baseText += finalTranscript;
+      }
+    };
+
+    window.essaySpeechRecognition.onerror = (e) => {
+      console.warn("Aviso no ditado de voz:", e);
+      window.isEssayDictating = false;
+      resetDictationBtn();
+    };
+
+    window.essaySpeechRecognition.onend = () => {
+      window.isEssayDictating = false;
+      resetDictationBtn();
+      if (textarea) onTranscribedTextareaInput();
+    };
+
+    function resetDictationBtn() {
+      if (btn) {
+        btn.className = "px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950 dark:hover:bg-indigo-900 text-indigo-700 dark:text-indigo-300 text-[11px] font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs";
+        btn.innerHTML = '<i class="fa-solid fa-microphone text-indigo-500"></i> <span>Ditado por Voz</span>';
+      }
+    }
+
+    window.essaySpeechRecognition.start();
+  } catch (err) {
+    console.error("Falha ao iniciar ditado:", err);
+    alert("Não foi possível acessar o microfone. Verifique as permissões de áudio do seu navegador.");
+  }
+};
+
+window.labSpeechRecognition = null;
+window.isLabDictating = false;
+
+window.toggleLabVoiceDictation = function() {
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRec) {
+    alert("O reconhecimento de voz pelo microfone está disponível no Google Chrome, Microsoft Edge ou Safari.\n\nVocê também pode digitar ou colar o texto diretamente no laboratório.");
+    return;
+  }
+
+  const btn = document.getElementById('btn-lab-voice-dictation');
+  const textarea = document.getElementById('essay-textarea');
+
+  if (window.isLabDictating && window.labSpeechRecognition) {
+    try { window.labSpeechRecognition.stop(); } catch (e) {}
+    window.isLabDictating = false;
+    resetLabDictationBtn();
+    return;
+  }
+
+  try {
+    window.labSpeechRecognition = new SpeechRec();
+    window.labSpeechRecognition.lang = 'pt-BR';
+    window.labSpeechRecognition.continuous = true;
+    window.labSpeechRecognition.interimResults = true;
+
+    let baseText = (textarea?.value || '').trim();
+    if (baseText) baseText += '\n';
+
+    window.labSpeechRecognition.onstart = () => {
+      window.isLabDictating = true;
+      if (btn) {
+        btn.className = "px-3.5 py-2.5 rounded-xl border border-rose-300 dark:border-rose-800 bg-rose-600 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer animate-pulse";
+        btn.innerHTML = '<i class="fa-solid fa-microphone-lines"></i> <span>Ouvindo... (Clique para Parar)</span>';
+      }
+      if (typeof showToast === 'function') {
+        showToast("🎙️ Ditado ativo! Fale o texto da sua redação.");
+      }
+    };
+
+    window.labSpeechRecognition.onresult = (event) => {
+      let finalTranscript = '';
+      let interimTranscript = '';
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript + ' ';
+        } else {
+          interimTranscript += event.results[i][0].transcript;
+        }
+      }
+      if (textarea) {
+        textarea.value = (baseText + finalTranscript + (interimTranscript ? interimTranscript : '')).trim();
+        updateEssayCounters();
+      }
+      if (finalTranscript) {
+        baseText += finalTranscript;
+      }
+    };
+
+    window.labSpeechRecognition.onerror = (e) => {
+      console.warn("Aviso no ditado de voz do lab:", e);
+      window.isLabDictating = false;
+      resetLabDictationBtn();
+    };
+
+    window.labSpeechRecognition.onend = () => {
+      window.isLabDictating = false;
+      resetLabDictationBtn();
+      if (textarea) updateEssayCounters();
+    };
+
+    function resetLabDictationBtn() {
+      if (btn) {
+        btn.className = "px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition flex items-center gap-1.5 shadow-sm cursor-pointer";
+        btn.innerHTML = '<i class="fa-solid fa-microphone text-indigo-500"></i> <span>Falar / Ditado por Voz</span>';
+      }
+    }
+
+    window.labSpeechRecognition.start();
+  } catch (err) {
+    console.error("Falha ao iniciar ditado:", err);
+    alert("Não foi possível acessar o microfone. Verifique as permissões de áudio do seu navegador.");
+  }
 };
 
 window.transcribeWithGeminiVision = async function() {
@@ -2914,7 +3164,11 @@ window.transcribeWithGeminiVision = async function() {
 
   let apiKey = localStorage.getItem('brilhavest_gemini_key') || '';
   if (!apiKey) {
-    apiKey = prompt("Para transcrever caligrafia com a IA do Google Gemini Vision, digite sua Chave de API do Gemini (gratuita em https://aistudio.google.com/):\n\n(A chave será salva com segurança no seu navegador):");
+    apiKey = prompt(
+      "Para transcrever caligrafia com a IA do Google Gemini Vision:\n\n" +
+      "1. Cole sua Chave de API do Gemini (gratuita em https://aistudio.google.com/app/apikey)\n" +
+      "2. A chave fica salva com segurança no seu próprio navegador:\n"
+    );
     if (!apiKey || !apiKey.trim()) return;
     apiKey = apiKey.trim();
     localStorage.setItem('brilhavest_gemini_key', apiKey);
@@ -2935,7 +3189,7 @@ window.transcribeWithGeminiVision = async function() {
 
     if (progressBar) progressBar.style.width = '70%';
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+    let response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -2954,6 +3208,27 @@ window.transcribeWithGeminiVision = async function() {
     });
 
     if (!response.ok) {
+      // Fallback para gemini-2.0-flash
+      response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { text: "Transcreva rigorosamente todo o texto manuscrito presente nesta folha de redação, respeitando parágrafos. Retorne APENAS o texto da redação." },
+              {
+                inline_data: {
+                  mime_type: mimeType,
+                  data: base64Data
+                }
+              }
+            ]
+          }]
+        })
+      });
+    }
+
+    if (!response.ok) {
       const errJson = await response.json().catch(() => ({}));
       throw new Error(errJson?.error?.message || `Erro ${response.status} na API do Gemini`);
     }
@@ -2961,7 +3236,7 @@ window.transcribeWithGeminiVision = async function() {
     const json = await response.json();
     const candidateText = json?.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
-    if (candidateText && candidateText.trim().length > 20) {
+    if (candidateText && candidateText.trim().length > 15) {
       if (textarea) textarea.value = candidateText.trim();
       onTranscribedTextareaInput();
       if (typeof showToast === 'function') {
@@ -2972,7 +3247,12 @@ window.transcribeWithGeminiVision = async function() {
     }
   } catch (err) {
     console.error("Erro no Gemini Vision:", err);
-    alert(`Erro na transcrição Gemini Vision: ${err.message}\n\nVocê pode revisar ou colar o texto diretamente no campo ao lado.`);
+    if (err.message && err.message.includes('API key not valid')) {
+      localStorage.removeItem('brilhavest_gemini_key');
+      alert("A chave de API informada é inválida. Por favor, gere uma chave gratuita em https://aistudio.google.com/ e tente novamente.");
+    } else {
+      alert(`Erro na transcrição Gemini Vision: ${err.message}\n\nVocê pode revisar ou usar o Ditado por Voz para ler a redação.`);
+    }
   } finally {
     if (progressBar) progressBar.style.width = '100%';
     setTimeout(() => {

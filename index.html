@@ -1396,6 +1396,17 @@
 
             <button 
               type="button" 
+              id="btn-lab-voice-dictation"
+              onclick="toggleLabVoiceDictation()" 
+              class="px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition flex items-center gap-1.5 shadow-sm cursor-pointer"
+              title="Ler sua redação pelo microfone para escrever automaticamente sem precisar digitar"
+            >
+              <i class="fa-solid fa-microphone text-indigo-500"></i>
+              <span>Falar / Ditado por Voz</span>
+            </button>
+
+            <button 
+              type="button" 
               onclick="loadSampleNota1000()" 
               class="px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition flex items-center gap-1.5 shadow-sm cursor-pointer"
               title="Carregar um exemplo oficial de Redação Nota 1000 para testar o corretor de IA"
@@ -1906,24 +1917,39 @@
 
                 <!-- Textarea de Revisão da Transcrição -->
                 <div>
-                  <label for="essay-photo-transcribed-textarea" class="block text-xs font-bold text-slate-800 dark:text-slate-100 mb-1 flex items-center justify-between">
-                    <span class="flex items-center gap-1.5">
+                  <div class="flex items-center justify-between mb-1.5">
+                    <label for="essay-photo-transcribed-textarea" class="text-xs font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
                       <i class="fa-solid fa-pen-to-square text-indigo-500"></i> Texto Transcrito (Editável):
-                    </span>
-                    <span id="essay-photo-transcribed-words" class="text-[10px] font-mono text-slate-400">0 palavras</span>
-                  </label>
+                    </label>
+                    <div class="flex items-center gap-2">
+                      <button 
+                        type="button" 
+                        id="btn-voice-dictation" 
+                        onclick="toggleVoiceDictation()" 
+                        class="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950 dark:hover:bg-indigo-900 text-indigo-700 dark:text-indigo-300 text-[11px] font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+                        title="Ler ou falar a redação pelo microfone para preencher automaticamente"
+                      >
+                        <i class="fa-solid fa-microphone text-indigo-500"></i>
+                        <span>Ditado por Voz</span>
+                      </button>
+                      <span id="essay-photo-transcribed-words" class="text-[10px] font-mono text-slate-400">0 palavras</span>
+                    </div>
+                  </div>
                   <textarea 
                     id="essay-photo-transcribed-textarea" 
                     rows="8" 
                     oninput="onTranscribedTextareaInput()"
-                    placeholder="O texto transcrito da foto aparecerá aqui... Você poderá corrigir eventuais palavras antes de enviar ao laboratório." 
+                    placeholder="O texto da foto aparecerá aqui... Você também pode usar o 'Ditado por Voz' 🎙️ para ler em voz alta ou digitar/corrigir livremente antes de enviar." 
                     class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs text-slate-800 dark:text-slate-100 leading-relaxed focus:outline-none focus:ring-2 focus:ring-indigo-500 font-sans"
                   ></textarea>
                 </div>
               </div>
 
-              <div class="mt-2 text-[10px] text-slate-400">
-                Você pode editar livremente qualquer palavra que o OCR possa ter confundido.
+              <div class="mt-2 flex flex-wrap items-center justify-between gap-2 text-[10px] text-slate-400">
+                <span>Edite livremente qualquer palavra que precisar.</span>
+                <button type="button" onclick="runManualOcrRetry()" class="text-indigo-600 dark:text-indigo-400 hover:underline font-semibold flex items-center gap-1 cursor-pointer" title="Processar imagem da foto novamente">
+                  <i class="fa-solid fa-rotate text-xs"></i> Tentar OCR Novamente
+                </button>
               </div>
             </div>
           </div>
