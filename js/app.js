@@ -2663,7 +2663,7 @@ function preprocessEssayPhoto(file, maxDim = 1200) {
 
         const optimizedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
 
-        // Versão com realce de contraste específico para maximizar a leitura OCR de caligrafia
+        // Realce adaptativo de contraste suave que preserva a tinta da caneta sem escurecer o papel
         let ocrDataUrl = optimizedDataUrl;
         try {
           const ocrCanvas = document.createElement('canvas');
@@ -2673,13 +2673,24 @@ function preprocessEssayPhoto(file, maxDim = 1200) {
           ocrCtx.drawImage(canvas, 0, 0);
           const ocrImgData = ocrCtx.getImageData(0, 0, width, height);
           const d = ocrImgData.data;
+
+          // Amostra luminosidade média do fundo
+          let sumLum = 0;
+          let samples = 0;
+          for (let i = 0; i < d.length; i += 32) {
+            sumLum += 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+            samples++;
+          }
+          const avgLum = samples > 0 ? (sumLum / samples) : 160;
+          const threshold = Math.max(80, Math.min(190, avgLum - 25));
+
           for (let i = 0; i < d.length; i += 4) {
             const lum = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
-            // Clareia papel de fundo e acentua a tinta da caneta
-            const contrast = lum > 145 ? Math.min(255, lum * 1.25) : Math.max(0, lum * 0.7);
-            d[i] = contrast;
-            d[i + 1] = contrast;
-            d[i + 2] = contrast;
+            // Clareia papel de fundo e acentua o contraste da tinta
+            const val = lum > threshold ? Math.min(255, lum * 1.15) : Math.max(0, lum * 0.85);
+            d[i] = val;
+            d[i + 1] = val;
+            d[i + 2] = val;
           }
           ocrCtx.putImageData(ocrImgData, 0, 0);
           ocrDataUrl = ocrCanvas.toDataURL('image/jpeg', 0.9);
@@ -2778,7 +2789,9 @@ window.openEssayPhotoModal = function(imgSrc, defaultLines = 28, initialText = '
   const imgPreview = document.getElementById('essay-photo-modal-preview');
   const stepper = document.getElementById('essay-photo-lines-stepper');
   const textarea = document.getElementById('essay-photo-transcribed-textarea');
+  const alertEl = document.getElementById('essay-ocr-handwriting-alert');
 
+  if (alertEl) alertEl.classList.add('hidden');
   if (imgPreview) imgPreview.src = imgSrc || '';
   if (stepper) {
     stepper.value = defaultLines;
@@ -2856,6 +2869,54 @@ window.onTranscribedTextareaInput = function() {
   countEl.innerText = `${words} palavras`;
 };
 
+function isOcrTextGibberish(text, confidence = 100) {
+  if (!text || text.trim().length < 15) return true;
+  if (confidence > 0 && confidence < 52) return true;
+
+  const clean = text.trim();
+  const totalChars = clean.length;
+
+  // 1. Proporção excessiva de caracteres especiais (linhas, barras, acentos soltos, pipes)
+  const symbols = (clean.match(/[_~|\\/{}\[\]\^@#$%*<>+=]/g) || []).length;
+  if (symbols / totalChars > 0.08) return true;
+
+  // 2. Análise de palavras: conta palavras reais vs ruídos
+  const words = clean.split(/\s+/).filter(Boolean);
+  if (words.length < 5) return true;
+
+  const validShortWords = new Set([
+    'a', 'o', 'e', 'é', 'em', 'de', 'do', 'da', 'no', 'na', 'um', 'uma',
+    'se', 'ao', 'à', 'já', 'ou', 'os', 'as', 'dos', 'das', 'nos', 'nas',
+    'por', 'mas', 'que', 'com', 'sem', 'sob', 'nem', 'sua', 'seu', 'meu'
+  ]);
+
+  let weirdWords = 0;
+  for (const w of words) {
+    const stripped = w.replace(/[^a-zA-ZÀ-ÿ]/g, '');
+    if (stripped.length === 0) {
+      weirdWords++;
+    } else if (stripped.length <= 2 && !validShortWords.has(stripped.toLowerCase())) {
+      weirdWords++;
+    } else if (/(.)\1{3,}/.test(stripped)) {
+      weirdWords++;
+    }
+  }
+
+  if (weirdWords / words.length > 0.28) return true;
+  return false;
+}
+
+function cleanOcrText(text) {
+  if (!text) return '';
+  return text
+    .replace(/\r\n/g, '\n')
+    .replace(/[|]/g, ' ')
+    .replace(/[_~\\/{}\[\]\^@#$%*<>+=]/g, '')
+    .replace(/ +/g, ' ')
+    .replace(/\n\s*\n\s*\n+/g, '\n\n')
+    .trim();
+}
+
 window.runEssayOCR = async function(dataUrl, processedInfo) {
   const loader = document.getElementById('essay-photo-ocr-loader');
   const statusText = document.getElementById('essay-ocr-status-text');
@@ -2870,6 +2931,7 @@ window.runEssayOCR = async function(dataUrl, processedInfo) {
   }
 
   let recognizedText = '';
+  let ocrConfidence = 0;
   const ocrInput = processedInfo?.ocrDataUrl || dataUrl;
 
   // 1. Tenta TextDetector nativo do navegador se disponível (Chrome nativo, <150ms)
@@ -2881,6 +2943,7 @@ window.runEssayOCR = async function(dataUrl, processedInfo) {
       const detected = await detector.detect(processedInfo.canvas);
       if (detected && detected.length > 0) {
         recognizedText = detected.map(d => d.rawValue).filter(Boolean).join('\n');
+        ocrConfidence = 85;
       }
     } catch (e) {
       console.warn("TextDetector nativo:", e);
@@ -2890,7 +2953,7 @@ window.runEssayOCR = async function(dataUrl, processedInfo) {
   // 2. Se não obteve pelo motor nativo, executa Tesseract com modelo rápido em português (4.0.0_fast ~980KB)
   if (!recognizedText && typeof Tesseract !== 'undefined') {
     try {
-      if (statusText) statusText.innerText = "Iniciando motor OCR em português...";
+      if (statusText) statusText.innerText = "Analisando linhas em português...";
       if (progressBar) progressBar.style.width = '20%';
 
       const tesseractPromise = (async () => {
@@ -2906,7 +2969,7 @@ window.runEssayOCR = async function(dataUrl, processedInfo) {
               if (statusText) statusText.innerText = `Lendo e transcrevendo linhas... ${p}%`;
               if (progressBar) progressBar.style.width = `${45 + Math.min(50, p * 0.5)}%`;
             } else if (m.status) {
-              if (statusText) statusText.innerText = "Processando contraste e caligrafia...";
+              if (statusText) statusText.innerText = "Processando traços e contraste...";
             }
           }
         });
@@ -2915,7 +2978,10 @@ window.runEssayOCR = async function(dataUrl, processedInfo) {
         const ret = await worker.recognize(ocrInput);
         try { await worker.terminate(); } catch (e) {}
         window.currentOcrWorker = null;
-        return ret?.data?.text || '';
+        return {
+          text: ret?.data?.text || '',
+          confidence: ret?.data?.confidence || 0
+        };
       })();
 
       // Timeout seguro de 25s (tempo realista para baixar 980KB e processar sem travar)
@@ -2923,7 +2989,9 @@ window.runEssayOCR = async function(dataUrl, processedInfo) {
         setTimeout(() => reject(new Error('timeout')), 25000)
       );
 
-      recognizedText = await Promise.race([tesseractPromise, timeoutPromise]);
+      const ocrResult = await Promise.race([tesseractPromise, timeoutPromise]);
+      recognizedText = ocrResult?.text || '';
+      ocrConfidence = ocrResult?.confidence || 0;
     } catch (err) {
       console.warn("OCR completou ou atingiu limite:", err);
       if (window.currentOcrWorker) {
@@ -2941,21 +3009,28 @@ window.runEssayOCR = async function(dataUrl, processedInfo) {
     if (loader) loader.classList.add('hidden');
   }, 300);
 
-  if (recognizedText && recognizedText.trim().length > 10) {
-    let cleanText = recognizedText.trim()
-      .replace(/\r\n/g, '\n')
-      .replace(/\n{3,}/g, '\n\n')
-      .replace(/\|/g, 'I');
+  const isGibberish = isOcrTextGibberish(recognizedText, ocrConfidence);
+  const alertEl = document.getElementById('essay-ocr-handwriting-alert');
 
-    if (textarea) textarea.value = cleanText;
+  if (!isGibberish && recognizedText.trim().length > 30) {
+    const cleaned = cleanOcrText(recognizedText);
+    if (textarea) textarea.value = cleaned;
+    if (alertEl) alertEl.classList.add('hidden');
     onTranscribedTextareaInput();
     if (typeof showToast === 'function') {
       showToast("Texto transcrito com sucesso! Revise eventuais palavras.");
     }
   } else {
-    // Foto carregada e linhas preservadas: pronto para digitar ou ditar
+    // Detectou caligrafia cursiva manuscrita que gera palavras aleatórias no OCR de texto impresso
+    if (textarea && !textarea.value.trim()) {
+      textarea.value = '';
+      textarea.placeholder = `Caligrafia manuscrita identificada! As ${suggestedLines} linhas oficiais foram registradas. Use o Ditado por Voz 🎙️ para ler sua redação em voz alta ou digite/cole seu texto aqui.`;
+    }
+    if (alertEl) {
+      alertEl.classList.remove('hidden');
+    }
     if (typeof showToast === 'function') {
-      showToast(`Foto recebida! ${suggestedLines} linhas oficiais registradas. Use o Ditado por Voz 🎙️ ou digite o texto.`);
+      showToast(`Folha identificada com ${suggestedLines} linhas! Use o Ditado por Voz 🎙️ ou Gemini Vision para ler caligrafia.`);
     }
   }
 };
@@ -3011,6 +3086,8 @@ window.toggleVoiceDictation = function() {
 
     window.essaySpeechRecognition.onstart = () => {
       window.isEssayDictating = true;
+      const alertEl = document.getElementById('essay-ocr-handwriting-alert');
+      if (alertEl) alertEl.classList.add('hidden');
       if (btn) {
         btn.className = "px-2.5 py-1 rounded-lg bg-rose-600 text-white text-[11px] font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs animate-pulse";
         btn.innerHTML = '<i class="fa-solid fa-microphone-lines"></i> <span>Ouvindo... (Clique para Concluir)</span>';
@@ -3238,6 +3315,8 @@ window.transcribeWithGeminiVision = async function() {
 
     if (candidateText && candidateText.trim().length > 15) {
       if (textarea) textarea.value = candidateText.trim();
+      const alertEl = document.getElementById('essay-ocr-handwriting-alert');
+      if (alertEl) alertEl.classList.add('hidden');
       onTranscribedTextareaInput();
       if (typeof showToast === 'function') {
         showToast("Redação transcrita com sucesso pelo Gemini Vision!");

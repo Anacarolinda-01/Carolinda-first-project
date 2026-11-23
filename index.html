@@ -1915,6 +1915,25 @@
                   </p>
                 </div>
 
+                <!-- Alerta Inteligente de Caligrafia Manuscrita -->
+                <div id="essay-ocr-handwriting-alert" class="hidden mb-3 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 text-xs text-amber-900 dark:text-amber-200 animate-fadeIn">
+                  <div class="font-bold flex items-center gap-1.5 mb-1 text-amber-800 dark:text-amber-300">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span>Caligrafia manuscrita detectada na folha</span>
+                  </div>
+                  <p class="text-[11px] leading-relaxed text-amber-800/90 dark:text-amber-300/90 mb-2">
+                    O leitor local básico pode trocar palavras em letras cursivas feitas à mão. Para uma transcrição rápida e 100% exata:
+                  </p>
+                  <div class="flex flex-wrap gap-2">
+                    <button type="button" onclick="toggleVoiceDictation()" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition cursor-pointer">
+                      <i class="fa-solid fa-microphone"></i> 🎙️ Ler em Voz Alta (Ditado 100% Preciso)
+                    </button>
+                    <button type="button" onclick="transcribeWithGeminiVision()" class="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition cursor-pointer">
+                      <i class="fa-solid fa-wand-magic-sparkles"></i> Transcrever com Gemini Vision
+                    </button>
+                  </div>
+                </div>
+
                 <!-- Textarea de Revisão da Transcrição -->
                 <div>
                   <div class="flex items-center justify-between mb-1.5">
