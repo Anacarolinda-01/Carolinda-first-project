@@ -3138,6 +3138,7 @@ window.deleteCustomFlashcard = function(cardId) {
 // ==========================================
 
 const MOTIVATIONAL_QUOTES = [
+  // Frases Originais de Constância & Aprovação
   "Você é muito mais capaz do que imagina! 15 minutinhos de treino hoje te deixam um passo mais perto da sua vaga.",
   "A constância vence o talento quando o talento não é constante. Um dia de cada vez, você vai conquistar a sua aprovação!",
   "Não deixe a insegurança falar mais alto: cada questão errada no treino é um erro a menos no dia oficial da prova!",
@@ -3145,7 +3146,59 @@ const MOTIVATIONAL_QUOTES = [
   "Sentiu cansaço? É super normal. Faça apenas 5 flashcards ou leia 1 repertório hoje. O importante é manter a chama acesa!",
   "Acredite no seu potencial: redação e simulados são habilidades que se desenvolvem com treino. Você consegue!",
   "Você não precisa ser perfeito todos os dias, só precisa não desistir. Cada esforço silencioso de hoje será recompensado!",
-  "Confie na sua preparação! O segredo dos grandes aprovados foi continuar caminhando mesmo nos dias difíceis."
+  "Confie na sua preparação! O segredo dos grandes aprovados foi continuar caminhando mesmo nos dias difíceis.",
+
+  // Novas Frases de Incentivo, Fé, Foco e Resiliência
+  "Você não precisa dar conta de tudo hoje, só precisa não desistir de si mesma.",
+  "Dias difíceis também fazem parte da construção de sonhos grandes.",
+  "O cansaço de hoje não define a capacidade que você tem de vencer amanhã.",
+  "Continue, mesmo que seja devagar. O importante é não parar.",
+  "Você já chegou longe demais para esquecer o motivo pelo qual começou.",
+  "Nem todo dia você terá motivação, mas pode encontrar força para dar mais um passo.",
+  "Seu esforço de hoje está construindo oportunidades que você ainda nem conhece.",
+  "Descansar não é desistir; é recuperar as forças para continuar.",
+  "Não compare o seu processo com o de ninguém. Cada pessoa tem seu próprio tempo.",
+  "Você é capaz de aprender aquilo que hoje parece impossível.",
+  "Estude pela vida que você sonha viver.",
+  "Cada página estudada é um pequeno passo em direção ao seu futuro.",
+  "Talvez hoje ninguém veja o seu esforço, mas ele não será em vão.",
+  "O futuro que você deseja começa nas escolhas que você faz hoje.",
+  "Não deixe uma dificuldade temporária fazer você abandonar um sonho permanente.",
+  "Sua aprovação não depende de um dia perfeito, mas de uma caminhada de persistência.",
+  "Um dia, você vai olhar para trás e agradecer por não ter desistido.",
+  "Você está investindo em algo que ninguém poderá tirar de você: seu conhecimento.",
+  "O caminho pode ser difícil, mas isso não significa que você seja incapaz de percorrê-lo.",
+  "Continue estudando. A sua versão do futuro merece essa dedicação.",
+  "Você não precisa saber tudo para começar; precisa começar para aprender.",
+  "Errar uma questão não significa ser incapaz, significa que existe algo a aprender.",
+  "Não transforme uma nota ruim em uma definição sobre quem você é.",
+  "Você é maior do que as dificuldades que encontra pelo caminho.",
+  "Não saber hoje não significa não conseguir amanhã.",
+  "A dificuldade é parte do aprendizado, não uma prova de que você deve parar.",
+  "Você também merece ocupar os lugares com os quais sonha.",
+  "Acredite no potencial que talvez ainda esteja descobrindo em si mesma.",
+  "Não é necessário ser a melhor todos os dias, apenas continuar tentando.",
+  "A sua capacidade não é determinada pela quantidade de vezes que você erra.",
+  "\"Tudo posso naquele que me fortalece.\" — Filipenses 4:13",
+  "\"Entrega o teu caminho ao Senhor; confia nele, e ele tudo fará.\" — Salmos 37:5",
+  "\"Não temas, porque eu sou contigo.\" — Isaías 41:10",
+  "\"O Senhor é a minha força e o meu escudo.\" — Salmos 28:7",
+  "\"Esforça-te, e tem bom ânimo.\" — Josué 1:9",
+  "\"Os que esperam no Senhor renovarão as suas forças.\" — Isaías 40:31",
+  "\"Tudo tem o seu tempo determinado.\" — Eclesiastes 3:1",
+  "\"O coração do homem considera o seu caminho, mas o Senhor lhe dirige os passos.\" — Provérbios 16:9",
+  "\"Porque para Deus nada é impossível.\" — Lucas 1:37",
+  "\"Lança o teu cuidado sobre o Senhor, e ele te susterá.\" — Salmos 55:22",
+  "Nem todas as sementes florescem imediatamente; algumas precisam de tempo, cuidado e paciência.",
+  "O progresso que você não percebe também é progresso.",
+  "Não desista só porque ainda não chegou ao resultado que deseja.",
+  "Pequenos esforços repetidos podem transformar grandes sonhos em realidade.",
+  "Você não precisa enxergar todo o caminho, apenas dar o próximo passo.",
+  "Continue plantando, mesmo quando ainda não chegou a estação da colheita.",
+  "A disciplina de hoje pode ser a realização de amanhã.",
+  "Não permita que o medo do resultado roube a alegria de tentar.",
+  "Faça o que estiver ao seu alcance e confie a Deus aquilo que você não pode controlar.",
+  "Continue. Ore, estude, confie e faça a sua parte. Deus conhece o seu coração, os seus esforços e os sonhos que você carrega."
 ];
 
 function initMotivationAndNotifications() {
@@ -3154,9 +3207,15 @@ function initMotivationAndNotifications() {
   autoPromptNotificationPermission();
 }
 
-function updateDailyMotivationQuote() {
+function updateDailyMotivationQuote(forceRandom = false) {
   const quoteEl = document.getElementById('motivational-quote-text');
   if (!quoteEl) return;
+
+  if (forceRandom) {
+    const randomIndex = Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length);
+    quoteEl.textContent = `"${MOTIVATIONAL_QUOTES[randomIndex]}"`;
+    return;
+  }
 
   const dayIndex = Math.floor(Date.now() / (1000 * 60 * 60 * 24)) % MOTIVATIONAL_QUOTES.length;
   quoteEl.textContent = `"${MOTIVATIONAL_QUOTES[dayIndex]}"`;
